@@ -50,6 +50,8 @@ Board::Board() {
   RewriteBoardLayout();
   LinkCornersAndStreetsToTiles();
 
+  AddHarbors();
+
   // Temporary Check
   for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
     std::cout << "Tile " << tile_i << " : " << tile_names[tiles[tile_i].type] << " "
@@ -292,5 +294,15 @@ void Board::LinkCornersAndStreetsToTiles() {
     }
 
     current_column++;
+  }
+}
+
+/*
+ * Adds harbor types to pre-defined corners of selected tiles.
+ */
+void Board::AddHarbors() {
+  for (auto harbor : harbors) {
+    tiles[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
+    tiles[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
   }
 }
