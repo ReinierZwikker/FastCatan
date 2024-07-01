@@ -33,7 +33,46 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
 Board::Board() {
 
   CalculateTileDifference();
+  InitializeTilesAndTokens();
 
+  // ## Create the map ##
+  bool shuffling_map = true;
+  while (shuffling_map) {
+    ShuffleTilesAndTokens();
+    AddNumberTokensToTiles();
+
+    // ## Check number tokens ##
+    if (CheckNumberTokens()) {
+      shuffling_map = false;
+    }
+  }
+
+  RewriteBoardLayout();
+  LinkCornersAndStreetsToTiles();
+
+  // Temporary Check
+  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
+    std::cout << "Tile " << tile_i << " : " << tile_names[tiles[tile_i].type] << " "
+              << tiles[tile_i].number_token << std::endl;
+  }
+}
+
+/*
+ * Calculates the difference in column size between two rows.
+ * This is repeated for every row of hexagons on the board and
+ * added to the tile_diff array.
+ */
+void Board::CalculateTileDifference() {
+  for (int row = 0; row < board_rows - 1; row++) {
+    tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
+  }
+}
+
+/*
+ * Initializes the tiles array with all possible tiles and the
+ * number_tokens array with all possible number tokens.
+ */
+void Board::InitializeTilesAndTokens() {
   // ## Initialize tiles ##
   int current_tile_i = 0;
   for (int tile_type_i = 0; tile_type_i < 6; tile_type_i++) {
@@ -62,93 +101,38 @@ Board::Board() {
     }
   }
   if (current_number_token_i != amount_of_tokens) { throw std::invalid_argument("Number tokens do not add up!"); }
+}
 
-  // ## Create the map ##
-  bool shuffling_map = true;
-  while (shuffling_map) {
-    // ## Shuffle tiles and tokens ##
-    auto random_seed = std::random_device {};
-    auto rng = std::default_random_engine {random_seed()};
-    std::shuffle(tiles, tiles + amount_of_tiles, rng);
-    std::shuffle(number_tokens, number_tokens + amount_of_tokens, rng);
+/*
+ * Randomly shuffles the tiles and tokens using the default random engine.
+ */
+void Board::ShuffleTilesAndTokens() {
+  auto random_seed = std::random_device {};
+  auto rng = std::default_random_engine {random_seed()};
+  std::shuffle(tiles, tiles + amount_of_tiles, rng);
+  std::shuffle(number_tokens, number_tokens + amount_of_tokens, rng);
+}
 
-    // ## Add number tokens to tiles ##
-    int current_token = 0;
-    for (auto & tile : tiles) {
-      if (tile.type != tile_type::Desert) {
-        tile.number_token = number_tokens[current_token];
+/*
+ * Adds the number tokens to the tile structs
+ */
+void Board::AddNumberTokensToTiles() {
+  int current_token = 0;
+  for (auto & tile : tiles) {
+    if (tile.type != tile_type::Desert) {
+      tile.number_token = number_tokens[current_token];
 
-        current_token++;
-      }
+      current_token++;
     }
-
-    // ## Check number tokens ##
-    if (CheckNumberTokens()) {
-      shuffling_map = false;
-    }
-  }
-
-  // ## Rewrite the map layout form ##
-  for (int row = 0; row < board_rows; row++) {
-    if (row < board_rows - 1){
-      tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
-
-      if (tile_diff[row] == 1) {
-        row_decrease[row + 1] = 1;
-      }
-      else if (tile_diff[row] == -1) {
-        row_decrease[row + 1] = 0;
-      }
-      else {
-        throw std::invalid_argument("Map layout not supported!");
-      }
-    }
-    else {
-      row_decrease[row + 1] = 1;
-    }
-
-    previous_rows[row + 1] = previous_rows[row] + 2 * tiles_in_row[row] + 1 + 2 * row_decrease[row];
-  }
-  previous_rows[0] = 0;  // I don't know why this has to be there, but it breaks without it
-
-  // ## Link tiles ##
-  int current_column = 0;
-  int current_row = 0;
-
-  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
-    // Check if the next row is reached
-    if (current_column + 1 > tiles_in_row[current_row]) {
-      current_column = 0;
-      current_row++;
-    }
-
-    // Top side of the tile
-    for (int corner_i = 0; corner_i < 3; corner_i++) {
-      int corner_id = corner_i + 2 * current_column + previous_rows[current_row] + row_decrease[current_row];
-      tiles[tile_i].corners[corner_i] = &corners[corner_id];
-      tiles[tile_i].streets[corner_i] = &streets[corner_id];
-    }
-    // Bottom side of the tile
-    for (int corner_i = 0; corner_i < 3; corner_i++) {
-      int corner_id = 3 - corner_i + 2 * current_column + previous_rows[current_row + 1] - row_decrease[current_row + 1];
-      tiles[tile_i].corners[corner_i + 3] = &corners[corner_id];
-      tiles[tile_i].streets[corner_i + 3] = &streets[corner_id];
-    }
-
-    current_column++;
-  }
-
-  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
-    std::cout << "Tile " << tile_i << " : " << tile_names[tiles[tile_i].type] << " " << tiles[tile_i].number_token << std::endl;
   }
 }
 
-void Board::CalculateTileDifference() {
-  for (int row = 0; row < board_rows - 1; row++) {
-    tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
-  }
-}
-
+/*
+ * Checks if the number tokens follow the rules, namely:
+ * - Adjacent number tokens can not be two 6's
+ * - Adjacent number tokens can not be two 8's
+ * - Adjacent number tokens can not be a 6 and an 8
+ */
 bool Board::CheckNumberTokens() {
   // ## Check number tokens ##
   int current_column = 0;
@@ -216,7 +200,7 @@ bool Board::CheckNumberTokens() {
           }
         }
       }
-      // Top row
+        // Top row
       else if (current_row == 0) {
         if (difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
           int tile_id_bottom = tile_i + tiles_in_row[current_row] + difference;
@@ -230,7 +214,7 @@ bool Board::CheckNumberTokens() {
           }
         }
       }
-      // Bottom row
+        // Bottom row
       else {
         if (previous_difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
           int tile_id_top = tile_i - tiles_in_row[current_row - 1] + previous_difference;
@@ -250,4 +234,63 @@ bool Board::CheckNumberTokens() {
   }
 
   return true;
+}
+
+/*
+ * Write the board layout to a more usable form for further calculations.
+ */
+void Board::RewriteBoardLayout() {
+  for (int row = 0; row < board_rows; row++) {
+    if (row < board_rows - 1){
+      tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
+
+      if (tile_diff[row] == 1) {
+        row_decrease[row + 1] = 1;
+      }
+      else if (tile_diff[row] == -1) {
+        row_decrease[row + 1] = 0;
+      }
+      else {
+        throw std::invalid_argument("Map layout not supported!");
+      }
+    }
+    else {
+      row_decrease[row + 1] = 1;
+    }
+
+    previous_rows[row + 1] = previous_rows[row] + 2 * tiles_in_row[row] + 1 + 2 * row_decrease[row];
+  }
+  previous_rows[0] = 0;  // I don't know why this has to be there, but it breaks without it
+}
+
+/*
+ * Link the corners and streets to the respective tile
+ * and repeat this for all tiles.
+ */
+void Board::LinkCornersAndStreetsToTiles() {
+  int current_column = 0;
+  int current_row = 0;
+
+  for (auto & tile : tiles) {
+    // Check if the next row is reached
+    if (current_column + 1 > tiles_in_row[current_row]) {
+      current_column = 0;
+      current_row++;
+    }
+
+    // Top side of the tile
+    for (int corner_i = 0; corner_i < 3; corner_i++) {
+      int corner_id = corner_i + 2 * current_column + previous_rows[current_row] + row_decrease[current_row];
+      tile.corners[corner_i] = &corners[corner_id];
+      tile.streets[corner_i] = &streets[corner_id];
+    }
+    // Bottom side of the tile
+    for (int corner_i = 0; corner_i < 3; corner_i++) {
+      int corner_id = 3 - corner_i + 2 * current_column + previous_rows[current_row + 1] - row_decrease[current_row + 1];
+      tile.corners[corner_i + 3] = &corners[corner_id];
+      tile.streets[corner_i + 3] = &streets[corner_id];
+    }
+
+    current_column++;
+  }
 }

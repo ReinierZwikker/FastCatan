@@ -54,11 +54,8 @@ struct Tile {
 };
 
 struct Board {
-
+public:
   Board();
-private:
-  bool CheckNumberTokens();
-  void CalculateTileDifference();
 
   constexpr static const int amount_of_tiles = 19;
   constexpr static const int amount_of_tokens = 18;
@@ -67,6 +64,17 @@ private:
   Tile tiles[amount_of_tiles]{};
   corner_occupancy corners[54] = {corner_occupancy::EmptyCorner};
   street_occupancy streets[71] = {street_occupancy::EmptyStreet};
+
+private:
+  void CalculateTileDifference();
+  void InitializeTilesAndTokens();
+
+  void ShuffleTilesAndTokens();
+  void AddNumberTokensToTiles();
+  bool CheckNumberTokens();
+
+  void RewriteBoardLayout();
+  void LinkCornersAndStreetsToTiles();
 
   // Map layout (amount of tiles in every row)
   constexpr static const int board_rows = 5;
