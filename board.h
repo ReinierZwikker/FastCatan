@@ -56,8 +56,12 @@ struct Tile {
 struct Board {
 
   Board();
+private:
+  bool CheckNumberTokens();
+  void CalculateTileDifference();
 
   constexpr static const int amount_of_tiles = 19;
+  constexpr static const int amount_of_tokens = 18;
 
   // Initialize Empty
   Tile tiles[amount_of_tiles]{};
@@ -76,6 +80,15 @@ struct Board {
   constexpr static const tile_type tile_order[6] = {
     Desert, Hills, Forest, Mountains, Fields, Pasture
   };
+
+  // Max amount of number tokens in the game
+  /* From the rule book:
+   * The 18 number tokens are marked with the numerals "2" through "12".
+   * There is only one "2" and one "12". There is no "7".*/
+  constexpr static const int max_number_tokens[11] = {1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 1};
+  int number_tokens[amount_of_tokens]{};
+
+  bool show_number_token_debug = false;
 };
 
 #endif //FASTCATAN_BOARD_H
