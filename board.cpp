@@ -313,28 +313,28 @@ void Board::AddHarbors() {
  * Prints board to the console.
  * */
 void Board::print_board() {
-  char board_chars[744] = "               .         .         .\n"
-                          "          .         .         .         .\n"
-                          "              X00       X00       X00\n"
-                          "          .         .         .         .\n"
-                          "     .         .         .         .         .\n"
-                          "         X00       X00       X00       X00\n"
-                          "     .         .         .         .         .\n"
+  char board_chars[884] = "               .         .         .               \n"
+                          "          .         .         .         .          \n"
+                          "              X00       X00       X00              \n"
+                          "          .         .         .         .          \n"
+                          "     .         .         .         .         .     \n"
+                          "         X00       X00       X00       X00         \n"
+                          "     .         .         .         .         .     \n"
                           ".         .         .         .         .         .\n"
-                          "    X00       X00       X00       X00       X00\n"
+                          "    X00       X00       X00       X00       X00    \n"
                           ".         .         .         .         .         .\n"
-                          "     .         .         .         .         .\n"
-                          "         X00       X00       X00       X00\n"
-                          "     .         .         .         .         .\n"
-                          "          .         .         .         .\n"
-                          "              X00       X00       X00\n"
-                          "          .         .         .         .\n"
-                          "               .         .         .";
+                          "     .         .         .         .         .     \n"
+                          "         X00       X00       X00       X00         \n"
+                          "     .         .         .         .         .     \n"
+                          "          .         .         .         .          \n"
+                          "              X00       X00       X00              \n"
+                          "          .         .         .         .          \n"
+                          "               .         .         .               ";
 
   int current_corner = 0;
   int current_tile = 0;
 
-  for (int char_i = 0; char_i < 744; ++char_i) {
+  for (int char_i = 0; char_i < 884; ++char_i) {
     switch (board_chars[char_i]) {
       case 'X':
         board_chars[char_i] = tile_shortnames[tiles[current_tile].type];
