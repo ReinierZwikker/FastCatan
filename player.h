@@ -1,18 +1,10 @@
-//
-// Created by reini on 25/04/2024.
-//
-
 #ifndef FASTCATAN_PLAYER_H
 #define FASTCATAN_PLAYER_H
 
 struct Player {
-
+public:
     Player();
-
-    void start_round();
-
-    void step_round();
-
+    bool activated = false;
 };
 
 #endif //FASTCATAN_PLAYER_H

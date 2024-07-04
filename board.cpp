@@ -1,7 +1,3 @@
-//
-// Created by reini on 25/04/2024.
-//
-
 #include <algorithm>
 #include <random>
 #include <stdexcept>
@@ -84,7 +80,13 @@ void Board::InitializeTilesAndTokens() {
 
       // Set initial values
       current_tile.type = tile_order[tile_type_i];
-      current_tile.robber = false;
+
+      // Robber starts on the Desert Tile
+      if (current_tile.type == Desert) {
+        current_tile.robber = true;
+      } else {
+        current_tile.robber = false;
+      }
 
       // Append to tiles
       tiles[current_tile_i] = current_tile;
@@ -305,4 +307,68 @@ void Board::AddHarbors() {
     tiles[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
     tiles[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
   }
+}
+
+/*
+ * Prints board to the console.
+ * */
+void Board::print_board() {
+  char board_chars[620] = "             .       .       .\n"
+                          "         .       .       .       .\n"
+                          "            X00     X00     X00\n"
+                          "         .       .       .       .\n"
+                          "     .       .       .       .       .\n"
+                          "        X00     X00     X00     X00\n"
+                          "     .       .       .       .       .\n"
+                          " .       .       .       .       .       .\n"
+                          "    X00     X00     X00     X00     X00\n"
+                          " .       .       .       .       .       .\n"
+                          "     .       .       .       .       .\n"
+                          "        X00     X00     X00     X00\n"
+                          "     .       .       .       .       .\n"
+                          "         .       .       .       .\n"
+                          "            X00     X00     X00\n"
+                          "         .       .       .       .\n"
+                          "             .       .       .";
+
+  int current_corner = 0;
+  int current_tile = 0;
+
+  for (int char_i = 0; char_i < 620; ++char_i) {
+    switch (board_chars[char_i]) {
+      case 'X':
+        board_chars[char_i] = tile_shortnames[tiles[current_tile].type];
+        if (tiles[current_tile].robber) {
+          char_i++;
+          board_chars[char_i] = '_';
+          char_i++;
+          board_chars[char_i] = 'R';
+        } else if (tiles[current_tile].type == Desert) {
+          char_i++;
+          board_chars[char_i] = '_';
+          char_i++;
+          board_chars[char_i] = '_';
+        } else if (tiles[current_tile].number_token < 10) {
+          char_i += 2;
+          board_chars[char_i] = '0' + tiles[current_tile].number_token;
+        } else {
+          char_i++;
+          board_chars[char_i] = '1';
+          char_i++;
+          board_chars[char_i] = '0' + (tiles[current_tile].number_token - 10);
+        }
+        current_tile++;
+        break;
+      case '.':
+        // TODO Check if village or city, fill in here
+        break;
+      // TODO draw streets
+      default:
+        break;
+    }
+
+  }
+
+
+  printf("\n       ==   CURRENT BOARD   ==\n\n%s\n\n", board_chars);
 }

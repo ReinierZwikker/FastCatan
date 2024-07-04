@@ -1,15 +1,23 @@
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "game.h"
 
-int main() {
+int main(int argc, char *argv[]) {
 
-  Game game = Game(3);
+  int amount_of_players = atoi(argv[1]);
 
-  game.start_round();
+  printf("\n  ===  FastCatan  ===  \n\nStarting game with %d players!\n", amount_of_players);
 
-  game.step_round();
-  game.step_round();
+   Game game = Game(amount_of_players);
+
+   game.board.print_board();
+
+//  game.start_round();
+
+//  game.step_round();
+//  game.step_round();
 
   return 0;
 }

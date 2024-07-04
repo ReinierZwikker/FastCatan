@@ -1,7 +1,3 @@
-//
-// Created by reini on 25/04/2024.
-//
-
 #ifndef FASTCATAN_BOARD_H
 #define FASTCATAN_BOARD_H
 
@@ -15,6 +11,15 @@ enum tile_type {
 };
 
 static const char* tile_names[] = {"Desert", "Hills", "Forest", "Mountains", "Fields", "Pasture"};
+
+static const char tile_shortnames[] = {
+        'D',  // Desert
+        'H',  // Hills
+        'F',  // Forest
+        'M',  // Mountains
+        'f',  // Fields
+        'P'   // Pasture
+};
 
 enum corner_occupancy {
   EmptyCorner,
@@ -83,6 +88,8 @@ public:
   Corner corners[54]{};
   Street streets[71]{};
 
+  void print_board();
+
 private:
   void CalculateTileDifference();
   void InitializeTilesAndTokens();
@@ -133,6 +140,7 @@ private:
   Harbor harbor_9 = Harbor(3, 5, 0, harbor_types::Lumber);
 
   const Harbor harbors[9] = {harbor_1, harbor_2, harbor_3, harbor_4, harbor_5, harbor_6, harbor_7, harbor_8, harbor_9};
+
 };
 
 #endif //FASTCATAN_BOARD_H
