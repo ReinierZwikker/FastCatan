@@ -28,6 +28,12 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
 
 Board::Board() {
 
+  int first_corner = 0;
+  for (int corner_row_i = 0; corner_row_i < 6; ++corner_row_i) {
+    corners[corner_row_i] = &corner_array[first_corner];
+    first_corner += corners_per_row[corner_row_i];
+  }
+
   CalculateTileDifference();
   InitializeTilesAndTokens();
 
@@ -272,6 +278,9 @@ void Board::RewriteBoardLayout() {
  * and repeat this for all tiles.
  */
 void Board::LinkCornersAndStreetsToTiles() {
+
+  // TODO Rewrite this function to use the new corner 2D array
+
   int current_column = 0;
   int current_row = 0;
 
@@ -285,13 +294,13 @@ void Board::LinkCornersAndStreetsToTiles() {
     // Top side of the tile
     for (int corner_i = 0; corner_i < 3; corner_i++) {
       int corner_id = corner_i + 2 * current_column + previous_rows[current_row] + row_decrease[current_row];
-      tile.corners[corner_i] = &corners[corner_id];
+      tile.corners[corner_i] = &corner_array[corner_id];
       tile.streets[corner_i] = &streets[corner_id];
     }
     // Bottom side of the tile
     for (int corner_i = 0; corner_i < 3; corner_i++) {
       int corner_id = 3 - corner_i + 2 * current_column + previous_rows[current_row + 1] - row_decrease[current_row + 1];
-      tile.corners[corner_i + 3] = &corners[corner_id];
+      tile.corners[corner_i + 3] = &corner_array[corner_id];
       tile.streets[corner_i + 3] = &streets[corner_id];
     }
 
@@ -331,13 +340,26 @@ void Board::print_board() {
                           "          .         .         .         .          \n"
                           "               .         .         .               ";
 
-  int current_corner = 0;
   int current_tile = 0;
+
+  // Test corners
+  // tiles[0].corners[1]->occupancy = GreenVillage;
+  // tiles[3].corners[3]->occupancy = RedVillage;
+  // tiles[6].corners[2]->occupancy = RedCity;
+  // tiles[10].corners[4]->occupancy = BlueCity;
+  // tiles[15].corners[5]->occupancy = GreenVillage;
+
+  int current_corner_row = 0;
+  int current_corner_column = 1;
+  bool odd_row = true;
 
   for (int char_i = 0; char_i < 884; ++char_i) {
     switch (board_chars[char_i]) {
+
       case 'X':
+
         board_chars[char_i] = tile_shortnames[tiles[current_tile].type];
+
         if (tiles[current_tile].robber) {
           char_i++;
           board_chars[char_i] = '_';
@@ -357,12 +379,51 @@ void Board::print_board() {
           char_i++;
           board_chars[char_i] = '0' + (tiles[current_tile].number_token - 10);
         }
+
         current_tile++;
+
         break;
+
       case '.':
-        // TODO Check if village or city, fill in here
+
+        board_chars[char_i] = corner_shortnames[corners[current_corner_row][current_corner_column].occupancy];
+
+        current_corner_column += 2;
+
+        // If at the end of the row
+        if (current_corner_column >= corners_per_row[current_corner_row]) {
+          // Check if northern or southern hemisphere
+          if (current_corner_row < 3) {
+            // If we have done the even row continue to next row
+            if (!odd_row) {
+              if (current_corner_row == 2) {
+                odd_row = false;
+                current_corner_column = (int) 0;
+              } else {
+                odd_row = !odd_row;
+                current_corner_column = (int) odd_row;
+              }
+              current_corner_row++;
+            } else { // Otherwise restart this row but now the other numbers
+              odd_row = !odd_row;
+              current_corner_column = (int) odd_row;
+            }
+          } else { // Same but inverted for other hemisphere
+            if (odd_row) {
+              odd_row = !odd_row;
+              current_corner_column = (int) !odd_row;
+              current_corner_row++;
+            } else {
+              odd_row = !odd_row;
+              current_corner_column = (int) !odd_row;
+            }
+          }
+        }
+
         break;
+
       // TODO draw streets
+
       default:
         break;
     }

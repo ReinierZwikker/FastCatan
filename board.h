@@ -10,15 +10,21 @@ enum tile_type {
   Pasture
 };
 
-static const char* tile_names[] = {"Desert", "Hills", "Forest", "Mountains", "Fields", "Pasture"};
+static const char* tile_names[] = {
+  "Desert",
+  "Hills",
+  "Forest",
+  "Mountains",
+  "Fields",
+  "Pasture"};
 
 static const char tile_shortnames[] = {
-        'D',  // Desert
-        'H',  // Hills
-        'F',  // Forest
-        'M',  // Mountains
-        'f',  // Fields
-        'P'   // Pasture
+  'D',  // Desert
+  'H',  // Hills
+  'F',  // Forest
+  'M',  // Mountains
+  'f',  // Fields
+  'P'   // Pasture
 };
 
 enum corner_occupancy {
@@ -31,6 +37,18 @@ enum corner_occupancy {
   WhiteCity,
   BlueVillage,
   BlueCity
+};
+
+static const char corner_shortnames[] = {
+  '.',  // EmptyCorner
+  'g',  // GreenVillage
+  'G',  // GreenCity
+  'r',  // RedVillage
+  'R',  // RedCity
+  'w',  // WhiteVillage
+  'W',  // WhiteCity
+  'b',  // BlueVillage
+  'B'   // BlueCity
 };
 
 enum street_occupancy {
@@ -82,11 +100,16 @@ public:
 
   constexpr static const int amount_of_tiles = 19;
   constexpr static const int amount_of_tokens = 18;
+  constexpr static const int corners_per_row[6] = {7, 9, 11, 11, 9, 7};
+
 
   // Initialize Empty
   Tile tiles[amount_of_tiles]{};
-  Corner corners[54]{};
+
+  Corner corner_array[54];
+  Corner *corners[6]{};
   Street streets[71]{};
+
 
   void print_board();
 
