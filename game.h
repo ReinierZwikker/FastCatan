@@ -15,9 +15,11 @@ struct Game {
 
     int current_round = 0;
 
-    void start_round();
+    void start_game();
 
     void step_round();
+
+    void give_cards(int rolled_number);
 };
 
 #endif //FASTCATAN_GAME_H

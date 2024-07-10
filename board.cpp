@@ -321,7 +321,7 @@ void Board::AddHarbors() {
 /*
  * Prints board to the console.
  * */
-void Board::print_board() {
+void Board::PrintBoard() {
   char board_chars[884] = "               .         .         .               \n"
                           "          .         .         .         .          \n"
                           "              X00       X00       X00              \n"
@@ -343,11 +343,11 @@ void Board::print_board() {
   int current_tile = 0;
 
   // Test corners
-  // tiles[0].corners[1]->occupancy = GreenVillage;
-  // tiles[3].corners[3]->occupancy = RedVillage;
-  // tiles[6].corners[2]->occupancy = RedCity;
-  // tiles[10].corners[4]->occupancy = BlueCity;
-  // tiles[15].corners[5]->occupancy = GreenVillage;
+  // tiles[0].corners[1]->occupancy = Village;
+  // tiles[3].corners[3]->occupancy = Village;
+  // tiles[6].corners[2]->occupancy = City;
+  // tiles[10].corners[4]->occupancy = City;
+  // tiles[15].corners[5]->occupancy = Village;
 
   int current_corner_row = 0;
   int current_corner_column = 1;
@@ -432,6 +432,12 @@ void Board::print_board() {
 
 
   printf("\n              ==   CURRENT BOARD   ==\n\n%s\n\n"
-         "    D = Desert, H = Hills, F = Forest,\n"
-         "    M = Mountains, f = Fields, P = Pasture\n", board_chars);
+           "    D = Desert, H = Hills, F = Forest,\n"
+           "    M = Mountains, f = Fields, P = Pasture\n", board_chars);
+}
+
+bool Board::CheckValidity() {
+  // Check if all villages, cities, and streets are valid
+
+  return false;
 }

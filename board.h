@@ -1,73 +1,7 @@
 #ifndef FASTCATAN_BOARD_H
 #define FASTCATAN_BOARD_H
 
-enum tile_type {
-  Desert,
-  Hills,
-  Forest,
-  Mountains,
-  Fields,
-  Pasture
-};
-
-static const char* tile_names[] = {
-  "Desert",
-  "Hills",
-  "Forest",
-  "Mountains",
-  "Fields",
-  "Pasture"};
-
-static const char tile_shortnames[] = {
-  'D',  // Desert
-  'H',  // Hills
-  'F',  // Forest
-  'M',  // Mountains
-  'f',  // Fields
-  'P'   // Pasture
-};
-
-enum corner_occupancy {
-  EmptyCorner,
-  GreenVillage,
-  GreenCity,
-  RedVillage,
-  RedCity,
-  WhiteVillage,
-  WhiteCity,
-  BlueVillage,
-  BlueCity
-};
-
-static const char corner_shortnames[] = {
-  '.',  // EmptyCorner
-  'g',  // GreenVillage
-  'G',  // GreenCity
-  'r',  // RedVillage
-  'R',  // RedCity
-  'w',  // WhiteVillage
-  'W',  // WhiteCity
-  'b',  // BlueVillage
-  'B'   // BlueCity
-};
-
-enum street_occupancy {
-  EmptyStreet,
-  GreenStreet,
-  RedStreet,
-  WhiteStreet,
-  BlueStreet
-};
-
-enum harbor_types {
-  None,
-  Generic,
-  Brick,
-  Grain,
-  Wool,
-  Lumber,
-  Ore
-};
+#include "components.h"
 
 struct Harbor {
   int tile_id;
@@ -77,12 +11,13 @@ struct Harbor {
 };
 
 struct Street {
-  street_occupancy occupancy = street_occupancy::EmptyStreet;  // What is occupying the corner
+  colors color = colors::Color_None;  // What is occupying the corner
 };
 
 struct Corner {
   corner_occupancy occupancy = corner_occupancy::EmptyCorner;  // What is occupying the corner
-  harbor_types harbor = harbor_types::None;  // What type of harbor is on this corner
+  colors color = colors::Color_None;
+  harbor_types harbor = harbor_types::Harbor_None;  // What type of harbor is on this corner
 };
 
 struct Tile {
@@ -111,7 +46,9 @@ public:
   Street streets[71]{};
 
 
-  void print_board();
+  void PrintBoard();
+
+  bool CheckValidity();
 
 private:
   void CalculateTileDifference();
@@ -152,15 +89,15 @@ private:
   constexpr static const int max_harbors[9] = {4, 1, 1, 1, 1, 1};
 
   // Hardcoded for now:
-  Harbor harbor_1 = Harbor(0, 0, 1, harbor_types::Generic);
-  Harbor harbor_2 = Harbor(1, 1, 2, harbor_types::Grain);
-  Harbor harbor_3 = Harbor(6, 1, 2, harbor_types::Ore);
-  Harbor harbor_4 = Harbor(11, 2, 3, harbor_types::Generic);
-  Harbor harbor_5 = Harbor(15, 3, 4, harbor_types::Wool);
-  Harbor harbor_6 = Harbor(17, 3, 4, harbor_types::Generic);
-  Harbor harbor_7 = Harbor(16, 4, 5, harbor_types::Generic);
-  Harbor harbor_8 = Harbor(12, 5, 0, harbor_types::Brick);
-  Harbor harbor_9 = Harbor(3, 5, 0, harbor_types::Lumber);
+  Harbor harbor_1 = Harbor(0, 0, 1, harbor_types::Harbor_Generic);
+  Harbor harbor_2 = Harbor(1, 1, 2, harbor_types::Harbor_Grain);
+  Harbor harbor_3 = Harbor(6, 1, 2, harbor_types::Harbor_Ore);
+  Harbor harbor_4 = Harbor(11, 2, 3, harbor_types::Harbor_Generic);
+  Harbor harbor_5 = Harbor(15, 3, 4, harbor_types::Harbor_Wool);
+  Harbor harbor_6 = Harbor(17, 3, 4, harbor_types::Harbor_Generic);
+  Harbor harbor_7 = Harbor(16, 4, 5, harbor_types::Harbor_Generic);
+  Harbor harbor_8 = Harbor(12, 5, 0, harbor_types::Harbor_Brick);
+  Harbor harbor_9 = Harbor(3, 5, 0, harbor_types::Harbor_Lumber);
 
   const Harbor harbors[9] = {harbor_1, harbor_2, harbor_3, harbor_4, harbor_5, harbor_6, harbor_7, harbor_8, harbor_9};
 

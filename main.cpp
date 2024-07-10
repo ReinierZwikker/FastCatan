@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 
    Game game = Game(amount_of_players);
 
-   game.board.print_board();
+  game.board.PrintBoard();
 
 //  game.start_round();
 
