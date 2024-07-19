@@ -28,6 +28,12 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
 
 Board::Board() {
 
+  int first_tile = 0;
+  for (int tile_row_i = 0; tile_row_i < 6; ++tile_row_i) {
+    tiles[tile_row_i] = &tile_array[first_tile];
+    first_tile += tiles_in_row[tile_row_i];
+  }
+
   int first_corner = 0;
   for (int corner_row_i = 0; corner_row_i < 6; ++corner_row_i) {
     corners[corner_row_i] = &corner_array[first_corner];
@@ -51,13 +57,14 @@ Board::Board() {
 
   RewriteBoardLayout();
   LinkCornersAndStreetsToTiles();
+  LinkStreetsToCorners();
 
   AddHarbors();
 
   // Temporary Check
   for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
-    std::cout << "Tile " << tile_i << " : " << tile_names[tiles[tile_i].type] << " "
-              << tiles[tile_i].number_token << std::endl;
+    std::cout << "Tile " << tile_i << " : " << tile_names[tile_array[tile_i].type] << " "
+              << tile_array[tile_i].number_token << std::endl;
   }
 }
 
@@ -73,11 +80,11 @@ void Board::CalculateTileDifference() {
 }
 
 /*
- * Initializes the tiles array with all possible tiles and the
+ * Initializes the tile_array array with all possible tile_array and the
  * number_tokens array with all possible number tokens.
  */
 void Board::InitializeTilesAndTokens() {
-  // ## Initialize tiles ##
+  // ## Initialize tile_array ##
   int current_tile_i = 0;
   for (int tile_type_i = 0; tile_type_i < 6; tile_type_i++) {
     for (int tile_i = 0; tile_i < max_terrain_tiles[tile_type_i]; tile_i++) {
@@ -94,8 +101,8 @@ void Board::InitializeTilesAndTokens() {
         current_tile.robber = false;
       }
 
-      // Append to tiles
-      tiles[current_tile_i] = current_tile;
+      // Append to tile_array
+      tile_array[current_tile_i] = current_tile;
       current_tile_i++;
     }
   }
@@ -114,12 +121,12 @@ void Board::InitializeTilesAndTokens() {
 }
 
 /*
- * Randomly shuffles the tiles and tokens using the default random engine.
+ * Randomly shuffles the tile_array and tokens using the default random engine.
  */
 void Board::ShuffleTilesAndTokens() {
   auto random_seed = std::random_device {};
   auto rng = std::default_random_engine {random_seed()};
-  std::shuffle(tiles, tiles + amount_of_tiles, rng);
+  std::shuffle(tile_array, tile_array + amount_of_tiles, rng);
   std::shuffle(number_tokens, number_tokens + amount_of_tokens, rng);
 }
 
@@ -128,7 +135,7 @@ void Board::ShuffleTilesAndTokens() {
  */
 void Board::AddNumberTokensToTiles() {
   int current_token = 0;
-  for (auto & tile : tiles) {
+  for (auto & tile : tile_array) {
     if (tile.type != tile_type::Desert) {
       tile.number_token = number_tokens[current_token];
 
@@ -173,7 +180,7 @@ bool Board::CheckNumberTokens() {
     }
 
     if (current_column + 1 != tiles_in_row[current_row]) {
-      mistake_found = compare_number_tokens(tiles[tile_i].number_token, tiles[tile_i + 1].number_token);
+      mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_i + 1].number_token);
       if (mistake_found) {
         if (show_number_token_debug) {
           std::cout << "1 Found mistake in number tokens between tile: " << tile_i << " and " << tile_i + 1
@@ -188,7 +195,7 @@ bool Board::CheckNumberTokens() {
       if (current_row != 0 && current_row + 1 != board_rows) {
         if (previous_difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
           int tile_id_top = tile_i - tiles_in_row[current_row - 1] + previous_difference;
-          mistake_found = compare_number_tokens(tiles[tile_i].number_token, tiles[tile_id_top].number_token);
+          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_top].number_token);
           if (mistake_found) {
             if (show_number_token_debug) {
               std::cout << "2 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_top
@@ -200,7 +207,7 @@ bool Board::CheckNumberTokens() {
 
         if (difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
           int tile_id_bottom = tile_i + tiles_in_row[current_row] + difference;
-          mistake_found = compare_number_tokens(tiles[tile_i].number_token, tiles[tile_id_bottom].number_token);
+          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_bottom].number_token);
           if (mistake_found) {
             if (show_number_token_debug) {
               std::cout << "3 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_bottom
@@ -214,7 +221,7 @@ bool Board::CheckNumberTokens() {
       else if (current_row == 0) {
         if (difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
           int tile_id_bottom = tile_i + tiles_in_row[current_row] + difference;
-          mistake_found = compare_number_tokens(tiles[tile_i].number_token, tiles[tile_id_bottom].number_token);
+          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_bottom].number_token);
           if (mistake_found) {
             if (show_number_token_debug) {
               std::cout << "4 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_bottom
@@ -228,7 +235,7 @@ bool Board::CheckNumberTokens() {
       else {
         if (previous_difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
           int tile_id_top = tile_i - tiles_in_row[current_row - 1] + previous_difference;
-          mistake_found = compare_number_tokens(tiles[tile_i].number_token, tiles[tile_id_top].number_token);
+          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_top].number_token);
           if (mistake_found) {
             if (show_number_token_debug) {
               std::cout << "5 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_top
@@ -275,16 +282,23 @@ void Board::RewriteBoardLayout() {
 
 /*
  * Link the corners and streets to the respective tile
- * and repeat this for all tiles.
+ * and repeat this for all tile_array.
  */
 void Board::LinkCornersAndStreetsToTiles() {
 
   // TODO Rewrite this function to use the new corner 2D array
 
+  /* TODO Fix error that causes the streets to be linked wrong
+   *    There are tiles that have multiple overlapping streets with neighbouring tiles,
+   *    which shouldn't be possible.
+   *    Problem: street array isn't ordered the same way as corners
+   *    Solution: Use correct street ordering scheme, see board.txt
+   */
+
   int current_column = 0;
   int current_row = 0;
 
-  for (auto & tile : tiles) {
+  for (auto & tile : tile_array) {
     // Check if the next row is reached
     if (current_column + 1 > tiles_in_row[current_row]) {
       current_column = 0;
@@ -296,12 +310,14 @@ void Board::LinkCornersAndStreetsToTiles() {
       int corner_id = corner_i + 2 * current_column + previous_rows[current_row] + row_decrease[current_row];
       tile.corners[corner_i] = &corner_array[corner_id];
       tile.streets[corner_i] = &streets[corner_id];
+      //                     TODO Fix this ^
     }
     // Bottom side of the tile
     for (int corner_i = 0; corner_i < 3; corner_i++) {
       int corner_id = 3 - corner_i + 2 * current_column + previous_rows[current_row + 1] - row_decrease[current_row + 1];
       tile.corners[corner_i + 3] = &corner_array[corner_id];
       tile.streets[corner_i + 3] = &streets[corner_id];
+      //                         TODO Fix this ^
     }
 
     current_column++;
@@ -309,12 +325,66 @@ void Board::LinkCornersAndStreetsToTiles() {
 }
 
 /*
- * Adds harbor types to pre-defined corners of selected tiles.
+ * Link the streets to the connected corner.
+ * Run after linking corners and streets to tile_array!
+ */
+void Board::LinkStreetsToCorners() {
+
+  // TODO Verify that this works after fixing street linking
+
+  int current_column = 0;
+  int current_row = 0;
+
+  for (auto & tile : tile_array) {
+    // Check if the next row is reached
+    if (current_column + 1 > tiles_in_row[current_row]) {
+      current_column = 0;
+      current_row++;
+    }
+
+    for (int corner_i = 0; corner_i < 6; ++corner_i) {
+      printf("\n");
+      for (int street_offset : {-1, 0}) {
+        auto street_i = corner_i + street_offset;
+        if (street_i < 0) {
+          street_i += 6;
+        }
+        bool continue_placing = true;
+        int current_slot_id = 0;
+        while (continue_placing) {
+          if (tile.corners[corner_i]->streets[current_slot_id] == nullptr) {
+            // Set street if slot is empty
+            tile.corners[corner_i]->streets[current_slot_id] = tile.streets[street_i];
+            printf("Adding street %d to corner %d in slot %d on tile (%d, %d)\n", street_i, corner_i, current_slot_id, current_row, current_column);
+            continue_placing = false;
+          } else if (tile.corners[corner_i]->streets[current_slot_id] == tile.streets[street_i]) {
+            // Stop if street is already added
+            continue_placing = false;
+          } else {
+            // Try next slot
+            current_slot_id++;
+            if (current_slot_id > 3) {
+              throw std::out_of_range("Cannot link street to corner!");
+            }
+          }
+        }
+      }
+    }
+
+    current_column++;
+  }
+}
+
+
+
+
+/*
+ * Adds harbor types to pre-defined corners of selected tile_array.
  */
 void Board::AddHarbors() {
   for (auto harbor : harbors) {
-    tiles[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
-    tiles[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
+    tile_array[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
+    tile_array[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
   }
 }
 
@@ -343,11 +413,11 @@ void Board::PrintBoard() {
   int current_tile = 0;
 
   // Test corners
-  // tiles[0].corners[1]->occupancy = Village;
-  // tiles[3].corners[3]->occupancy = Village;
-  // tiles[6].corners[2]->occupancy = City;
-  // tiles[10].corners[4]->occupancy = City;
-  // tiles[15].corners[5]->occupancy = Village;
+  // tile_array[0].corners[1]->occupancy = Village;
+  // tile_array[3].corners[3]->occupancy = Village;
+  // tile_array[6].corners[2]->occupancy = City;
+  // tile_array[10].corners[4]->occupancy = City;
+  // tile_array[15].corners[5]->occupancy = Village;
 
   int current_corner_row = 0;
   int current_corner_column = 1;
@@ -358,26 +428,26 @@ void Board::PrintBoard() {
 
       case 'X':
 
-        board_chars[char_i] = tile_shortnames[tiles[current_tile].type];
+        board_chars[char_i] = tile_shortnames[tile_array[current_tile].type];
 
-        if (tiles[current_tile].robber) {
+        if (tile_array[current_tile].robber) {
           char_i++;
           board_chars[char_i] = '_';
           char_i++;
           board_chars[char_i] = 'R';
-        } else if (tiles[current_tile].type == Desert) {
+        } else if (tile_array[current_tile].type == Desert) {
           char_i++;
           board_chars[char_i] = '_';
           char_i++;
           board_chars[char_i] = '_';
-        } else if (tiles[current_tile].number_token < 10) {
+        } else if (tile_array[current_tile].number_token < 10) {
           char_i += 2;
-          board_chars[char_i] = '0' + tiles[current_tile].number_token;
+          board_chars[char_i] = '0' + tile_array[current_tile].number_token;
         } else {
           char_i++;
           board_chars[char_i] = '1';
           char_i++;
-          board_chars[char_i] = '0' + (tiles[current_tile].number_token - 10);
+          board_chars[char_i] = '0' + (tile_array[current_tile].number_token - 10);
         }
 
         current_tile++;
@@ -438,6 +508,8 @@ void Board::PrintBoard() {
 
 bool Board::CheckValidity() {
   // Check if all villages, cities, and streets are valid
+
+
 
   return false;
 }
