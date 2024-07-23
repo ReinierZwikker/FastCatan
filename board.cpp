@@ -56,10 +56,12 @@ Board::Board() {
   }
 
   RewriteBoardLayout();
-  LinkCornersAndStreetsToTiles();
-  LinkStreetsToCorners();
 
-  AddHarbors();
+  // TODO Uncomment this when it works again
+//  LinkCornersAndStreetsToTiles();
+//  LinkStreetsToCorners();
+
+//  AddHarbors();
 
   // Temporary Check
   for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
@@ -74,7 +76,7 @@ Board::Board() {
  * added to the tile_diff array.
  */
 void Board::CalculateTileDifference() {
-  for (int row = 0; row < board_rows - 1; row++) {
+  for (int row = 0; row < tile_rows - 1; row++) {
     tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
   }
 }
@@ -92,7 +94,7 @@ void Board::InitializeTilesAndTokens() {
       Tile current_tile = {};
 
       // Set initial values
-      current_tile.type = tile_order[tile_type_i];
+      current_tile.type = index_tile(tile_type_i);
 
       // Robber starts on the Desert Tile
       if (current_tile.type == Desert) {
@@ -136,7 +138,7 @@ void Board::ShuffleTilesAndTokens() {
 void Board::AddNumberTokensToTiles() {
   int current_token = 0;
   for (auto & tile : tile_array) {
-    if (tile.type != tile_type::Desert) {
+    if (tile.type != TileType::Desert) {
       tile.number_token = number_tokens[current_token];
 
       current_token++;
@@ -192,7 +194,7 @@ bool Board::CheckNumberTokens() {
 
     if (current_column != tiles_in_row[current_row]) {
       // Middle row
-      if (current_row != 0 && current_row + 1 != board_rows) {
+      if (current_row != 0 && current_row + 1 != tile_rows) {
         if (previous_difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
           int tile_id_top = tile_i - tiles_in_row[current_row - 1] + previous_difference;
           mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_top].number_token);
@@ -257,8 +259,8 @@ bool Board::CheckNumberTokens() {
  * Write the board layout to a more usable form for further calculations.
  */
 void Board::RewriteBoardLayout() {
-  for (int row = 0; row < board_rows; row++) {
-    if (row < board_rows - 1){
+  for (int row = 0; row < tile_rows; row++) {
+    if (row < tile_rows - 1){
       tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
 
       if (tile_diff[row] == 1) {
@@ -506,10 +508,3 @@ void Board::PrintBoard() {
            "    M = Mountains, f = Fields, P = Pasture\n", board_chars);
 }
 
-bool Board::CheckValidity() {
-  // Check if all villages, cities, and streets are valid
-
-
-
-  return false;
-}
