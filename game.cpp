@@ -4,8 +4,8 @@
 
 
 Game::Game(int num_players) {
-  if (num_players < 0 or num_players > 6) {
-    throw std::invalid_argument("Maximum amount of players is six!");
+  if (num_players < 0 or num_players > 4) {
+    throw std::invalid_argument("Maximum amount of players is four!");
   }
 
   Game::num_players = num_players;

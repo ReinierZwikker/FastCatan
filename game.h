@@ -9,7 +9,7 @@ struct Game {
     Game(int num_players);
 
     int num_players;
-    Player players[6];
+    Player players[4];
 
     Board board;
 

@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 
   printf("\n  ===  FastCatan  ===  \n\nStarting game with %d players!\n", amount_of_players);
 
-   Game game = Game(amount_of_players);
+  Game game = Game(amount_of_players);
 
   game.board.PrintBoard();
 
