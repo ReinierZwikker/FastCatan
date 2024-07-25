@@ -18,6 +18,10 @@ public:
    * first_town(current_game_state)
    * second_town(current_game_state)
    * do_move(current_game_state)
+   *
+   * Connect using:
+   * https://linux.die.net/man/2/pipe
+   * https://linux.die.net/man/2/fork
    */
 
   Move first_town(...);
