@@ -28,58 +28,148 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
 
 Board::Board() {
 
-  int first_tile = 0;
-  for (int tile_row_i = 0; tile_row_i < 6; ++tile_row_i) {
-    tiles[tile_row_i] = &tile_array[first_tile];
-    first_tile += tiles_in_row[tile_row_i];
-  }
+  LinkParts();
 
-  int first_corner = 0;
-  for (int corner_row_i = 0; corner_row_i < 6; ++corner_row_i) {
-    corners[corner_row_i] = &corner_array[first_corner];
-    first_corner += corners_per_row[corner_row_i];
-  }
-
-  CalculateTileDifference();
-  InitializeTilesAndTokens();
-
-  // ## Create the map ##
-  bool shuffling_map = true;
-  while (shuffling_map) {
-    ShuffleTilesAndTokens();
-    AddNumberTokensToTiles();
-
-    // ## Check number tokens ##
-    if (CheckNumberTokens()) {
-      shuffling_map = false;
-    }
-  }
-
-  RewriteBoardLayout();
+//  InitializeTilesAndTokens();
+//
+//  // ## Create the map ##
+//  bool shuffling_map = true;
+//  while (shuffling_map) {
+//    ShuffleTilesAndTokens();
+//    AddNumberTokensToTiles();
+//
+//    // ## Check number tokens ##
+//    if (CheckNumberTokens()) {
+//      shuffling_map = false;
+//    }
+//  }
+//
+//  RewriteBoardLayout();
 
   // TODO Uncomment this when it works again
 //  LinkCornersAndStreetsToTiles();
 //  LinkStreetsToCorners();
 
 //  AddHarbors();
+  std::cout << "testing" << std::endl;
+  std::cout << "%p" << &corner_array[0] << "; " << "%p" << &corners[0][0] << "; " << "%p" << tiles[0][0].corners[0] << std::endl;
+  std::cout << tiles[0][0].corners[0]->occupancy << std::endl;
 
   // Temporary Check
-  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
-    std::cout << "Tile " << tile_i << " : " << tile_names[tile_array[tile_i].type] << " "
-              << tile_array[tile_i].number_token << std::endl;
+//  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
+//    std::cout << "Tile " << tile_i << " : " << tile_names[tile_array[tile_i].type] << " "
+//              << tile_array[tile_i].number_token << std::endl;
+//  }
+}
+
+void Board::LinkParts() {
+
+  /*
+   * Calculate difference in tiles in this row to the next row
+   */
+  for (int tile_row_i = 0; tile_row_i < tile_rows; tile_row_i++) {
+    if (tile_row_i < tile_rows - 1) {
+      tile_diff[tile_row_i] = tiles_in_row[tile_row_i + 1] - tiles_in_row[tile_row_i];
+    }
+    else {
+      tile_diff[tile_row_i] = -1;
+    }
+  }
+
+  /*
+   * Link the memory addresses from the tile_array to the tile rows
+   */
+  int first_tile = 0;
+  for (int tile_row_i = 0; tile_row_i < tile_rows; tile_row_i++) {
+    tiles[tile_row_i] = &tile_array[first_tile];
+    first_tile += tiles_in_row[tile_row_i];
+  }
+
+  /*
+   * Link the memory addresses from the corner_array to the corner rows
+   */
+  int first_corner = 0;
+  for (int corner_row_i = 0; corner_row_i < corner_rows; corner_row_i++) {
+    corners[corner_row_i] = &corner_array[first_corner];
+    first_corner += corners_in_row[corner_row_i];
+  }
+
+  /*
+   * Link the memory addresses from the street_array to the street rows
+   */
+  int first_street = 0;
+  for (int street_row_i = 0; street_row_i < street_rows; street_row_i++) {
+    streets[street_row_i] = &street_array[first_street];
+    first_street += streets_in_row[street_row_i];
+  }
+
+  /*
+   * Link corners and streets to their respective tile
+   */
+  bool expanding = false;
+  int shift_top, shift_bottom;
+  for (int tile_row_i = 0; tile_row_i < tile_rows; tile_row_i++) {
+    for (int tile_column_i = 0; tile_column_i < tiles_in_row[tile_row_i]; tile_column_i++) {
+      int offset = abs(tile_diff[tile_row_i]);
+
+      // The if-statement checks if the board is becoming wider or thinner
+      if (tile_diff[tile_row_i] > 0) {
+        expanding = true;
+
+        for (int i = 0; i < 3; i++) {
+          shift_top = 2 * tile_column_i + i;
+          shift_bottom = 2 * tile_column_i - i + 2 + offset;
+
+          // Corners
+          tiles[tile_row_i][tile_column_i].corners[i] = &corners[tile_row_i][shift_top];
+          tiles[tile_row_i][tile_column_i].corners[i + 3] = &corners[tile_row_i + 1][shift_bottom];
+          std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << ", " << shift_bottom << std::endl;
+
+          // Streets
+          if (i < 2) {
+            tiles[tile_row_i][tile_column_i].streets[i] = &streets[2 * tile_row_i][shift_top];
+            tiles[tile_row_i][tile_column_i].streets[i + 4] = &streets[2 * tile_row_i + 2][shift_bottom - 1];
+            // std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << tile_column_i + i << shift_bottom - 1 << std::endl;
+          }
+
+        }
+        std::cout << std::endl;
+      }
+      else {
+        for (int i = 0; i < 3; i++) {
+          if (expanding) {
+            shift_top = 2 * tile_column_i + i;
+            shift_bottom = 2 * tile_column_i - i + 2;
+          }
+          else {
+            shift_top = 2 * tile_column_i + i + offset;
+            shift_bottom = 2 * tile_column_i - i + 2;
+          }
+
+          // Corners
+          tiles[tile_row_i][tile_column_i].corners[i] = &corners[tile_row_i][shift_top];
+          tiles[tile_row_i][tile_column_i].corners[i + 3] = &corners[tile_row_i + 1][shift_bottom];
+          std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << ", " << shift_bottom << std::endl;
+
+          // Streets
+          if (i < 2) {
+            tiles[tile_row_i][tile_column_i].streets[i] = &streets[2 * tile_row_i][shift_top];
+            tiles[tile_row_i][tile_column_i].streets[i + 4] = &streets[2 * tile_row_i + 2][shift_bottom - 1];
+            //std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << tile_column_i + i << shift_bottom - 1 << std::endl;
+          }
+        }
+        std::cout << std::endl;
+      }
+      // Streets at the right sides of the tiles
+      tiles[tile_row_i][tile_column_i].streets[2] = &streets[2 * tile_row_i + 1][tile_column_i + 1];
+      tiles[tile_row_i][tile_column_i].streets[5] = &streets[2 * tile_row_i + 1][tile_column_i];
+    }
+    if (tile_diff[tile_row_i] < 0) {
+      expanding = false;
+    }
   }
 }
 
-/*
- * Calculates the difference in column size between two rows.
- * This is repeated for every row of hexagons on the board and
- * added to the tile_diff array.
- */
-void Board::CalculateTileDifference() {
-  for (int row = 0; row < tile_rows - 1; row++) {
-    tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
-  }
-}
 
 /*
  * Initializes the tile_array array with all possible tile_array and the
@@ -311,14 +401,14 @@ void Board::LinkCornersAndStreetsToTiles() {
     for (int corner_i = 0; corner_i < 3; corner_i++) {
       int corner_id = corner_i + 2 * current_column + previous_rows[current_row] + row_decrease[current_row];
       tile.corners[corner_i] = &corner_array[corner_id];
-      tile.streets[corner_i] = &streets[corner_id];
+      tile.streets[corner_i] = &street_array[corner_id];
       //                     TODO Fix this ^
     }
     // Bottom side of the tile
     for (int corner_i = 0; corner_i < 3; corner_i++) {
       int corner_id = 3 - corner_i + 2 * current_column + previous_rows[current_row + 1] - row_decrease[current_row + 1];
       tile.corners[corner_i + 3] = &corner_array[corner_id];
-      tile.streets[corner_i + 3] = &streets[corner_id];
+      tile.streets[corner_i + 3] = &street_array[corner_id];
       //                         TODO Fix this ^
     }
 
@@ -415,11 +505,11 @@ void Board::PrintBoard() {
   int current_tile = 0;
 
   // Test corners
-  // tile_array[0].corners[1]->occupancy = Village;
-  // tile_array[3].corners[3]->occupancy = Village;
-  // tile_array[6].corners[2]->occupancy = City;
-  // tile_array[10].corners[4]->occupancy = City;
-  // tile_array[15].corners[5]->occupancy = Village;
+   tile_array[0].corners[1]->occupancy = Village;
+   tile_array[3].corners[3]->occupancy = Village;
+   tile_array[6].corners[2]->occupancy = City;
+   tile_array[10].corners[4]->occupancy = City;
+   tile_array[15].corners[5]->occupancy = Village;
 
   int current_corner_row = 0;
   int current_corner_column = 1;
@@ -463,7 +553,7 @@ void Board::PrintBoard() {
         current_corner_column += 2;
 
         // If at the end of the row
-        if (current_corner_column >= corners_per_row[current_corner_row]) {
+        if (current_corner_column >= corners_in_row[current_corner_row]) {
           // Check if northern or southern hemisphere
           if (current_corner_row < 3) {
             // If we have done the even row continue to next row

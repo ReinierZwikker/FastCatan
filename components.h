@@ -12,9 +12,11 @@ static const int amount_of_streets = 71;
 
 static const int tile_rows = 5;
 static const int corner_rows = 6;
+static const int street_rows = 11;
 
-static const int corners_per_row[6] = {7, 9, 11, 11, 9, 7};
 static const int tiles_in_row[tile_rows] = {3, 4, 5, 4, 3};
+static const int corners_in_row[corner_rows] = {7, 9, 11, 11, 9, 7};
+static const int streets_in_row[street_rows] = {6, 4, 8, 5, 10, 6, 10, 5, 8, 4, 6};
 
 static const int amount_of_tokens = 18;
 static const int max_number_tokens[11] = {1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 1};
@@ -149,6 +151,18 @@ enum MoveType {
   Exchange,
   openingMove,
   NoMove
+};
+
+struct Move {
+  // Move template, only set applicable fields when communicating moves
+  MoveType move_type = NoMove;
+  int index = -1;
+  CornerOccupancy *corner = nullptr;
+  CornerOccupancy *street = nullptr;
+  Color other_player = NoColor;
+  CardType rx_card = NoCard;
+  CardType tx_card = NoCard;
+  int amount = -1;
 };
 
 

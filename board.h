@@ -41,14 +41,16 @@ public:
 
   Corner corner_array[amount_of_corners];
   Corner *corners[corner_rows]{};
-  Street streets[amount_of_streets]{};
+  Street street_array[amount_of_streets]{};
+  Street *streets[street_rows]{};
 
   void PrintBoard();
 
 
 
 private:
-  void CalculateTileDifference();
+  void LinkParts();
+
   void InitializeTilesAndTokens();
 
   void ShuffleTilesAndTokens();

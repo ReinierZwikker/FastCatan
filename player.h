@@ -3,7 +3,6 @@
 
 #include "components.h"
 #include "board.h"
-#include "game.h"
 
 struct Player {
 public:

@@ -69,7 +69,7 @@ Numbering of corners
          47        49        51        53
               48        50        52
 
-numbering of streets
+numbering of street_array
 
                .         .         .
  1st ->   . 0    1  . 2     3 . 4     5 .

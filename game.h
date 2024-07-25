@@ -4,18 +4,6 @@
 #include "player.h"
 #include "board.h"
 
-struct Move {
-  // Move template, only set applicable fields when communicating moves
-  MoveType move_type = NoMove;
-  int index = -1;
-  Corner *corner = nullptr;
-  Corner *street = nullptr;
-  Color other_player = NoColor;
-  CardType rx_card = NoCard;
-  CardType tx_card = NoCard;
-  int amount = -1;
-};
-
 struct Game {
 
   explicit Game(int num_players);
