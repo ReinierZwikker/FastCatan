@@ -8,6 +8,7 @@
 class HumanPlayer : public Agent {
 public:
   Move get_move(Board *board, int cards[5]);
+  void finish_round(Board *board);
 
 
 };

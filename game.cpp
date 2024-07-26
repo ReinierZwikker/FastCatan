@@ -19,67 +19,142 @@ Game::Game(int num_players) {
 
 bool move_in_available_moves(Move move, Move *available_moves) {
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
-
+    if (move == available_moves[move_i]) {
+      return true;
+    } else if (available_moves[move_i].move_type == endTurn) {
+      return false;
+    }
   }
+  return false;
 }
+
 
 void Game::start_game() {
   Move chosen_move;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
 
+    Player *current_player = &players[player_i];
+
     // let player select first town
-    players[player_i].set_cards(1, 1, 0, 1, 1);
-    players[player_i].update_available_moves(openingTurnFirstVillage);
-    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
-    players[player_i].place_village(chosen_move.index);
+    current_player->set_cards(1, 1, 0, 1, 1);
+    current_player->update_available_moves(openingTurnFirstVillage);
+    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    if (!move_in_available_moves(chosen_move, current_player->available_moves))
+      { throw std::invalid_argument("Not an available move!"); }
+    current_player->place_village(chosen_move.index);
 
     // let player select first street
-    players[player_i].set_cards(1, 1, 0, 0, 0);
-    players[player_i].update_available_moves(openingTurnFirstStreet);
-    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
-    players[player_i].place_street(chosen_move.index);
+    current_player->set_cards(1, 1, 0, 0, 0);
+    current_player->update_available_moves(openingTurnFirstStreet);
+    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    if (!move_in_available_moves(chosen_move, current_player->available_moves))
+    { throw std::invalid_argument("Not an available move!"); }
+    current_player->place_street(chosen_move.index);
   }
 
   for (int player_i = Game::num_players; player_i >= 0; player_i--) {
 
+    Player *current_player = &players[player_i];
+
     // let player select second town
-    players[player_i].set_cards(1, 1, 0, 1, 1);
-    players[player_i].update_available_moves(openingTurnSecondVillage);
-    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
-    players[player_i].place_village(chosen_move.index);
+    current_player->set_cards(1, 1, 0, 1, 1);
+    current_player->update_available_moves(openingTurnSecondVillage);
+    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    if (!move_in_available_moves(chosen_move, current_player->available_moves))
+    { throw std::invalid_argument("Not an available move!"); }
+    current_player->place_village(chosen_move.index);
 
     // let player select second street
-    players[player_i].set_cards(1, 1, 0, 0, 0);
-    players[player_i].update_available_moves(openingTurnSecondStreet);
-    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
-    players[player_i].place_street(chosen_move.index);
+    current_player->set_cards(1, 1, 0, 0, 0);
+    current_player->update_available_moves(openingTurnSecondStreet);
+    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    if (!move_in_available_moves(chosen_move, current_player->available_moves))
+    { throw std::invalid_argument("Not an available move!"); }
+    current_player->place_street(chosen_move.index);
   }
+
+  // Give starting cards, as if all numbers are rolled
+  give_cards(-1);
+
 }
+
 
 void Game::step_round() {
   Move chosen_move;
 
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
 
-
+    Player *current_player = &players[player_i];
 
     if (players[player_i].activated) {
-      give_cards(roll_dice());
+      int dice_roll = roll_dice();
 
-      players[player_i].update_available_moves(normalTurn);
-      chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
+      if (dice_roll == 7) {
+        // do robber turn
+        current_player->update_available_moves(robberTurn);
+        chosen_move = current_player->agent.get_move(&board, current_player->cards);
+        // perform chosen move
+      } else { give_cards(dice_roll); }
+
+      for (int move_i = 0; move_i < moves_per_turn; ++move_i) {
+        current_player->update_available_moves(normalTurn);
+        chosen_move = current_player->agent.get_move(&board, current_player->cards);
+
+
+        if (!move_in_available_moves(chosen_move, current_player->available_moves))
+          { throw std::invalid_argument("Not an available move!"); }
+
+        // perform chosen move
+        switch (chosen_move.move_type) {
+          case buildStreet:
+            current_player->place_street(chosen_move.index);
+            break;
+          case buildVillage:
+            current_player->place_village(chosen_move.index);
+            break;
+          case buildCity:
+            current_player->place_city(chosen_move.index);
+            break;
+          case buyDevelopment:
+            // TODO Implement development cards
+            break;
+          case Trade:
+            // TODO Implement trading
+            break;
+          case Exchange:
+            current_player->cards[card_index(chosen_move.tx_card)] -= 4;
+            current_player->cards[card_index(chosen_move.rx_card)]++;
+            break;
+          case moveRobber:
+            // TODO Implement robber movement
+            // Only possible if development cards are implemented
+            // TODO make robber position changeable
+            break;
+          case NoMove:
+            throw std::invalid_argument("No Move is never a valid move!");
+            break;
+          case endTurn:
+            move_i = moves_per_turn;
+            break;
+        }
+      }
     }
   }
 }
+
 
 int Game::roll_dice() {
   // TODO generate random roll with 2d6 probabilities
   return game_seed * 1;
 }
 
+
+/*
+ * Give cards to players for each tile of the rolled number, or for all tiles if rolled_number = -1
+ */
 void Game::give_cards(int rolled_number) {
   // TODO Add check for bank reserves
-  for (Tile *tile : board.tiles) { if (tile->number_token == rolled_number) {
+  for (Tile *tile : board.tiles) { if (tile->number_token == rolled_number || rolled_number == -1) {
     for (Corner *corner : tile->corners) { if (corner->color != NoColor) {
       if (corner->occupancy == Village) {
         players[color_index(corner->color)].cards[card_index(tile2card(tile->type))]++;
@@ -89,4 +164,3 @@ void Game::give_cards(int rolled_number) {
     } }
   } }
 }
-

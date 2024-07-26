@@ -6,7 +6,8 @@
 
 class Agent {
 public:
-  static Move get_move(Board *board, int cards[5]) { return {}; }
+  inline Move get_move(Board *board, int cards[5]) { return {}; }
+  inline void finish_round(Board *board) {}
 };
 
 class Player {
@@ -19,10 +20,11 @@ public:
   /*  === Link to player agent ===
    * Agent should implement the following function:
    * get_move(board, cards, available_moves)
+   * finish_round(board, scores)
    *
    */
 
-  Agent agent;
+  Agent agent = Agent();
 
   Board *board;
 

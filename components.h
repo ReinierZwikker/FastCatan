@@ -146,12 +146,13 @@ enum HarborType {
  ******************/
 
 enum MoveType {
-  buildStreet,        // Specify: Street Index
-  buildVillage,       // Specify: Corner Index
-  buildCity,          // Specify: Corner Index
-  buyDevelopment,     // Specify: -
-  Trade,              // Specify: Other Player, Transmitting Card, Receiving Card, Amount
-  Exchange,           // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
+  buildStreet,    // Specify: Street Index
+  buildVillage,   // Specify: Corner Index
+  buildCity,      // Specify: Corner Index
+  buyDevelopment, // Specify: -
+  Trade,          // Specify: Other Player, Transmitting Card, Receiving Card, Amount
+  Exchange,       // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
+  moveRobber,     // Specify: Tile Index
   endTurn,
   NoMove
 };
@@ -162,6 +163,7 @@ enum TurnType {
   openingTurnSecondVillage,
   openingTurnSecondStreet,
   normalTurn,
+  robberTurn,
   noTurn
 };
 
@@ -174,6 +176,17 @@ struct Move {
   CardType rx_card = NoCard;
   int amount = -1;
 };
+
+inline bool operator==(const Move& move_lhs, const Move& move_rhs) {
+  if (move_lhs.move_type    == move_rhs.move_type    &&
+      move_lhs.index        == move_rhs.index        &&
+      move_lhs.other_player == move_rhs.other_player &&
+      move_lhs.tx_card      == move_rhs.tx_card      &&
+      move_lhs.rx_card      == move_rhs.rx_card      &&
+      move_lhs.amount       == move_rhs.amount)
+  { return true; } else { return false; }
+}
+
 
 
 
