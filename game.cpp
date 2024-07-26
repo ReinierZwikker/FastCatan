@@ -11,56 +11,65 @@ Game::Game(int num_players) {
   Game::num_players = num_players;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = Player(&board, index_color(player_i));
+    players[player_i].agent = HumanPlayer();
     players[player_i].activated = true;
   }
 
 }
 
+bool move_in_available_moves(Move move, Move *available_moves) {
+  for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+
+  }
+}
+
 void Game::start_game() {
+  Move chosen_move;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    bool valid_choice = false;
-    while (not valid_choice) {
-      // let player select first town
-      Move move = players[player_i].first_town();
-      valid_choice = CheckValidity(move, openingMove);
-      if (valid_choice) {
-        // set choice on board
-      }
-    }
+
+    // let player select first town
+    players[player_i].set_cards(1, 1, 0, 1, 1);
+    players[player_i].update_available_moves(openingTurnFirstVillage);
+    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
+    players[player_i].place_village(chosen_move.index);
+
+    // let player select first street
+    players[player_i].set_cards(1, 1, 0, 0, 0);
+    players[player_i].update_available_moves(openingTurnFirstStreet);
+    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
+    players[player_i].place_street(chosen_move.index);
   }
 
   for (int player_i = Game::num_players; player_i >= 0; player_i--) {
-    bool valid_choice = false;
-    while (not valid_choice) {
-      // let player select second town
-      Move move = players[player_i].second_town();
-      valid_choice = CheckValidity(move, openingMove);
-      if (valid_choice) {
-        // set choice on board
-      }
-    }
-  }
 
+    // let player select second town
+    players[player_i].set_cards(1, 1, 0, 1, 1);
+    players[player_i].update_available_moves(openingTurnSecondVillage);
+    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
+    players[player_i].place_village(chosen_move.index);
+
+    // let player select second street
+    players[player_i].set_cards(1, 1, 0, 0, 0);
+    players[player_i].update_available_moves(openingTurnSecondStreet);
+    chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
+    players[player_i].place_street(chosen_move.index);
+  }
 }
 
 void Game::step_round() {
-  int rolled_number = roll_dice();
+  Move chosen_move;
 
-  give_cards(rolled_number);
+  for (int player_i = 0; player_i < Game::num_players; player_i++) {
 
-  for (Player player : players) {
-    if (player.activated) {
-      bool valid_choice = false;
-      while (not valid_choice) {
-        Move move = player.do_move();
-        valid_choice = CheckValidity(move);
-        if (valid_choice) {
-          // set choice on board
-        }
-      }
+
+
+    if (players[player_i].activated) {
+      give_cards(roll_dice());
+
+      players[player_i].update_available_moves(normalTurn);
+      chosen_move = players[player_i].agent.get_move(&board, players[player_i].cards);
     }
   }
-
 }
 
 int Game::roll_dice() {
@@ -81,32 +90,3 @@ void Game::give_cards(int rolled_number) {
   } }
 }
 
-bool Game::CheckValidity() {
-  // TODO
-  // Check if all villages, cities, and streets are valid
-
-
-
-  return false;
-}
-
-bool Game::CheckValidity(Move move) {
-  // TODO
-  // Check if proposed move is valid
-
-
-
-  return false;
-}
-
-bool Game::CheckValidity(Move move, MoveType move_type) {
-  // TODO
-  // Check if proposed move of set type is valid
-  if (move.move_type != move_type) {
-    return false;
-  }
-
-
-
-  return false;
-}

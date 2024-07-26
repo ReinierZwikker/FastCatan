@@ -10,4 +10,6 @@ add_executable(FastCatan main.cpp
         player.h
         board.cpp
         board.h
-        components.h)
+        components.h
+        HumanPlayer/human_player.cpp
+        HumanPlayer/human_player.h)

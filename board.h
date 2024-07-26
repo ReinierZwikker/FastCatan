@@ -31,7 +31,7 @@ struct Tile {
   Street *streets[6];  // pointer list of streets, starts counting at the top left line
 };
 
-struct Board {
+class Board {
 public:
   Board();
 

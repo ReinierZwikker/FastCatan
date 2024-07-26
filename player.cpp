@@ -8,6 +8,12 @@ Player::Player(Board *global_board, Color player_color) {
   board = global_board;
   player_color = player_color;
 
+  available_moves = (Move *) malloc(max_available_moves * sizeof(Move));
+
+}
+
+Player::~Player() {
+  free(available_moves);
 }
 
 int Player::place_street(int street_id) {
@@ -46,44 +52,15 @@ int Player::place_city(int corner_id) {
   }
 }
 
-Move Player::first_town(...) {
-  Move move = Move();
-  move.move_type = openingMove;
-
-  // agent call
-  //
-
-  //move.corner = ;
-  //move.street = ;
-
-
-  return move;
+Move *Player::update_available_moves(TurnType turn_type) {
+  available_moves[0].move_type = endTurn;
+  return available_moves;
 }
 
-Move Player::second_town(...) {
-  Move move = Move();
-  move.move_type = openingMove;
-
-  // agent call
-  //
-
-  //move.corner = ;
-  //move.street = ;
-
-
-  return move;
-}
-
-Move Player::do_move(...) {
-  Move move = Move();
-  move.move_type = NoMove;
-
-  // agent call
-  //
-
-  //move.corner = ;
-  //move.street = ;
-
-
-  return move;
+void Player::set_cards(int brick, int lumber, int ore, int grain, int wool) {
+  cards[0] = brick;
+  cards[1] = lumber;
+  cards[2] = ore;
+  cards[3] = grain;
+  cards[4] = wool;
 }

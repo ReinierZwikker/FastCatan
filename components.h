@@ -27,6 +27,9 @@ static const int max_terrain_tiles[6] = {3, 4, 3, 4, 4, 1};
 // Harbors
 static const int max_harbors[9] = {4, 1, 1, 1, 1, 1};
 
+static const int max_available_moves = 200;
+static const int moves_per_turn = 25;
+
 
 /******************
  *     COLORS     *
@@ -143,27 +146,35 @@ enum HarborType {
  ******************/
 
 enum MoveType {
-  buildStreet,
-  buildVillage,
-  buildCity,
-  buyDevelopment,
-  Trade,
-  Exchange,
-  openingMove,
+  buildStreet,        // Specify: Street Index
+  buildVillage,       // Specify: Corner Index
+  buildCity,          // Specify: Corner Index
+  buyDevelopment,     // Specify: -
+  Trade,              // Specify: Other Player, Transmitting Card, Receiving Card, Amount
+  Exchange,           // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
+  endTurn,
   NoMove
+};
+
+enum TurnType {
+  openingTurnFirstVillage,
+  openingTurnFirstStreet,
+  openingTurnSecondVillage,
+  openingTurnSecondStreet,
+  normalTurn,
+  noTurn
 };
 
 struct Move {
   // Move template, only set applicable fields when communicating moves
   MoveType move_type = NoMove;
   int index = -1;
-  CornerOccupancy *corner = nullptr;
-  CornerOccupancy *street = nullptr;
   Color other_player = NoColor;
-  CardType rx_card = NoCard;
   CardType tx_card = NoCard;
+  CardType rx_card = NoCard;
   int amount = -1;
 };
+
 
 
 #endif //FASTCATAN_COMPONENTS_H
