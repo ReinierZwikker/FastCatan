@@ -71,6 +71,7 @@ inline int card_index(CardType card) { return (int) card; }
  ******************/
 
 struct Street {
+  int id = -1;
   Color color = Color::NoColor;  // What is occupying the street
   Corner *corner_1 = nullptr;
   Corner *corner_2 = nullptr;

@@ -136,6 +136,116 @@ void ViewPort::DrawTile(float x, float y, Tile tile) const {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   glPopMatrix();
+  // Number
+  glPushMatrix();
+    glTranslatef(x, y, 0.0);
+    glScalef(x_scale * 0.4f, y_scale * 0.4f, 0.0);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(2);
+
+    glBegin(GL_LINE_STRIP);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    switch (tile.number_token) {
+      case 2:
+        glVertex2f(-0.3f,  0.5f);
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f(-0.3f,  0.0f);
+        glVertex2f(-0.3f, -0.5f);
+        glVertex2f( 0.3f, -0.5f);
+        break;
+      case 3:
+        glVertex2f(-0.3f,  0.5f);
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f(-0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f, -0.5f);
+        glVertex2f(-0.3f, -0.5f);
+        break;
+      case 4:
+        glVertex2f(-0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f( 0.3f, -0.5f);
+        break;
+      case 5:
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f, -0.5f);
+        glVertex2f(-0.3f, -0.5f);
+        break;
+      case 6:
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f, -0.5f);
+        glVertex2f(-0.3f, -0.5f);
+        glVertex2f(-0.3f,  0.0f);
+        break;
+      case 8:
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f, -0.5f);
+        glVertex2f(-0.3f, -0.5f);
+        glVertex2f(-0.3f,  0.0f);
+        break;
+      case 9:
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.5f);
+        glVertex2f(-0.3f,  0.0f);
+        glVertex2f( 0.3f,  0.0f);
+        glVertex2f( 0.3f, -0.5f);
+        glVertex2f(-0.3f, -0.5f);
+        break;
+      case 10:
+        glVertex2f( -0.5f,  0.5f);
+        glVertex2f( -0.5f, -0.5f);
+        glEnd();
+        glBegin(GL_LINE_STRIP);
+        glVertex2f( 0.0f,  0.5f);
+        glVertex2f( 0.6f,  0.5f);
+        glVertex2f( 0.6f, -0.5f);
+        glVertex2f( 0.0f, -0.5f);
+        glVertex2f( 0.0f,  0.5f);
+        break;
+      case 11:
+        glVertex2f( -0.3f,  0.5f);
+        glVertex2f( -0.3f, -0.5f);
+        glEnd();
+        glBegin(GL_LINE_STRIP);
+        glVertex2f( 0.3f,  0.5f);
+        glVertex2f( 0.3f, -0.5f);
+        break;
+      case 12:
+        glVertex2f( -0.5f,  0.5f);
+        glVertex2f( -0.5f, -0.5f);
+        glEnd();
+        glBegin(GL_LINE_STRIP);
+        glVertex2f( 0.0f,  0.5f);
+        glVertex2f( 0.6f,  0.5f);
+        glVertex2f( 0.6f,  0.0f);
+        glVertex2f( 0.0f,  0.0f);
+        glVertex2f( 0.0f, -0.5f);
+        glVertex2f( 0.6f, -0.5f);
+        break;
+    }
+    glEnd();
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+  glPopMatrix();
 }
 
 void ViewPort::DrawTileSelection(int id, Game* game) {

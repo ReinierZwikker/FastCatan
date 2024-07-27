@@ -15,6 +15,7 @@ static bool refresh_map;
 
 void WindowBoard(Game* game, ViewPort* viewport) {
   if (ImGui::Button("Reshuffle")) {
+    game->board.Randomize();
     refresh_map = true;
   }
 
@@ -60,12 +61,22 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     // Corners
     ImGui::InputInt("Corner", &current_corner);
     if (current_corner < 0) {
-      current_corner = 0;
-    }
-    else if (current_corner > 5) {
       current_corner = 5;
     }
+    else if (current_corner > 5) {
+      current_corner = 0;
+    }
     corner_id = game->board.tile_array[tile_id].corners[current_corner]->id;
+
+    // Streets
+    ImGui::InputInt("Street", &current_street);
+    if (current_street < 0) {
+      current_street = 5;
+    }
+    else if (current_street > 5) {
+      current_street = 0;
+    }
+    street_id = game->board.tile_array[tile_id].streets[current_street]->id;
 
   }
 

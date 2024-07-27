@@ -16,6 +16,7 @@ public:
   Street street_array[amount_of_streets]{};
   Street *streets[street_rows]{};
 
+  void Randomize();
   void PrintBoard();
 
   int tile_diff[tile_rows]{};
@@ -28,7 +29,7 @@ private:
   void InitializeTilesAndTokens();
 
   void ShuffleTilesAndTokens();
-  void AddNumberTokensToTiles();
+  void AddTileTypeAndNumberTokensToTiles();
   bool CheckNumberTokens();
 
   void RewriteBoardLayout();
@@ -36,6 +37,8 @@ private:
   void LinkStreetsToCorners();
 
   void AddHarbors();
+
+  TileType available_tiles[amount_of_tiles]{};
 
   // Max amount of number tokens in the game
   /* From the rule book:
