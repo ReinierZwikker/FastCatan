@@ -4,7 +4,7 @@
 #include "components.h"
 #include "board.h"
 
-class Agent {
+class PlayerAgent {
 public:
     virtual inline Move get_move(Board *board, int cards[5]) { return {}; }
     virtual inline void finish_round(Board *board) {}
@@ -24,7 +24,7 @@ public:
    *
    */
 
-  Agent agent = Agent();
+  PlayerAgent *agent;
 
   Board *board;
 

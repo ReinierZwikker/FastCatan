@@ -8,6 +8,7 @@
 struct Game {
 
   explicit Game(int num_players);
+  ~Game();
 
   // TODO generate random game seed
   int game_seed = 1;

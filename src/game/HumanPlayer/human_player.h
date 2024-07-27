@@ -5,15 +5,15 @@
 #include "../board.h"
 #include "../player.h"
 
-class HumanPlayer : public Agent {
+class HumanPlayer : public PlayerAgent {
 public:
-  HumanPlayer(int assigned_player_number);
-  Move get_move(Board *board, int cards[5]);
-  void finish_round(Board *board);
+  explicit HumanPlayer(Player *connected_player);
+  Move get_move(Board *board, int cards[5]) override;
+  void finish_round(Board *board) override;
   ~HumanPlayer();
 
 private:
-  int player_number;
+  Player *player;
 };
 
 

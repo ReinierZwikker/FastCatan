@@ -1,9 +1,9 @@
 #include <cstdio>
 #include "human_player.h"
 
-HumanPlayer::HumanPlayer(int assigned_player_number) {
-  player_number = assigned_player_number;
-  printf("\n\nWelcome to FastCatan! You are player number %d\n", player_number);
+HumanPlayer::HumanPlayer(Player *connected_player) {
+  player = connected_player;
+  printf("\n\nWelcome to FastCatan! You are player number %d!\n", color_index(player->player_color));
 }
 
 
