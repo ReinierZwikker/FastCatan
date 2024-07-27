@@ -6,8 +6,15 @@
 
 #include "../src/game/game.h"
 
-// Used to delay the selection render
+// Used to delay the tile selection render
 struct TileSelectionItem {
+  int id;
+  Game* game;
+  bool render;
+};
+
+// Use to delay the corner selection render
+struct CornerSelectionItem {
   int id;
   Game* game;
   bool render;
@@ -20,9 +27,8 @@ class ViewPort {
     static void NewMap(Game*);
     void Refresh(Game*);
 
-    void DrawTileSelection(int, Game*);
-
     TileSelectionItem tile_selection_item{};
+    CornerSelectionItem corner_selection_item{};
 
   private:
     float x_spacing = 0.13f;
@@ -31,14 +37,19 @@ class ViewPort {
     float tile_half_width = 0.6f;
     float tile_half_height = 1.0f;
 
-    float sx = 0.1f;
-    float sy = 0.1f;
+    float x_scale = 0.1f;
+    float y_scale = 0.1f;
 
     void DrawTile(float, float, Tile) const;
+    void DrawTileSelection(int, Game*);
+    void DrawCorner(float, float, Corner) const;
+    void DrawCornerSelection(int, Game*);
 
-    float CalculateShift(float, int, Board*) const;
-    float ConvertColumn2x(int, float) const;
-    float ConvertRow2y(int) const;
+    float CalculateTileShift(float shift, int row, Board *board) const;
+    float ConvertTileColumn2x(int, float) const;
+    float ConvertTileRow2y(int) const;
+    float ConvertCornerColumn2x(int, float) const;
+    float ConvertCornerRow2y(int, int, bool) const;
 };
 
 #endif //FASTCATAN_VIEWPORT_H

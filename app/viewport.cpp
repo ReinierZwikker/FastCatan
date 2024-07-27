@@ -12,7 +12,7 @@ ViewPort::ViewPort() {
 
 }
 
-float ViewPort::CalculateShift(float shift, int row, Board* board) const {
+float ViewPort::CalculateTileShift(float shift, int row, Board* board) const {
   if (row == 0) {
     shift = 0;
   }
@@ -25,14 +25,34 @@ float ViewPort::CalculateShift(float shift, int row, Board* board) const {
   return shift;
 }
 
-float ViewPort::ConvertColumn2x(int column, float shift) const {
+float ViewPort::ConvertTileColumn2x(int column, float shift) const {
   return (float)column * x_spacing + shift - x_spacing;
 }
 
-float ViewPort::ConvertRow2y(int row) const {
+float ViewPort::ConvertTileRow2y(int row) const {
   return -(float)row * y_spacing + 2 * y_spacing;
 }
 
+float ViewPort::ConvertCornerColumn2x(int column, float shift) const {
+  return -1.5f * x_spacing + (float) column * 0.5f * x_spacing + shift;
+}
+
+float ViewPort::ConvertCornerRow2y(int column, int row, bool increasing) const {
+  if (increasing) {
+    if (column % 2 == 0) {
+      return 2.4f * y_spacing - (float) row * y_spacing;
+    } else {
+      return 2.4f * y_spacing - (float) row * y_spacing + 0.5f * y_scale;
+    }
+  }
+  else {
+    if (column % 2 == 0) {
+      return 2.4f * y_spacing - (float) row * y_spacing + 0.5f * y_scale;
+    } else {
+      return 2.4f * y_spacing - (float) row * y_spacing;
+    }
+  }
+}
 
 void SetTileColor(Tile* tile) {
   switch(tile->type) {
@@ -84,7 +104,7 @@ void ViewPort::DrawTile(float x, float y, Tile tile) const {
   // Fill
   glPushMatrix();
     glTranslatef(x, y, 0.0);
-    glScalef(sx, sy, 0.0);
+    glScalef(x_scale, y_scale, 0.0);
     glBegin(GL_POLYGON);
       glColor3f(tile.color[0], tile.color[1], tile.color[2]);
       glVertex2f( 0.0f,  tile_half_height);
@@ -98,7 +118,7 @@ void ViewPort::DrawTile(float x, float y, Tile tile) const {
   // Border
   glPushMatrix();
     glTranslatef(x, y, 0.0);
-    glScalef(sx + 0.005f, sy + 0.005f, 0.0);
+    glScalef(x_scale + 0.005f, y_scale + 0.005f, 0.0);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(4);
@@ -128,16 +148,16 @@ void ViewPort::DrawTileSelection(int id, Game* game) {
     if (column == tiles_in_row[row]) {
       row += 1;
       column = 0;
-      shift = CalculateShift(shift, row, &game->board);
+      shift = CalculateTileShift(shift, row, &game->board);
     }
   }
 
-  x = ConvertColumn2x(column, shift);
-  y = ConvertRow2y(row);
+  x = ConvertTileColumn2x(column, shift);
+  y = ConvertTileRow2y(row);
 
   glPushMatrix();
     glTranslatef(x, y, 0.0);
-    glScalef(sx + 0.005f, sy + 0.005f, 0.0);
+    glScalef(x_scale + 0.005f, y_scale + 0.005f, 0.0);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(4);
@@ -157,16 +177,106 @@ void ViewPort::DrawTileSelection(int id, Game* game) {
     glPopMatrix();
 }
 
+void ViewPort::DrawCorner(float x, float y, Corner corner) const {
+  if (corner.occupancy != CornerOccupancy::EmptyCorner) {
+    glPushMatrix();
+    glTranslatef(x, y, 0.0);
+    glScalef(x_scale * 0.3f, y_scale * 0.3f, 0.0);
+    glBegin(GL_POLYGON);
+
+    switch (corner.color) {
+      case Color::Blue:
+        glColor3f(0.0f, 0.0f, 1.0f);
+        break;
+      case Color::Green:
+        glColor3f(0.0f, 1.0f, 0.0f);
+        break;
+      case Color::Red:
+        glColor3f(1.0f, 0.0f, 0.0f);
+        break;
+      case Color::White:
+        glColor3f(0.9f, 0.9f, 0.9f);
+        break;
+      case Color::NoColor:
+        glColor3f(0.0f, 0.0f, 0.0f);
+        break;
+    }
+
+    switch (corner.occupancy) {
+      case CornerOccupancy::Village:
+        glVertex2f(-0.5f, -0.7f);
+        glVertex2f(-0.5f,  0.2f);
+        glVertex2f( 0.0f,  0.9f);
+        glVertex2f( 0.5f,  0.2f);
+        glVertex2f( 0.5f, -0.7f);
+        glEnd();
+        glPopMatrix();
+        break;
+      case CornerOccupancy::City:
+        glVertex2f(-0.6f, -1.0f);
+        glVertex2f(-0.6f,  0.6f);
+        glVertex2f(-0.3f,  1.0f);
+        glVertex2f( 0.0f,  0.6f);
+        glVertex2f( 0.0f,  0.0f);
+        glVertex2f( 0.6f,  0.0f);
+        glVertex2f( 0.6f, -1.0f);
+        glEnd();
+        glPopMatrix();
+        break;
+    }
+  }
+}
+
+void ViewPort::DrawCornerSelection(int id, Game* game) {
+  float x, y, shift;
+  int row = 0;
+  int column = 0;
+
+  for (int i = 0; i < id; i++) {
+    column += 1;
+    if (column == corners_in_row[row]) {
+      row += 1;
+      column = 0;
+      shift = CalculateTileShift(shift, row, &game->board);
+    }
+  }
+
+  if (row < 3) {
+    x = ConvertCornerColumn2x(column, shift);
+    y = ConvertCornerRow2y(column, row, true);
+  } else {
+    x = ConvertCornerColumn2x(column, shift - x_spacing/2);
+    y = ConvertCornerRow2y(column, row, false);
+  }
+
+  glPushMatrix();
+    glTranslatef(x, y - 0.01f, 0.0);
+    glScalef(x_scale - 0.01f, y_scale - 0.01f, 0.0);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(4);
+
+    glBegin(GL_POLYGON);
+      glColor3f(0.8f, 0.0f, 0.5f);
+      for (int i = 0; i < 20; i++) {
+        glVertex2f(0.3f * cos((float) i * (3.14f/10)), 0.5f * sin((float) i * (3.14f/10)));
+      }
+    glEnd();
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+  glPopMatrix();
+}
 
 void ViewPort::Refresh(Game* game) {
-  float x, y, shift;
+  float x, y, tile_shift;
   for (int row = 0; row < tile_rows; row++) {
     // Shift x location based on row to interlock the hexagons
-    shift = CalculateShift(shift, row, &game->board);
+    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
 
     for (int column = 0; column < tiles_in_row[row]; column++) {
-      x = ConvertColumn2x(column, shift);
-      y = ConvertRow2y(row);
+      x = ConvertTileColumn2x(column, tile_shift);
+      y = ConvertTileRow2y(row);
       DrawTile(x, y, game->board.tiles[row][column]);
     }
   }
@@ -175,6 +285,27 @@ void ViewPort::Refresh(Game* game) {
   if (tile_selection_item.render) {
     DrawTileSelection(tile_selection_item.id, tile_selection_item.game);
     tile_selection_item.render = false;
+  }
+
+  tile_shift = 0;
+  for (int row = 0; row < corner_rows; row++) {
+    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
+    for (int column = 0; column < corners_in_row[row]; column++) {
+      if (row < 3) {
+        x = ConvertCornerColumn2x(column, tile_shift);
+        y = ConvertCornerRow2y(column, row, true);
+      } else {
+        x = ConvertCornerColumn2x(column, tile_shift - x_spacing/2);
+        y = ConvertCornerRow2y(column, row, false);
+      }
+      DrawCorner(x, y, game->board.corners[row][column]);
+    }
+  }
+
+  // Render the Corner Selection
+  if (corner_selection_item.render) {
+    DrawCornerSelection(corner_selection_item.id, corner_selection_item.game);
+    corner_selection_item.render = false;
   }
 
 }
