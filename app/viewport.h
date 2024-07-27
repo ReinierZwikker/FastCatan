@@ -40,16 +40,20 @@ class ViewPort {
     float x_scale = 0.1f;
     float y_scale = 0.1f;
 
-    void DrawTile(float, float, Tile) const;
-    void DrawTileSelection(int, Game*);
-    void DrawCorner(float, float, Corner) const;
-    void DrawCornerSelection(int, Game*);
+    float lower_road = 0.005f;
 
     float CalculateTileShift(float shift, int row, Board *board) const;
     float ConvertTileColumn2x(int, float) const;
     float ConvertTileRow2y(int) const;
     float ConvertCornerColumn2x(int, float) const;
     float ConvertCornerRow2y(int, int, bool) const;
+
+    void DrawTile(float, float, Tile) const;
+    void DrawTileSelection(int, Game*);
+    void DrawCorner(float, float, Corner) const;
+    void DrawCornerSelection(int, Game*);
+    void DrawStreet(float, float, float, float, Street) const;
+
 };
 
 #endif //FASTCATAN_VIEWPORT_H

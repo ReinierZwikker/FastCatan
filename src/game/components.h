@@ -11,7 +11,7 @@ struct Street;
 // Map Layout
 static const int amount_of_tiles = 19;
 static const int amount_of_corners = 54;
-static const int amount_of_streets = 71;
+static const int amount_of_streets = 72;
 
 static const int tile_rows = 5;
 static const int corner_rows = 6;
@@ -71,9 +71,9 @@ inline int card_index(CardType card) { return (int) card; }
  ******************/
 
 struct Street {
-  Color color;  // What is occupying the street
-  Corner *corner_1;
-  Corner *corner_2;
+  Color color = Color::NoColor;  // What is occupying the street
+  Corner *corner_1 = nullptr;
+  Corner *corner_2 = nullptr;
 };
 
 /******************

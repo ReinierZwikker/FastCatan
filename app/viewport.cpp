@@ -40,16 +40,16 @@ float ViewPort::ConvertCornerColumn2x(int column, float shift) const {
 float ViewPort::ConvertCornerRow2y(int column, int row, bool increasing) const {
   if (increasing) {
     if (column % 2 == 0) {
-      return 2.4f * y_spacing - (float) row * y_spacing;
+      return 2.35f * y_spacing - (float) row * y_spacing;
     } else {
-      return 2.4f * y_spacing - (float) row * y_spacing + 0.5f * y_scale;
+      return 2.38f * y_spacing - (float) row * y_spacing + 0.5f * y_scale;
     }
   }
   else {
     if (column % 2 == 0) {
-      return 2.4f * y_spacing - (float) row * y_spacing + 0.5f * y_scale;
+      return 2.38f * y_spacing - (float) row * y_spacing + 0.5f * y_scale;
     } else {
-      return 2.4f * y_spacing - (float) row * y_spacing;
+      return 2.35f * y_spacing - (float) row * y_spacing;
     }
   }
 }
@@ -268,8 +268,42 @@ void ViewPort::DrawCornerSelection(int id, Game* game) {
   glPopMatrix();
 }
 
+void ViewPort::DrawStreet(float x_1, float x_2, float y_1, float y_2, Street street) const {
+  if (street.color != Color::NoColor) {
+    glPushMatrix();
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      glLineWidth(3);
+
+      glBegin(GL_LINES);
+
+        switch (street.color) {
+          case Color::Blue:
+            glColor3f(0.0f, 0.0f, 1.0f);
+            break;
+          case Color::Green:
+            glColor3f(0.0f, 1.0f, 0.0f);
+            break;
+          case Color::Red:
+            glColor3f(1.0f, 0.0f, 0.0f);
+            break;
+          case Color::White:
+            glColor3f(0.9f, 0.9f, 0.9f);
+            break;
+        }
+
+        glVertex2f(x_1, y_1 - lower_road);
+        glVertex2f(x_2, y_2 - lower_road);
+
+      glEnd();
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPopMatrix();
+  }
+}
+
 void ViewPort::Refresh(Game* game) {
   float x, y, tile_shift;
+  float previous_x, previous_y;
   for (int row = 0; row < tile_rows; row++) {
     // Shift x location based on row to interlock the hexagons
     tile_shift = CalculateTileShift(tile_shift, row, &game->board);
@@ -288,6 +322,35 @@ void ViewPort::Refresh(Game* game) {
   }
 
   tile_shift = 0;
+  float y_below;
+  for (int row = 0; row < corner_rows; row++) {
+    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
+    for (int column = 0; column < corners_in_row[row]; column++) {
+      if (row < 3) {
+        x = ConvertCornerColumn2x(column, tile_shift);
+        y = ConvertCornerRow2y(column, row, true);
+        if (column % 2 == 0) {
+          y_below = ConvertCornerRow2y(column + 1, row + 1, true);
+          DrawStreet(x, x, y_below, y, game->board.streets[2 * row + 1][column/2]);
+        }
+      } else {
+        x = ConvertCornerColumn2x(column, tile_shift - x_spacing/2);
+        y = ConvertCornerRow2y(column, row, false);
+        if (column % 2 == 1 && row < corner_rows - 1) {
+          y_below = ConvertCornerRow2y(column, row + 1, true);
+          DrawStreet(x, x, y_below, y, game->board.streets[2 * row + 1][column/2]);
+        }
+      }
+
+      if (column != 0) {
+        DrawStreet(previous_x, x, previous_y, y, game->board.streets[2 * row][column - 1]);
+      }
+      previous_x = x;
+      previous_y = y;
+    }
+  }
+
+  tile_shift = 0;
   for (int row = 0; row < corner_rows; row++) {
     tile_shift = CalculateTileShift(tile_shift, row, &game->board);
     for (int column = 0; column < corners_in_row[row]; column++) {
@@ -299,6 +362,8 @@ void ViewPort::Refresh(Game* game) {
         y = ConvertCornerRow2y(column, row, false);
       }
       DrawCorner(x, y, game->board.corners[row][column]);
+      previous_x = x;
+      previous_y = y;
     }
   }
 

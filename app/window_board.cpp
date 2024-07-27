@@ -3,6 +3,7 @@
 
 static int tile_id = 0;
 static int corner_id = 0;
+static int street_id = 0;
 int current_item;
 static TileSelectionItem tile_selection_item{};
 static CornerSelectionItem corner_selection_item{};
@@ -31,7 +32,6 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     ImGui::InputInt("Number Token", &current_number);
     if (current_number != game->board.tile_array[tile_id].number_token) {
       game->board.tile_array[tile_id].number_token = current_number;
-      refresh_map = true;
     }
 
     // Tile Type
@@ -47,7 +47,6 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     ImGui::Combo("Robber", &current_item, "Empty\0Robber\0\0");
     if (current_item != game->board.tile_array[tile_id].robber) {
       game->board.tile_array[tile_id].robber = current_item;
-      refresh_map = true;
     }
   }
 
@@ -69,15 +68,30 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     ImGui::Combo("Corner Occupancy", &current_item, "EmpyCorner\0Village\0City\0\0");
     if (current_item != game->board.corner_array[corner_id].occupancy) {
       game->board.corner_array[corner_id].occupancy = static_cast<CornerOccupancy>(current_item);
-      refresh_map = true;
     }
 
     // Corner Color
     current_item = game->board.corner_array[corner_id].color;
-    ImGui::Combo("Color", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
+    ImGui::Combo("Corner Color", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
     if (current_item != game->board.corner_array[corner_id].color) {
       game->board.corner_array[corner_id].color = static_cast<Color>(current_item);
-      refresh_map = true;
+    }
+  }
+
+  if (ImGui::CollapsingHeader("Street")) {
+    ImGui::InputInt("Street ID", &street_id);
+    if (street_id < 0) {
+      street_id = 0;
+    }
+    else if (street_id > amount_of_streets - 1) {
+      street_id = amount_of_streets - 1;
+    }
+
+    // Corner Color
+    current_item = game->board.street_array[street_id].color;
+    ImGui::Combo("Street Color", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
+    if (current_item != game->board.street_array[street_id].color) {
+      game->board.street_array[street_id].color = static_cast<Color>(current_item);
     }
   }
 
