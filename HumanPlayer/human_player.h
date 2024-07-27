@@ -7,10 +7,13 @@
 
 class HumanPlayer : public Agent {
 public:
+  HumanPlayer(int assigned_player_number);
   Move get_move(Board *board, int cards[5]);
   void finish_round(Board *board);
+  ~HumanPlayer();
 
-
+private:
+  int player_number;
 };
 
 

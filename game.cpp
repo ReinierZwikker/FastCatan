@@ -11,7 +11,7 @@ Game::Game(int num_players) {
   Game::num_players = num_players;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = Player(&board, index_color(player_i));
-    players[player_i].agent = HumanPlayer();
+    players[player_i].agent = HumanPlayer(player_i);
     players[player_i].activated = true;
   }
 
