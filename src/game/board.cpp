@@ -51,9 +51,6 @@ Board::Board() {
 //  LinkStreetsToCorners();
 
 //  AddHarbors();
-  std::cout << "testing" << std::endl;
-  std::cout << "%p" << &corner_array[0] << "; " << "%p" << &corners[0][0] << "; " << "%p" << tiles[0][0].corners[0] << std::endl;
-  std::cout << tiles[0][0].corners[0]->occupancy << std::endl;
 
   // Temporary Check
 //  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
@@ -62,6 +59,9 @@ Board::Board() {
 //  }
 }
 
+/*
+ * Links all the memory addresses of corners and streets to their corresponding tile
+ */
 void Board::LinkParts() {
 
   /*
@@ -106,66 +106,44 @@ void Board::LinkParts() {
   /*
    * Link corners and streets to their respective tile
    */
-  bool expanding = false;
   int shift_top, shift_bottom;
   for (int tile_row_i = 0; tile_row_i < tile_rows; tile_row_i++) {
     for (int tile_column_i = 0; tile_column_i < tiles_in_row[tile_row_i]; tile_column_i++) {
       int offset = abs(tile_diff[tile_row_i]);
 
-      // The if-statement checks if the board is becoming wider or thinner
+      // Top
+      shift_top = 2 * tile_column_i;
+      if (tile_row_i > 0) {
+        if (tile_diff[tile_row_i - 1] < 0) {
+          shift_top += offset;
+        }
+      }
+
+      // Bottom
+      shift_bottom = 2 * tile_column_i + 2;
       if (tile_diff[tile_row_i] > 0) {
-        expanding = true;
-
-        for (int i = 0; i < 3; i++) {
-          shift_top = 2 * tile_column_i + i;
-          shift_bottom = 2 * tile_column_i - i + 2 + offset;
-
-          // Corners
-          tiles[tile_row_i][tile_column_i].corners[i] = &corners[tile_row_i][shift_top];
-          tiles[tile_row_i][tile_column_i].corners[i + 3] = &corners[tile_row_i + 1][shift_bottom];
-          std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << ", " << shift_bottom << std::endl;
-
-          // Streets
-          if (i < 2) {
-            tiles[tile_row_i][tile_column_i].streets[i] = &streets[2 * tile_row_i][shift_top];
-            tiles[tile_row_i][tile_column_i].streets[i + 4] = &streets[2 * tile_row_i + 2][shift_bottom - 1];
-            // std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << tile_column_i + i << shift_bottom - 1 << std::endl;
-          }
-
-        }
-        std::cout << std::endl;
+        shift_bottom += offset;
       }
-      else {
-        for (int i = 0; i < 3; i++) {
-          if (expanding) {
-            shift_top = 2 * tile_column_i + i;
-            shift_bottom = 2 * tile_column_i - i + 2;
-          }
-          else {
-            shift_top = 2 * tile_column_i + i + offset;
-            shift_bottom = 2 * tile_column_i - i + 2;
-          }
 
-          // Corners
-          tiles[tile_row_i][tile_column_i].corners[i] = &corners[tile_row_i][shift_top];
-          tiles[tile_row_i][tile_column_i].corners[i + 3] = &corners[tile_row_i + 1][shift_bottom];
-          std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << ", " << shift_bottom << std::endl;
+      for (int i = 0; i < 3; i++) {
+        // Corners
+        tiles[tile_row_i][tile_column_i].corners[i] = &corners[tile_row_i][shift_top + i];
+        tiles[tile_row_i][tile_column_i].corners[i + 3] = &corners[tile_row_i + 1][shift_bottom - i];
+        // std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top + i << ", " << shift_bottom - i << std::endl;
 
-          // Streets
-          if (i < 2) {
-            tiles[tile_row_i][tile_column_i].streets[i] = &streets[2 * tile_row_i][shift_top];
-            tiles[tile_row_i][tile_column_i].streets[i + 4] = &streets[2 * tile_row_i + 2][shift_bottom - 1];
-            //std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top << tile_column_i + i << shift_bottom - 1 << std::endl;
-          }
+        // Streets
+        if (i < 2) {
+          tiles[tile_row_i][tile_column_i].streets[i] = &streets[2 * tile_row_i][shift_top + i];
+          tiles[tile_row_i][tile_column_i].streets[i + 4] = &streets[2 * tile_row_i + 2][shift_bottom - 1 - i];
+          // std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top + i << tile_column_i + 1 << shift_bottom - 1 - i << std::endl;
         }
-        std::cout << std::endl;
+
       }
+      // std::cout << std::endl;
+
       // Streets at the right sides of the tiles
       tiles[tile_row_i][tile_column_i].streets[2] = &streets[2 * tile_row_i + 1][tile_column_i + 1];
       tiles[tile_row_i][tile_column_i].streets[5] = &streets[2 * tile_row_i + 1][tile_column_i];
-    }
-    if (tile_diff[tile_row_i] < 0) {
-      expanding = false;
     }
   }
 }
@@ -473,12 +451,12 @@ void Board::LinkStreetsToCorners() {
 /*
  * Adds harbor types to pre-defined corners of selected tile_array.
  */
-void Board::AddHarbors() {
-  for (auto harbor : harbors) {
-    tile_array[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
-    tile_array[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
-  }
-}
+//void Board::AddHarbors() {
+//  for (auto harbor : harbors) {
+//    tile_array[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
+//    tile_array[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
+//  }
+//}
 
 /*
  * Prints board to the console.

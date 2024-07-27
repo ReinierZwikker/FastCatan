@@ -1,6 +1,9 @@
 #ifndef FASTCATAN_COMPONENTS_H
 #define FASTCATAN_COMPONENTS_H
 
+struct Corner;
+struct Street;
+
 /******************
  *     RULES      *
  ******************/
@@ -60,18 +63,78 @@ enum CardType {
 inline CardType index_card(int card_index) { return (CardType) card_index; }
 inline int card_index(CardType card) { return (int) card; }
 
+/******************
+ *    Street     *
+ ******************/
+
+struct Street {
+  Color color;  // What is occupying the street
+  Corner *corner_1;
+  Corner *corner_2;
+};
+
+/******************
+ *    HARBORS     *
+ ******************/
+
+enum HarborType {
+  Harbor_None,
+  Harbor_Generic,
+  Harbor_Brick,
+  Harbor_Grain,
+  Harbor_Wool,
+  Harbor_Lumber,
+  Harbor_Ore
+};
+
+struct Harbor {
+  int tile_id;
+  int corner_1;
+  int corner_2;
+  HarborType type;
+};
+
+/******************
+ *    CORNERS     *
+ ******************/
+
+enum CornerOccupancy {
+    EmptyCorner,
+    Village,
+    City
+};
+
+struct Corner {
+  CornerOccupancy occupancy = CornerOccupancy::EmptyCorner;  // What is occupying the corner
+  Color color = Color::NoColor;
+  HarborType harbor = HarborType::Harbor_None;  // What type of harbor is on this corner
+
+  Street *streets[3] = {nullptr, nullptr, nullptr}; // pointer list of streets that are connected to this corner, starting at the vertical street
+};
+
+static const char corner_shortnames[] = {
+    '.',  // EmptyCorner
+    'g',  // GreenVillage
+    'G',  // GreenCity
+    'r',  // RedVillage
+    'R',  // RedCity
+    'w',  // WhiteVillage
+    'W',  // WhiteCity
+    'b',  // BlueVillage
+    'B'   // BlueCity
+};
 
 /******************
  *     TILES      *
  ******************/
 
 enum TileType {
-    Hills,
-    Forest,
-    Mountains,
-    Fields,
-    Pasture,
-    Desert
+  Hills,
+  Forest,
+  Mountains,
+  Fields,
+  Pasture,
+  Desert
 };
 
 inline TileType index_tile(int tile_index) { return (TileType) tile_index; }
@@ -99,44 +162,15 @@ static const char tile_shortnames[] = {
     'D'   // Desert
 };
 
+struct Tile {
+  int number_token;  // The number on the tile
+  TileType type;  // The type of tile
+  float color[3];  // Color when displayed in OpenGL
+  bool robber;  // Is a robber occupying the tile
 
-/******************
- *    CORNERS     *
- ******************/
-
-enum CornerOccupancy {
-    EmptyCorner,
-    Village,
-    City
+  Corner *corners[6];  // pointer list of corners, starts counting in the top left corner
+  Street *streets[6];  // pointer list of streets, starts counting at the top left line
 };
-
-static const char corner_shortnames[] = {
-    '.',  // EmptyCorner
-    'g',  // GreenVillage
-    'G',  // GreenCity
-    'r',  // RedVillage
-    'R',  // RedCity
-    'w',  // WhiteVillage
-    'W',  // WhiteCity
-    'b',  // BlueVillage
-    'B'   // BlueCity
-};
-
-
-/******************
- *    HARBORS     *
- ******************/
-
-enum HarborType {
-    Harbor_None,
-    Harbor_Generic,
-    Harbor_Brick,
-    Harbor_Grain,
-    Harbor_Wool,
-    Harbor_Lumber,
-    Harbor_Ore
-};
-
 
 /******************
  *     MOVES      *

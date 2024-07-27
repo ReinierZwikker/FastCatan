@@ -2,22 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "game.h"
+#include "app/app.h"
+#include "src/game/game.h"
 
 int main(int argc, char *argv[]) {
 
   int amount_of_players = atoi(argv[1]);
 
-  printf("\n  ===  FastCatan  ===  \n\nStarting game with %d players!\n", amount_of_players);
-
   Game game = Game(amount_of_players);
+  App app = App(0, nullptr, &game);
 
-  game.board.PrintBoard();
-
-//  game.start_round();
-
-//  game.step_round();
-//  game.step_round();
-
+  while(!app.done) {
+    app.Refresh();
+  }
   return 0;
-}
+};
