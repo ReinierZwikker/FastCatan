@@ -26,7 +26,7 @@ class ViewPort {
 
   private:
     float x_spacing = 0.13f;
-    float y_spacing = 0.17f;
+    float y_spacing = 0.16f;
 
     float tile_half_width = 0.6f;
     float tile_half_height = 1.0f;

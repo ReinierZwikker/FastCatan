@@ -81,6 +81,7 @@ void ViewPort::NewMap(Game* game) {
 }
 
 void ViewPort::DrawTile(float x, float y, Tile tile) const {
+  // Fill
   glPushMatrix();
     glTranslatef(x, y, 0.0);
     glScalef(sx, sy, 0.0);
@@ -93,6 +94,27 @@ void ViewPort::DrawTile(float x, float y, Tile tile) const {
       glVertex2f(-tile_half_width, -0.5f * tile_half_height);
       glVertex2f(-tile_half_width,  0.5f * tile_half_height);
     glEnd();
+  glPopMatrix();
+  // Border
+  glPushMatrix();
+    glTranslatef(x, y, 0.0);
+    glScalef(sx + 0.005f, sy + 0.005f, 0.0);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(4);
+
+    glBegin(GL_POLYGON);
+      glColor3f(0.7f, 0.7f, 0.4f);
+      glVertex2f( 0.0f,  tile_half_height);
+      glVertex2f( tile_half_width,  0.5f * tile_half_height);
+      glVertex2f( tile_half_width, -0.5f * tile_half_height);
+      glVertex2f( 0.0f, -tile_half_height);
+      glVertex2f(-tile_half_width, -0.5f * tile_half_height);
+      glVertex2f(-tile_half_width,  0.5f * tile_half_height);
+    glEnd();
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
   glPopMatrix();
 }
 
