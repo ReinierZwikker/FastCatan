@@ -30,6 +30,9 @@ static const int max_terrain_tiles[6] = {3, 4, 3, 4, 4, 1};
 // Harbors
 static const int max_harbors[9] = {4, 1, 1, 1, 1, 1};
 
+static const int max_available_moves = 200;
+static const int moves_per_turn = 25;
+
 
 /******************
  *     COLORS     *
@@ -177,27 +180,48 @@ struct Tile {
  ******************/
 
 enum MoveType {
-  buildStreet,
-  buildVillage,
-  buildCity,
-  buyDevelopment,
-  Trade,
-  Exchange,
-  openingMove,
+  buildStreet,    // Specify: Street Index
+  buildVillage,   // Specify: Corner Index
+  buildCity,      // Specify: Corner Index
+  buyDevelopment, // Specify: -
+  Trade,          // Specify: Other Player, Transmitting Card, Receiving Card, Amount
+  Exchange,       // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
+  moveRobber,     // Specify: Tile Index
+  endTurn,
   NoMove
+};
+
+enum TurnType {
+  openingTurnFirstVillage,
+  openingTurnFirstStreet,
+  openingTurnSecondVillage,
+  openingTurnSecondStreet,
+  normalTurn,
+  robberTurn,
+  noTurn
 };
 
 struct Move {
   // Move template, only set applicable fields when communicating moves
   MoveType move_type = NoMove;
   int index = -1;
-  CornerOccupancy *corner = nullptr;
-  CornerOccupancy *street = nullptr;
   Color other_player = NoColor;
-  CardType rx_card = NoCard;
   CardType tx_card = NoCard;
+  CardType rx_card = NoCard;
   int amount = -1;
 };
+
+inline bool operator==(const Move& move_lhs, const Move& move_rhs) {
+  if (move_lhs.move_type    == move_rhs.move_type    &&
+      move_lhs.index        == move_rhs.index        &&
+      move_lhs.other_player == move_rhs.other_player &&
+      move_lhs.tx_card      == move_rhs.tx_card      &&
+      move_lhs.rx_card      == move_rhs.rx_card      &&
+      move_lhs.amount       == move_rhs.amount)
+  { return true; } else { return false; }
+}
+
+
 
 
 #endif //FASTCATAN_COMPONENTS_H

@@ -3,6 +3,7 @@
 
 #include "player.h"
 #include "board.h"
+#include "HumanPlayer/human_player.h"
 
 struct Game {
 
@@ -26,13 +27,12 @@ struct Game {
 
   void step_round();
 
+
+
   int roll_dice();
 
   void give_cards(int rolled_number);
 
-  bool CheckValidity();
-  bool CheckValidity(Move move);
-  bool CheckValidity(Move move, MoveType move_type);
 };
 
 #endif //FASTCATAN_GAME_H
