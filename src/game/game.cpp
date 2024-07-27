@@ -11,10 +11,16 @@ Game::Game(int num_players) {
   Game::num_players = num_players;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = Player(&board, index_color(player_i));
-    players[player_i].agent = HumanPlayer(player_i);
+    auto *new_agent = new HumanPlayer(&players[player_i]);
+    players[player_i].agent = new_agent;
     players[player_i].activated = true;
   }
+}
 
+Game::~Game() {
+  for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    free(players[player_i].agent);
+  }
 }
 
 bool move_in_available_moves(Move move, Move *available_moves) {
@@ -38,7 +44,7 @@ void Game::start_game() {
     // let player select first town
     current_player->set_cards(1, 1, 0, 1, 1);
     current_player->update_available_moves(openingTurnFirstVillage);
-    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves))
       { throw std::invalid_argument("Not an available move!"); }
     current_player->place_village(chosen_move.index);
@@ -46,7 +52,7 @@ void Game::start_game() {
     // let player select first street
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnFirstStreet);
-    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves))
     { throw std::invalid_argument("Not an available move!"); }
     current_player->place_street(chosen_move.index);
@@ -59,7 +65,7 @@ void Game::start_game() {
     // let player select second town
     current_player->set_cards(1, 1, 0, 1, 1);
     current_player->update_available_moves(openingTurnSecondVillage);
-    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves))
     { throw std::invalid_argument("Not an available move!"); }
     current_player->place_village(chosen_move.index);
@@ -67,7 +73,7 @@ void Game::start_game() {
     // let player select second street
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnSecondStreet);
-    chosen_move = current_player->agent.get_move(&board, current_player->cards);
+    chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves))
     { throw std::invalid_argument("Not an available move!"); }
     current_player->place_street(chosen_move.index);
@@ -92,13 +98,13 @@ void Game::step_round() {
       if (dice_roll == 7) {
         // do robber turn
         current_player->update_available_moves(robberTurn);
-        chosen_move = current_player->agent.get_move(&board, current_player->cards);
+        chosen_move = current_player->agent->get_move(&board, current_player->cards);
         // perform chosen move
       } else { give_cards(dice_roll); }
 
       for (int move_i = 0; move_i < moves_per_turn; ++move_i) {
         current_player->update_available_moves(normalTurn);
-        chosen_move = current_player->agent.get_move(&board, current_player->cards);
+        chosen_move = current_player->agent->get_move(&board, current_player->cards);
 
 
         if (!move_in_available_moves(chosen_move, current_player->available_moves))
