@@ -28,6 +28,10 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
 
 Board::Board() {
 
+  for (int corner = 0; corner < amount_of_corners; corner++) {
+    corner_array[corner].id = corner;
+  }
+
   LinkParts();
 
 //  InitializeTilesAndTokens();

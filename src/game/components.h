@@ -108,6 +108,7 @@ enum CornerOccupancy {
 };
 
 struct Corner {
+  int id = -1;
   CornerOccupancy occupancy = CornerOccupancy::EmptyCorner;  // What is occupying the corner
   Color color = Color::NoColor;
   HarborType harbor = HarborType::Harbor_None;  // What type of harbor is on this corner

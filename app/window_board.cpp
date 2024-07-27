@@ -4,7 +4,11 @@
 static int tile_id = 0;
 static int corner_id = 0;
 static int street_id = 0;
+
 int current_item;
+int current_corner;
+int current_street;
+
 static TileSelectionItem tile_selection_item{};
 static CornerSelectionItem corner_selection_item{};
 static bool refresh_map;
@@ -48,6 +52,21 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     if (current_item != game->board.tile_array[tile_id].robber) {
       game->board.tile_array[tile_id].robber = current_item;
     }
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+    ImGui::Spacing();
+
+    // Corners
+    ImGui::InputInt("Corner", &current_corner);
+    if (current_corner < 0) {
+      current_corner = 0;
+    }
+    else if (current_corner > 5) {
+      current_corner = 5;
+    }
+    corner_id = game->board.tile_array[tile_id].corners[current_corner]->id;
+
   }
 
   if (ImGui::CollapsingHeader("Corners")) {
