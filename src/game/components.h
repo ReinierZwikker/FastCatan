@@ -225,10 +225,8 @@ inline MoveType index_move(int move_index) { return (MoveType) move_index; }
 inline int move_index(MoveType move) { return (int) move; }
 
 enum TurnType {
-  openingTurnFirstVillage,
-  openingTurnFirstStreet,
-  openingTurnSecondVillage,
-  openingTurnSecondStreet,
+  openingTurnVillage,
+  openingTurnStreet,
   normalTurn,
   robberTurn,
   noTurn

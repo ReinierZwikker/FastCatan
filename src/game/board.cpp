@@ -37,6 +37,8 @@ Board::Board() {
   }
 
   LinkParts();
+  LinkStreetsToCorners();
+  // TODO LinkCornersToStreets
   InitializeTilesAndTokens();
   Randomize();
 
@@ -396,7 +398,7 @@ void Board::LinkStreetsToCorners() {
     }
 
     for (int corner_i = 0; corner_i < 6; ++corner_i) {
-      printf("\n");
+      //printf("\n");
       for (int street_offset : {-1, 0}) {
         auto street_i = corner_i + street_offset;
         if (street_i < 0) {
@@ -408,7 +410,7 @@ void Board::LinkStreetsToCorners() {
           if (tile.corners[corner_i]->streets[current_slot_id] == nullptr) {
             // Set street if slot is empty
             tile.corners[corner_i]->streets[current_slot_id] = tile.streets[street_i];
-            printf("Adding street %d to corner %d in slot %d on tile (%d, %d)\n", street_i, corner_i, current_slot_id, current_row, current_column);
+            //printf("Adding street %d to corner %d in slot %d on tile (%d, %d)\n", street_i, corner_i, current_slot_id, current_row, current_column);
             continue_placing = false;
           } else if (tile.corners[corner_i]->streets[current_slot_id] == tile.streets[street_i]) {
             // Stop if street is already added

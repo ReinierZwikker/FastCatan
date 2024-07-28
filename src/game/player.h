@@ -42,11 +42,16 @@ public:
   int place_village(int corner_id);
   int place_city(int corner_id);
 
-  Move *update_available_moves(TurnType turn_type);
+  Move *update_available_moves(TurnType turn_type, Player *players[4]);
 
   virtual ~Player();
 
   void set_cards(int brick, int lumber, int ore, int grain, int wool);
+
+  bool resources_for_street();
+  bool resources_for_village();
+  bool resources_for_city();
+  bool resources_for_development();
 };
 
 #endif //FASTCATAN_PLAYER_H

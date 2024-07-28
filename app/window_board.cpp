@@ -14,6 +14,11 @@ static CornerSelectionItem corner_selection_item{};
 static bool refresh_map;
 
 void WindowBoard(Game* game, ViewPort* viewport) {
+  if (ImGui::Button("Start game?")) {
+    game->start_game();
+    refresh_map = true;
+  }
+
   if (ImGui::Button("Reshuffle")) {
     game->board.Randomize();
     refresh_map = true;

@@ -17,12 +17,33 @@ void HumanPlayer::player_print(std::string text) {
 Move HumanPlayer::get_move(Board *board, int cards[5]) {
   Move selected_move;
 
-  player_print("Select a move:");
-  int selected_movetype_int = 0;
-  std::cin >> selected_movetype_int;
-  selected_move.move_type = index_move(selected_movetype_int);
+  player_print("Possible moves:\n");
 
-  player_print(move2string(selected_move) + "\n");
+  int move_i;
+
+  for (move_i = 0; move_i < max_available_moves; ++move_i) {
+    if (player->available_moves[move_i].move_type == NoMove) {
+      break;
+    }
+    player_print("Move " + std::to_string(move_i + 1) + ": " + move2string(player->available_moves[move_i]) + "\n");
+  }
+
+  int selected_move_i = 0;
+  bool valid_selection = false;
+  while (!valid_selection) {
+    player_print("Select a move:");
+    std::cin >> selected_move_i;
+    if (selected_move_i < move_i) {
+      valid_selection = true;
+    } else {
+      player_print("Invalid selection!\n");
+    }
+  }
+  //  selected_move.move_type = index_move(selected_movetype_int);
+
+  selected_move = player->available_moves[selected_move_i];
+
+  player_print("\nSelected move:\n" + move2string(selected_move) + "\n");
   return selected_move;
 }
 

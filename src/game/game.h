@@ -15,10 +15,7 @@ struct Game {
 
   int num_players;
   // Player order: [Green, Red, White, Blue]
-  Player players[4] = {Player(nullptr, NoColor),
-                       Player(nullptr, NoColor),
-                       Player(nullptr, NoColor),
-                       Player(nullptr, NoColor)};
+  Player *players[4]{};
 
   Board board = Board();
 
