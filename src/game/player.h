@@ -24,7 +24,7 @@ public:
    *
    */
 
-  PlayerAgent *agent;
+  PlayerAgent *agent = nullptr;
 
   Board *board;
 

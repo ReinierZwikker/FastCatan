@@ -1,6 +1,8 @@
 #ifndef FASTCATAN_COMPONENTS_H
 #define FASTCATAN_COMPONENTS_H
 
+#include <string>
+
 struct Corner;
 struct Street;
 
@@ -46,9 +48,25 @@ enum Color {
     NoColor
 };
 
+static const std::string color_names[] = {
+    "Green",
+    "Red",
+    "White",
+    "Blue"
+};
+
+static const std::string color_offsets[] = {
+    "",
+    "  ",
+    "",
+    " "
+};
+
 inline Color index_color(int color_index) { return (Color) color_index; }
 inline int color_index(Color color) { return (int) color; }
 
+inline std::string color_name(Color color) { return color_names[color_index(color)]; }
+inline std::string color_offset(Color color) { return color_offsets[color_index(color)]; }
 
 /******************
  *     CARDS      *
@@ -63,8 +81,18 @@ enum CardType {
     NoCard
 };
 
+static const std::string card_names[] = {
+    "Brick",
+    "Lumber",
+    "Ore",
+    "Grain",
+    "Wool"
+};
+
 inline CardType index_card(int card_index) { return (CardType) card_index; }
 inline int card_index(CardType card) { return (int) card; }
+
+inline std::string card_name(CardType card) { return card_names[card_index(card)]; }
 
 /******************
  *    Street     *
@@ -191,6 +219,9 @@ enum MoveType {
   NoMove
 };
 
+inline MoveType index_move(int move_index) { return (MoveType) move_index; }
+inline int move_index(MoveType move) { return (int) move; }
+
 enum TurnType {
   openingTurnFirstVillage,
   openingTurnFirstStreet,
@@ -202,14 +233,25 @@ enum TurnType {
 };
 
 struct Move {
+  inline Move() {
+    move_type = NoMove;
+    index = -1;
+    other_player = NoColor;
+    tx_card = NoCard;
+    rx_card = NoCard;
+    tx_amount = -1;
+    rx_amount = -1;
+  }
   // Move template, only set applicable fields when communicating moves
-  MoveType move_type = NoMove;
-  int index = -1;
-  Color other_player = NoColor;
-  CardType tx_card = NoCard;
-  CardType rx_card = NoCard;
-  int amount = -1;
+  MoveType move_type;
+  int index;
+  Color other_player;
+  CardType tx_card;
+  CardType rx_card;
+  int tx_amount;
+  int rx_amount;
 };
+
 
 inline bool operator==(const Move& move_lhs, const Move& move_rhs) {
   if (move_lhs.move_type    == move_rhs.move_type    &&
@@ -217,11 +259,41 @@ inline bool operator==(const Move& move_lhs, const Move& move_rhs) {
       move_lhs.other_player == move_rhs.other_player &&
       move_lhs.tx_card      == move_rhs.tx_card      &&
       move_lhs.rx_card      == move_rhs.rx_card      &&
-      move_lhs.amount       == move_rhs.amount)
+      move_lhs.tx_amount    == move_rhs.tx_amount    &&
+      move_lhs.rx_amount    == move_rhs.rx_amount)
   { return true; } else { return false; }
 }
 
-
+inline std::string move2string(Move move) {
+  switch (move.move_type) {
+    case buildStreet:
+      return "Building Street at street " + std::to_string(move.index);
+    case buildVillage:
+      return "Building Village at corner " + std::to_string(move.index);
+    case buildCity:
+      return "Building City at corner " + std::to_string(move.index);
+    case buyDevelopment:
+      return "Buying one Development Card";
+    case Trade:
+      return "Trading "
+        + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
+        + " for "
+        + std::to_string(move.rx_amount) + " " + card_name(move.rx_card);
+    case Exchange:
+      return "Exchanging "
+             + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
+             + " for "
+             + std::to_string(move.rx_amount) + " " + card_name(move.rx_card)
+             + "with the bank";
+    case moveRobber:
+      return "Moving Robber to tile " + std::to_string(move.index);
+    case endTurn:
+      return "Ending my turn!";
+    case NoMove:
+      return "Invalid Move";
+  }
+  return "Invalid Move";
+}
 
 
 #endif //FASTCATAN_COMPONENTS_H

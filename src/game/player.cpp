@@ -3,13 +3,12 @@
 #include "player.h"
 
 
-Player::Player(Board *global_board, Color player_color) {
+Player::Player(Board *global_board, Color assigned_color) {
 
   board = global_board;
-  player_color = player_color;
+  player_color = assigned_color;
 
   available_moves = (Move *) malloc(max_available_moves * sizeof(Move));
-
 }
 
 Player::~Player() {
