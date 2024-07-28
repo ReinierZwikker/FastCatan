@@ -13,7 +13,7 @@ struct Street;
 // Map Layout
 static const int amount_of_tiles = 19;
 static const int amount_of_corners = 54;
-static const int amount_of_streets = 71;
+static const int amount_of_streets = 72;
 
 static const int tile_rows = 5;
 static const int corner_rows = 6;
@@ -99,9 +99,10 @@ inline std::string card_name(CardType card) { return card_names[card_index(card)
  ******************/
 
 struct Street {
-  Color color;  // What is occupying the street
-  Corner *corner_1;
-  Corner *corner_2;
+  int id = -1;
+  Color color = Color::NoColor;  // What is occupying the street
+  Corner *corner_1 = nullptr;
+  Corner *corner_2 = nullptr;
 };
 
 /******************
@@ -136,6 +137,7 @@ enum CornerOccupancy {
 };
 
 struct Corner {
+  int id = -1;
   CornerOccupancy occupancy = CornerOccupancy::EmptyCorner;  // What is occupying the corner
   Color color = Color::NoColor;
   HarborType harbor = HarborType::Harbor_None;  // What type of harbor is on this corner

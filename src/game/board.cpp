@@ -28,35 +28,18 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
 
 Board::Board() {
 
+  for (int corner = 0; corner < amount_of_corners; corner++) {
+    corner_array[corner].id = corner;
+  }
+
+  for (int street = 0; street < amount_of_streets; street++) {
+    street_array[street].id = street;
+  }
+
   LinkParts();
+  InitializeTilesAndTokens();
+  Randomize();
 
-//  InitializeTilesAndTokens();
-//
-//  // ## Create the map ##
-//  bool shuffling_map = true;
-//  while (shuffling_map) {
-//    ShuffleTilesAndTokens();
-//    AddNumberTokensToTiles();
-//
-//    // ## Check number tokens ##
-//    if (CheckNumberTokens()) {
-//      shuffling_map = false;
-//    }
-//  }
-//
-//  RewriteBoardLayout();
-
-  // TODO Uncomment this when it works again
-//  LinkCornersAndStreetsToTiles();
-//  LinkStreetsToCorners();
-
-//  AddHarbors();
-
-  // Temporary Check
-//  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
-//    std::cout << "Tile " << tile_i << " : " << tile_names[tile_array[tile_i].type] << " "
-//              << tile_array[tile_i].number_token << std::endl;
-//  }
 }
 
 /*
@@ -134,7 +117,7 @@ void Board::LinkParts() {
         // Streets
         if (i < 2) {
           tiles[tile_row_i][tile_column_i].streets[i] = &streets[2 * tile_row_i][shift_top + i];
-          tiles[tile_row_i][tile_column_i].streets[i + 4] = &streets[2 * tile_row_i + 2][shift_bottom - 1 - i];
+          tiles[tile_row_i][tile_column_i].streets[i + 3] = &streets[2 * tile_row_i + 2][shift_bottom - 1 - i];
           // std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top + i << tile_column_i + 1 << shift_bottom - 1 - i << std::endl;
         }
 
@@ -150,33 +133,19 @@ void Board::LinkParts() {
 
 
 /*
- * Initializes the tile_array array with all possible tile_array and the
+ * Initializes the available_tiles and the
  * number_tokens array with all possible number tokens.
  */
 void Board::InitializeTilesAndTokens() {
-  // ## Initialize tile_array ##
-  int current_tile_i = 0;
+  // ## Initialize available_tiles ##
+  int current_tile_type_i = 0;
   for (int tile_type_i = 0; tile_type_i < 6; tile_type_i++) {
-    for (int tile_i = 0; tile_i < max_terrain_tiles[tile_type_i]; tile_i++) {
-      // Construct a new tile
-      Tile current_tile = {};
+    for (int i = 0; i < max_terrain_tiles[tile_type_i]; i++) {
+      available_tiles[current_tile_type_i] = static_cast<TileType>(tile_type_i);
 
-      // Set initial values
-      current_tile.type = index_tile(tile_type_i);
-
-      // Robber starts on the Desert Tile
-      if (current_tile.type == Desert) {
-        current_tile.robber = true;
-      } else {
-        current_tile.robber = false;
-      }
-
-      // Append to tile_array
-      tile_array[current_tile_i] = current_tile;
-      current_tile_i++;
+      current_tile_type_i++;
     }
   }
-  if (current_tile_i != amount_of_tiles) { throw std::invalid_argument("Tiles do not add up!"); }
 
   // ## Initialize number tokens ##
   int current_number_token_i = 0;
@@ -196,14 +165,19 @@ void Board::InitializeTilesAndTokens() {
 void Board::ShuffleTilesAndTokens() {
   auto random_seed = std::random_device {};
   auto rng = std::default_random_engine {random_seed()};
-  std::shuffle(tile_array, tile_array + amount_of_tiles, rng);
+  std::shuffle(available_tiles, available_tiles + amount_of_tiles, rng);
   std::shuffle(number_tokens, number_tokens + amount_of_tokens, rng);
 }
 
 /*
  * Adds the number tokens to the tile structs
  */
-void Board::AddNumberTokensToTiles() {
+void Board::AddTileTypeAndNumberTokensToTiles() {
+  int current_tile = 0;
+  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
+    tile_array[tile_i].type = available_tiles[tile_i];
+  }
+
   int current_token = 0;
   for (auto & tile : tile_array) {
     if (tile.type != TileType::Desert) {
@@ -321,6 +295,15 @@ bool Board::CheckNumberTokens() {
   }
 
   return true;
+}
+
+void Board::Randomize() {
+  bool correct = false;
+  while (!correct) {
+    ShuffleTilesAndTokens();
+    AddTileTypeAndNumberTokensToTiles();
+    correct = CheckNumberTokens();
+  }
 }
 
 /*
