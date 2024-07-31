@@ -18,6 +18,7 @@ public:
 
   void Randomize();
   void PrintBoard();
+  bool CheckNumberTokens();
 
   int tile_diff[tile_rows]{};
   int row_decrease[tile_rows] = {0};
@@ -30,7 +31,7 @@ private:
 
   void ShuffleTilesAndTokens();
   void AddTileTypeAndNumberTokensToTiles();
-  bool CheckNumberTokens();
+
 
   void RewriteBoardLayout();
   void LinkCornersAndStreetsToTiles();

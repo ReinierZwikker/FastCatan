@@ -41,6 +41,7 @@ Board::Board() {
   // TODO LinkCornersToStreets
   InitializeTilesAndTokens();
   Randomize();
+  CheckNumberTokens();
 
 }
 
@@ -187,6 +188,9 @@ void Board::AddTileTypeAndNumberTokensToTiles() {
 
       current_token++;
     }
+    else {
+      tile.number_token = 0;
+    }
   }
 }
 
@@ -197,105 +201,49 @@ void Board::AddTileTypeAndNumberTokensToTiles() {
  * - Adjacent number tokens can not be a 6 and an 8
  */
 bool Board::CheckNumberTokens() {
-  // ## Check number tokens ##
-  int current_column = 0;
-  int current_row = 0;
-  int difference = 0;
-  int previous_difference = 0;
-  bool mistake_found = false;
+  int token_1, token_2;
+  bool first_column, last_column = false;
+  for (int row = 0; row < tile_rows; row++) {
+    for (int column = 0; column < tiles_in_row[row]; column++) {
+      token_1 = tiles[row][column].number_token;
 
-  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
-    if (current_column + 1 > tiles_in_row[current_row]) {
-      current_column = 0;
-      current_row++;
-    }
-
-    if (tile_diff[current_row] == -1) {
-      difference = 1;
-    }
-    else if (tile_diff[current_row] == 1){
-      difference = 0;
-    }
-    else {}
-
-    if (tile_diff[current_row - 1] == -1 && current_row != 0) {
-      previous_difference = 0;
-    }
-    else if (tile_diff[current_row - 1] == 1 && current_row != 0){
-      previous_difference = 1;
-    }
-
-    if (current_column + 1 != tiles_in_row[current_row]) {
-      mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_i + 1].number_token);
-      if (mistake_found) {
-        if (show_number_token_debug) {
-          std::cout << "1 Found mistake in number tokens between tile: " << tile_i << " and " << tile_i + 1
-                    << std::endl;
-        }
-        return false;
+      if (column == 0) {
+        first_column = true;
       }
-    }
-
-    if (current_column != tiles_in_row[current_row]) {
-      // Middle row
-      if (current_row != 0 && current_row + 1 != tile_rows) {
-        if (previous_difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
-          int tile_id_top = tile_i - tiles_in_row[current_row - 1] + previous_difference;
-          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_top].number_token);
-          if (mistake_found) {
-            if (show_number_token_debug) {
-              std::cout << "2 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_top
-                        << std::endl;
-            }
-            return false;
-          }
-        }
-
-        if (difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
-          int tile_id_bottom = tile_i + tiles_in_row[current_row] + difference;
-          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_bottom].number_token);
-          if (mistake_found) {
-            if (show_number_token_debug) {
-              std::cout << "3 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_bottom
-                        << std::endl;
-            }
-            return false;
-          }
-        }
-      }
-        // Top row
-      else if (current_row == 0) {
-        if (difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
-          int tile_id_bottom = tile_i + tiles_in_row[current_row] + difference;
-          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_bottom].number_token);
-          if (mistake_found) {
-            if (show_number_token_debug) {
-              std::cout << "4 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_bottom
-                        << std::endl;
-            }
-            return false;
-          }
-        }
-      }
-        // Bottom row
       else {
-        if (previous_difference != 0 || current_column + 1 != tiles_in_row[current_row]) {
-          int tile_id_top = tile_i - tiles_in_row[current_row - 1] + previous_difference;
-          mistake_found = compare_number_tokens(tile_array[tile_i].number_token, tile_array[tile_id_top].number_token);
-          if (mistake_found) {
-            if (show_number_token_debug) {
-              std::cout << "5 Found mistake in number tokens between tile: " << tile_i << " and " << tile_id_top
-                        << std::endl;
-            }
+        first_column = false;
+      }
+      if (column == (tiles_in_row[row] - 1)) {
+        last_column = true;
+      }
+      else {
+        last_column = false;
+      }
+
+      // Compare to the right
+      if (!last_column) {
+        if (compare_number_tokens(token_1, tiles[row][column + 1].number_token)) {
+          return false;
+        }
+      }
+
+      if (row != tile_rows - 1) {
+        // Compare below (Assume board maximally changes one tile per row)
+        if (!(tile_diff[row] < 0 && last_column)) {
+          if (compare_number_tokens(token_1, tiles[row + 1][column].number_token)) {
+            return false;
+          }
+        }
+
+        // Compare below shifted (Assume board maximally changes one tile per row)
+        if (!(tile_diff[row] < 0 && first_column)) {
+          if (compare_number_tokens(token_1, tiles[row + 1][column + tile_diff[row]].number_token)) {
             return false;
           }
         }
       }
     }
-
-    current_column++;
   }
-
   return true;
 }
 
