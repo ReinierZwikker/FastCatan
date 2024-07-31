@@ -25,6 +25,20 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
   }
 }
 
+void AddCorner2Street(Corner* corner, Street* street) {
+  if (street->corners[0] == nullptr) {
+    street->corners[0] = corner;
+  }
+  else if (street->corners[1] == nullptr) {
+    street->corners[1] = corner;
+  }
+  else {
+    std::cout << "Error encountered while linking corner [" << corner->id << "] to street [" << street->id <<
+                 "], street [" << street->id << "] already has to corners linked (corner ["
+                 << street->corners[0]->id << "] and corner[" << street->corners[1]->id << "]" << std::endl;
+  }
+}
+
 
 Board::Board() {
 
@@ -133,7 +147,7 @@ void Board::LinkParts() {
   bool expanding = true;
   for (int row = 0; row < corner_rows; row++) {
     // Check if the corners are expanding
-    if (row < corner_rows - 1 && corners_in_row[row] < corners_in_row[row + 1]) {
+    if (row < corner_rows - 1 && corners_in_row[row] <= corners_in_row[row + 1]) {
       expanding = true;
     }
     else {
@@ -144,42 +158,45 @@ void Board::LinkParts() {
       // Add only right
       if (column == 0) {
         corners[row][column].streets[2] = &streets[2 * row][column];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column]);
       }
       // Add only left
       else if (column == corners_in_row[row] - 1) {
         corners[row][column].streets[0] = &streets[2 * row][column - 1];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column - 1]);
       }
       // Add left and right
       else {
         corners[row][column].streets[2] = &streets[2 * row][column];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column]);
         corners[row][column].streets[0] = &streets[2 * row][column - 1];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column - 1]);
       }
 
       if (expanding) {
         // Add below
         if (column % 2 == 0) {
-          std::cout << row << ", " << column << " Below1: " << 2 * row + 1 << ", " << column / 2 << std::endl;
           corners[row][column].streets[1] = &streets[2 * row + 1][column / 2];
+          AddCorner2Street(&corners[row][column], &streets[2 * row + 1][column / 2]);
         }
         // Add above
         else if (row != 0) {
           corners[row][column].streets[1] = &streets[2 * row - 1][(column - 1) / 2];
-          std::cout << row << ", " << column << " Above1: " << 2 * row - 1 << ", " << (column - 1) / 2 << std::endl;
+          AddCorner2Street(&corners[row][column], &streets[2 * row - 1][(column - 1) / 2]);
         }
       }
       else {
         // Add above
         if (column % 2 == 0) {
           corners[row][column].streets[1] = &streets[2 * row - 1][column / 2];
-          std::cout << row << ", " << column << " Above2: " << 2 * row - 1 << ", " << column / 2 << std::endl;
+          AddCorner2Street(&corners[row][column], &streets[2 * row - 1][column / 2]);
         }
         // Add below
         else if (row < corner_rows - 1) {
           corners[row][column].streets[1] = &streets[2 * row + 1][(column - 1) / 2];
-          std::cout << row << ", " << column << " Below2: " << 2 * row + 1 << ", " << (column - 1) / 2 << std::endl;
+          AddCorner2Street(&corners[row][column], &streets[2 * row + 1][(column - 1) / 2]);
         }
       }
-
     }
   }
 
