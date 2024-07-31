@@ -32,11 +32,6 @@ private:
   void ShuffleTilesAndTokens();
   void AddTileTypeAndNumberTokensToTiles();
 
-
-  void RewriteBoardLayout();
-  void LinkCornersAndStreetsToTiles();
-  void LinkStreetsToCorners();
-
   void AddHarbors();
 
   TileType available_tiles[amount_of_tiles]{};
