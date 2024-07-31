@@ -37,7 +37,7 @@ Board::Board() {
   }
 
   LinkParts();
-  LinkStreetsToCorners();
+  // LinkStreetsToCorners();
   // TODO LinkCornersToStreets
   InitializeTilesAndTokens();
   Randomize();
@@ -115,25 +115,75 @@ void Board::LinkParts() {
         // Corners
         tiles[tile_row_i][tile_column_i].corners[i] = &corners[tile_row_i][shift_top + i];
         tiles[tile_row_i][tile_column_i].corners[i + 3] = &corners[tile_row_i + 1][shift_bottom - i];
-        // std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top + i << ", " << shift_bottom - i << std::endl;
 
         // Streets
         if (i < 2) {
           tiles[tile_row_i][tile_column_i].streets[i] = &streets[2 * tile_row_i][shift_top + i];
           tiles[tile_row_i][tile_column_i].streets[i + 3] = &streets[2 * tile_row_i + 2][shift_bottom - 1 - i];
-          // std::cout << tile_row_i << ", " << tile_column_i << ": " << shift_top + i << tile_column_i + 1 << shift_bottom - 1 - i << std::endl;
         }
 
       }
-      // std::cout << std::endl;
-
       // Streets at the right sides of the tiles
       tiles[tile_row_i][tile_column_i].streets[2] = &streets[2 * tile_row_i + 1][tile_column_i + 1];
       tiles[tile_row_i][tile_column_i].streets[5] = &streets[2 * tile_row_i + 1][tile_column_i];
     }
   }
-}
 
+  // Link streets to corners
+  bool expanding = true;
+  for (int row = 0; row < corner_rows; row++) {
+    // Check if the corners are expanding
+    if (row < corner_rows - 1 && corners_in_row[row] < corners_in_row[row + 1]) {
+      expanding = true;
+    }
+    else {
+      expanding = false;
+    }
+
+    for (int column = 0; column < corners_in_row[row]; column++) {
+      // Add only right
+      if (column == 0) {
+        corners[row][column].streets[2] = &streets[2 * row][column];
+      }
+      // Add only left
+      else if (column == corners_in_row[row] - 1) {
+        corners[row][column].streets[0] = &streets[2 * row][column - 1];
+      }
+      // Add left and right
+      else {
+        corners[row][column].streets[2] = &streets[2 * row][column];
+        corners[row][column].streets[0] = &streets[2 * row][column - 1];
+      }
+
+      if (expanding) {
+        // Add below
+        if (column % 2 == 0) {
+          std::cout << row << ", " << column << " Below1: " << 2 * row + 1 << ", " << column / 2 << std::endl;
+          corners[row][column].streets[1] = &streets[2 * row + 1][column / 2];
+        }
+        // Add above
+        else if (row != 0) {
+          corners[row][column].streets[1] = &streets[2 * row - 1][(column - 1) / 2];
+          std::cout << row << ", " << column << " Above1: " << 2 * row - 1 << ", " << (column - 1) / 2 << std::endl;
+        }
+      }
+      else {
+        // Add above
+        if (column % 2 == 0) {
+          corners[row][column].streets[1] = &streets[2 * row - 1][column / 2];
+          std::cout << row << ", " << column << " Above2: " << 2 * row - 1 << ", " << column / 2 << std::endl;
+        }
+        // Add below
+        else if (row < corner_rows - 1) {
+          corners[row][column].streets[1] = &streets[2 * row + 1][(column - 1) / 2];
+          std::cout << row << ", " << column << " Below2: " << 2 * row + 1 << ", " << (column - 1) / 2 << std::endl;
+        }
+      }
+
+    }
+  }
+
+}
 
 /*
  * Initializes the available_tiles and the

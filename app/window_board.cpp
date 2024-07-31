@@ -74,7 +74,7 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     corner_id = game->board.tile_array[tile_id].corners[current_corner]->id;
 
     // Streets
-    ImGui::InputInt("Street", &current_street);
+    ImGui::InputInt("Street##0", &current_street);
     if (current_street < 0) {
       current_street = 5;
     }
@@ -111,6 +111,53 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     if (current_item != game->board.corner_array[corner_id].color) {
       game->board.corner_array[corner_id].color = static_cast<Color>(current_item);
     }
+
+    // Streets
+    if (ImGui::CollapsingHeader("Streets")) {
+      Street* street_0 = game->board.corner_array[corner_id].streets[0];
+      Street* street_1 = game->board.corner_array[corner_id].streets[1];
+      Street* street_2 = game->board.corner_array[corner_id].streets[2];
+
+      if (street_0 != nullptr) {
+        current_item = game->board.street_array[street_0->id].color;
+        ImGui::Text("Street left [%i]", street_0->id);
+        ImGui::Combo("Street Color##1", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
+        if (current_item != game->board.street_array[street_0->id].color) {
+          game->board.street_array[street_0->id].color = static_cast<Color>(current_item);
+        }
+      }
+      else {
+        ImGui::Text("Street left - Not connected");
+      }
+
+      if (street_1 != nullptr) {
+        current_item = game->board.street_array[street_1->id].color;
+        ImGui::Text("Street above/below [%i]", street_1->id);
+        ImGui::Combo("Street Color##2", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
+        if (current_item != game->board.street_array[street_1->id].color) {
+          game->board.street_array[street_1->id].color = static_cast<Color>(current_item);
+        }
+      }
+      else {
+        ImGui::Text("Street above/below - Not connected");
+      }
+
+      if (street_2 != nullptr) {
+        current_item = game->board.street_array[street_2->id].color;
+        ImGui::Text("Street right [%i]", street_2->id);
+        ImGui::Combo("Street Color##3", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
+        if (current_item != game->board.street_array[street_2->id].color) {
+          game->board.street_array[street_2->id].color = static_cast<Color>(current_item);
+        }
+      }
+      else {
+        ImGui::Text("Street right - Not connected");
+      }
+
+
+    }
+
+
   }
 
   if (ImGui::CollapsingHeader("Street")) {
