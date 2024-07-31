@@ -165,9 +165,9 @@ void Game::give_cards(int rolled_number) {
   for (Tile *tile : board.tiles) { if (tile->number_token == rolled_number || rolled_number == -1) {
     for (Corner *corner : tile->corners) { if (corner->color != NoColor) {
       if (corner->occupancy == Village) {
-        players[color_index(corner->color)]->cards[card_index(tile2card(tile->type))]++;
+        players[color_index(corner->color)]->add_cards(tile2card(tile->type), 1);
       } else if (corner->occupancy == City) {
-        players[color_index(corner->color)]->cards[card_index(tile2card(tile->type))] += 2;
+        players[color_index(corner->color)]->add_cards(tile2card(tile->type), 2);
       }
     } }
   } }

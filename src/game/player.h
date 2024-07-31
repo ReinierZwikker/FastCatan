@@ -47,6 +47,7 @@ public:
   virtual ~Player();
 
   void set_cards(int brick, int lumber, int ore, int grain, int wool);
+  void add_cards(CardType card_type, int amount);
 
   bool resources_for_street();
   bool resources_for_village();

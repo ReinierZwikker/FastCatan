@@ -68,6 +68,7 @@ bool corner_village_available(Corner *corner) {
     bool valid = true;
     for (auto & street : corner->streets) {
       if (street != nullptr) {
+        // TODO Change after corners has become an array
         if (corner_occupied(street->corner_1, NoColor)) {
           valid = false;
         }
@@ -147,7 +148,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
   if (turn_type == openingTurnStreet || turn_type == normalTurn) {
     for (int street_i = 0; street_i < amount_of_streets; ++street_i) {
       if (board->street_array[street_i].color == NoColor
-       && (corner_occupied(board->street_array[street_i].corner_1, player_color)
+       && (corner_occupied(board->street_array[street_i].corner_1, player_color) // TODO Change after corners has become an array
         || corner_occupied(board->street_array[street_i].corner_2, player_color))
        && resources_for_street()) {
         if (current_move_id >= max_available_moves) {
@@ -217,4 +218,8 @@ void Player::set_cards(int brick, int lumber, int ore, int grain, int wool) {
   cards[2] = ore;
   cards[3] = grain;
   cards[4] = wool;
+}
+
+void Player::add_cards(CardType card_type, int amount) {
+  cards[card_index(card_type)] += amount;
 }

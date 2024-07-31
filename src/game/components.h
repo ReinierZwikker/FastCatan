@@ -100,7 +100,7 @@ inline std::string card_name(CardType card) { return card_names[card_index(card)
 
 struct Street {
   int id = -1;
-  Color color = Color::NoColor;  // What is occupying the street
+  Color color = Color::NoColor;  // Who is occupying the street
   Corner *corner_1 = nullptr;
   Corner *corner_2 = nullptr;
 };
@@ -229,6 +229,7 @@ enum TurnType {
   openingTurnStreet,
   normalTurn,
   robberTurn,
+  tradeTurn,
   noTurn
 };
 
