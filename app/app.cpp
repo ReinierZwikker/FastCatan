@@ -161,6 +161,7 @@ void App::Refresh() {
     if (ImGui::BeginMenu("Debug"))
     {
       ImGui::MenuItem("Board", NULL, &show_board_window);
+      ImGui::MenuItem("Game", NULL, &show_game_window);
       ImGui::EndMenu();
     }
 
@@ -175,6 +176,13 @@ void App::Refresh() {
   if (show_board_window) {
     ImGui::Begin("Board", &show_board_window);
     WindowBoard(game_pointer, &viewport);
+
+    ImGui::End();
+  }
+
+  if (show_game_window) {
+    ImGui::Begin("Game", &show_game_window);
+    WindowGame(game_pointer);
 
     ImGui::End();
   }
