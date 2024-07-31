@@ -120,9 +120,10 @@ enum HarborType {
 
 struct Harbor {
   int tile_id;
-  int corner_1;
-  int corner_2;
+  int corners[2];
   HarborType type;
+
+  Harbor(int, int, int, HarborType);
 };
 
 /******************

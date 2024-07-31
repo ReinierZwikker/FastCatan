@@ -39,6 +39,13 @@ void AddCorner2Street(Corner* corner, Street* street) {
   }
 }
 
+Harbor::Harbor(int input_tile_id, int input_corner_1, int input_corner_2, HarborType harbor_type) {
+  tile_id = input_tile_id;
+  corners[0] = input_corner_1;
+  corners[1] = input_corner_2;
+  type = harbor_type;
+}
+
 
 Board::Board() {
 
@@ -51,16 +58,15 @@ Board::Board() {
   }
 
   LinkParts();
-  // LinkStreetsToCorners();
-  // TODO LinkCornersToStreets
   InitializeTilesAndTokens();
   Randomize();
-  CheckNumberTokens();
+  AddHarbors();
 
 }
 
 /*
- * Links all the memory addresses of corners and streets to their corresponding tile
+ * Links all the memory addresses of corners and streets to their corresponding tile and
+ * corners to streets and vise versa.
  */
 void Board::LinkParts() {
 
@@ -326,12 +332,12 @@ void Board::Randomize() {
 /*
  * Adds harbor types to pre-defined corners of selected tile_array.
  */
-//void Board::AddHarbors() {
-//  for (auto harbor : harbors) {
-//    tile_array[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
-//    tile_array[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
-//  }
-//}
+void Board::AddHarbors() {
+  for (auto harbor : harbors) {
+    tile_array[harbor.tile_id].corners[harbor.corners[0]]->harbor = harbor.type;
+    tile_array[harbor.tile_id].corners[harbor.corners[1]]->harbor = harbor.type;
+  }
+}
 
 /*
  * Prints board to the console.

@@ -45,17 +45,17 @@ private:
   bool show_number_token_debug = false;
 
   // Hardcoded for now:
-//  Harbor harbor_1 = Harbor(0, 0, 1, HarborType::Harbor_Generic);
-//  Harbor harbor_2 = Harbor(1, 1, 2, HarborType::Harbor_Grain);
-//  Harbor harbor_3 = Harbor(6, 1, 2, HarborType::Harbor_Ore);
-//  Harbor harbor_4 = Harbor(11, 2, 3, HarborType::Harbor_Generic);
-//  Harbor harbor_5 = Harbor(15, 3, 4, HarborType::Harbor_Wool);
-//  Harbor harbor_6 = Harbor(17, 3, 4, HarborType::Harbor_Generic);
-//  Harbor harbor_7 = Harbor(16, 4, 5, HarborType::Harbor_Generic);
-//  Harbor harbor_8 = Harbor(12, 5, 0, HarborType::Harbor_Brick);
-//  Harbor harbor_9 = Harbor(3, 5, 0, HarborType::Harbor_Lumber);
-//
-//  const Harbor harbors[9] = {harbor_1, harbor_2, harbor_3, harbor_4, harbor_5, harbor_6, harbor_7, harbor_8, harbor_9};
+  Harbor harbor_1 = Harbor(0, 0, 1, HarborType::Harbor_Generic);
+  Harbor harbor_2 = Harbor(1, 1, 2, HarborType::Harbor_Grain);
+  Harbor harbor_3 = Harbor(6, 1, 2, HarborType::Harbor_Ore);
+  Harbor harbor_4 = Harbor(11, 2, 3, HarborType::Harbor_Generic);
+  Harbor harbor_5 = Harbor(15, 3, 4, HarborType::Harbor_Wool);
+  Harbor harbor_6 = Harbor(17, 3, 4, HarborType::Harbor_Generic);
+  Harbor harbor_7 = Harbor(16, 4, 5, HarborType::Harbor_Generic);
+  Harbor harbor_8 = Harbor(12, 5, 0, HarborType::Harbor_Brick);
+  Harbor harbor_9 = Harbor(3, 5, 0, HarborType::Harbor_Lumber);
+
+  const Harbor harbors[9] = {harbor_1, harbor_2, harbor_3, harbor_4, harbor_5, harbor_6, harbor_7, harbor_8, harbor_9};
 
 };
 
