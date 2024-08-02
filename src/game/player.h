@@ -6,7 +6,6 @@
 
 class PlayerAgent {
 public:
-  virtual inline Move get_move_gui(Board *board, int cards[5]) { return {}; }
   virtual inline Move get_move(Board *board, int cards[5]) { return {}; }
   virtual inline void finish_round(Board *board) {}
 };

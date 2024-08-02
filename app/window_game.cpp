@@ -23,6 +23,7 @@ void WindowGame(Game* game) {
 
   if (ImGui::Button("Resume")) {
     game->human_input_received();
+    game->step_round();
     start_thread.join();
   }
 }

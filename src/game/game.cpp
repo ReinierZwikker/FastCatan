@@ -13,7 +13,7 @@ Game::Game(int num_players) {
   Game::num_players = num_players;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = new Player(&board, index_color(player_i));
-    auto *new_agent = new HumanPlayer(players[player_i]);
+    auto *new_agent = new ConsolePlayer(players[player_i]);
     players[player_i]->agent = new_agent;
     players[player_i]->activated = true;
   }
@@ -49,13 +49,13 @@ void Game::start_game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     current_player = players[player_i];
 
-     std::unique_lock<std::mutex> lock(human_turn);
-
-     game_state = GameStates::WaitingForPlayer;
-
-     cv.wait(lock, [this] { return input_received; });
-
-     game_state = GameStates::Starting;
+//     std::unique_lock<std::mutex> lock(human_turn);
+//
+//     game_state = GameStates::WaitingForPlayer;
+//
+//     cv.wait(lock, [this] { return input_received; });
+//
+//     game_state = GameStates::Starting;
 
     // let player select first town
     current_player->set_cards(1, 1, 0, 1, 1);
