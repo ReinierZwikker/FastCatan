@@ -16,6 +16,7 @@ Player::~Player() {
 }
 
 bool corner_occupied(Corner *corner, Color color) {
+  // NoColor returns for all colors, otherwise only specific color
   if (color == NoColor) {
     return corner->occupancy == Village || corner->occupancy == City;
   } else {
@@ -23,22 +24,53 @@ bool corner_occupied(Corner *corner, Color color) {
   }
 }
 
-bool corner_village_available(Corner *corner) {
-  if (corner_occupied(corner, NoColor)) {
-    return false;
-  }
-  bool valid = true;
-  for (auto & street : corner->streets) {
-    if (street != nullptr) {
-      if (corner_occupied(street->corners[0], NoColor)) {
-        valid = false;
-      }
-      if (corner_occupied(street->corners[1], NoColor)) {
-        valid = false;
+bool street_available(Street *street, Color color, bool opening_turn) {
+  // Check if this is the right village
+  bool village_available = true;
+  if (opening_turn) {
+    for (auto & adjacent_corner : street->corners) {
+      for (auto & adjacent_street : adjacent_corner->streets) {
+        if (adjacent_street != nullptr) {
+          if (adjacent_street->color == color) {
+            village_available = false;
+          }
+        }
       }
     }
   }
-  return valid;
+  return street->color == NoColor
+      && (corner_occupied(street->corners[0], color)
+       || corner_occupied(street->corners[1], color))
+      && village_available;
+}
+
+bool corner_village_available(Corner *corner, Color color, bool opening_turn) {
+  if (corner_occupied(corner, NoColor)) {
+    return false;
+  }
+
+  for (auto &adjacent_street : corner->streets) {
+    if (adjacent_street != nullptr) {
+      for (auto adjacent_corner: adjacent_street->corners) {
+        if (corner_occupied(adjacent_corner, NoColor)) {
+          return false;
+        }
+      }
+    }
+  }
+
+  if (opening_turn) {
+      return true;
+  } else {
+    for (auto &adjacent_street: corner->streets) {
+      if (adjacent_street != nullptr) {
+        if (adjacent_street->color == color) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }
 
 bool corner_city_available(Corner *corner, Color color) {
@@ -87,7 +119,7 @@ int Player::place_street(int street_id) {
 }
 
 int Player::place_village(int corner_id) {
-  if (corner_village_available(&board->corner_array[corner_id])
+  if (corner_village_available(&board->corner_array[corner_id], player_color, true)
    && resources_for_village()) {
     board->corner_array[corner_id].occupancy = Village;
     board->corner_array[corner_id].color = player_color;
@@ -133,10 +165,8 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
   // Streets
   if (turn_type == openingTurnStreet || turn_type == normalTurn) {
     for (int street_i = 0; street_i < amount_of_streets; ++street_i) {
-      if (board->street_array[street_i].color == NoColor
-          && (corner_occupied(board->street_array[street_i].corners[0], player_color)
-           || corner_occupied(board->street_array[street_i].corners[1], player_color))
-          && resources_for_street()) {
+      if (street_available(&board->street_array[street_i], player_color, turn_type == openingTurnStreet)
+       && resources_for_street()) {
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
@@ -151,7 +181,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
   // Villages
   if (turn_type == openingTurnVillage || turn_type == normalTurn) {
     for (int corner_i = 0; corner_i < amount_of_corners; ++corner_i) {
-      if (corner_village_available(&board->corner_array[corner_i])
+      if (corner_village_available(&board->corner_array[corner_i], player_color, turn_type == openingTurnVillage)
        && resources_for_village()) {
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }

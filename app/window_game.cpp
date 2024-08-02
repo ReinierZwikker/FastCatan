@@ -18,10 +18,13 @@ void WindowGame(Game* game) {
 
   if (ImGui::Button("Start")) {
     // start_thread = std::thread(&Game::start_game, game);
+    game->start_game();
   }
 
   if (ImGui::Button("Resume")) {
     // game->human_input_received();
+    game->step_round();
+
   }
 
 //  if (start_thread.joinable()) {
