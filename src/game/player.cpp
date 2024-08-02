@@ -38,7 +38,7 @@ bool street_available(Street *street, Color color, bool opening_turn) {
       }
     }
   }
-  bool adjacent = 
+  bool adjacent = false;
 
   return street->color == NoColor
       && (corner_occupied(street->corners[0], color)
