@@ -35,6 +35,12 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     // Number token
     int current_number = game->board.tile_array[tile_id].number_token;
     ImGui::InputInt("Number Token", &current_number);
+    if (current_number > 12) {
+      current_number = 12;
+    }
+    else if (current_number < 2) {
+      current_number = 2;
+    }
     if (current_number != game->board.tile_array[tile_id].number_token) {
       game->board.tile_array[tile_id].number_token = current_number;
     }
