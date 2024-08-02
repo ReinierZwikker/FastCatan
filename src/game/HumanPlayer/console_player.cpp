@@ -1,25 +1,19 @@
 #include <cstdio>
 #include <iostream>
 
-#include "human_player.h"
+#include "console_player.h"
 
-HumanPlayer::HumanPlayer(Player *connected_player) {
+ConsolePlayer::ConsolePlayer(Player *connected_player) {
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
   player_print("Welcome to FastCatan! You are player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
 }
 
-void HumanPlayer::player_print(std::string text) {
+void ConsolePlayer::player_print(std::string text) {
   printf("%s%s", console_tag.c_str(), text.c_str());
 }
 
-
-Move HumanPlayer::get_move_gui(Board *board, int cards[5]) {
-  return player->available_moves[0];
-}
-
-
-Move HumanPlayer::get_move(Board *board, int cards[5]) {
+Move ConsolePlayer::get_move(Board *board, int cards[5]) {
   Move selected_move;
 
   player_print("Cards:\n");
@@ -59,10 +53,10 @@ Move HumanPlayer::get_move(Board *board, int cards[5]) {
   return selected_move;
 }
 
-void HumanPlayer::finish_round(Board *board) {
+void ConsolePlayer::finish_round(Board *board) {
 
 }
 
-HumanPlayer::~HumanPlayer() {
+ConsolePlayer::~ConsolePlayer() {
   printf("Thank you for playing!\n");
 }

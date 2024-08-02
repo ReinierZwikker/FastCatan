@@ -16,8 +16,10 @@ set(SOURCES
         src/game/game.h
         src/game/player.cpp
         src/game/player.h
-        src/game/HumanPlayer/human_player.cpp
-        src/game/HumanPlayer/human_player.h
+        src/game/HumanPlayer/console_player.cpp
+        src/game/HumanPlayer/console_player.h
+        src/game/HumanPlayer/gui_player.cpp
+        src/game/HumanPlayer/gui_player.h
         app/app.cpp
         app/viewport.cpp
         app/window_board.cpp

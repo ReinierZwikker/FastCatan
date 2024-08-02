@@ -8,20 +8,18 @@
 #include <string>
 
 
-class HumanPlayer : public PlayerAgent {
+class ConsolePlayer : public PlayerAgent {
 public:
-  explicit HumanPlayer(Player *connected_player);
-  Move get_move_gui(Board *board, int cards[5]) override;
+  explicit ConsolePlayer(Player *connected_player);
   Move get_move(Board *board, int cards[5]) override;
   void finish_round(Board *board) override;
   void player_print(std::string text);
-  ~HumanPlayer();
+  ~ConsolePlayer();
 
 private:
   Player *player;
   std::string console_tag;
 };
-
 
 
 #endif //FASTCATAN_HUMAN_PLAYER_H
