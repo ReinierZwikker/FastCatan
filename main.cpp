@@ -19,4 +19,23 @@ int main(int argc, char *argv[]) {
     app.Refresh();
   }
   return 0;
-};
+}
+
+// TODO GuiPlayer
+
+// TODO Robber
+  // TODO Block Resources
+  // TODO Move Robber
+  // TODO Pull card when moved
+
+// TODO VictoryPoints
+  // TODO Longest Road
+  // TODO Largest Army
+
+// TODO Trading
+
+// TODO Exchanging
+
+// TODO Streets Highlight
+
+// TODO Graphics

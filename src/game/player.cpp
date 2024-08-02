@@ -39,10 +39,24 @@ bool street_available(Street *street, Color color, bool opening_turn) {
     }
   }
   bool adjacent = false;
+  for (auto & adjacent_corner : street->corners) {
+    if (corner_occupied(adjacent_corner, color)) {
+      adjacent = true;
+    }
+    if (!opening_turn) {
+      for (auto & adjacent_street : adjacent_corner->streets) {
+        if (adjacent_street != nullptr) {
+          if (adjacent_street->color == color) {
+            adjacent = true;
+          }
+        }
+      }
+    }
+  }
+
 
   return street->color == NoColor
-      && (corner_occupied(street->corners[0], color)
-       || corner_occupied(street->corners[1], color))
+      && adjacent
       && village_available;
 }
 
