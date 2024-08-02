@@ -89,6 +89,14 @@ static const std::string card_names[] = {
     "Wool"
 };
 
+static const char* card_names_char[] = {
+    "Brick",
+    "Lumber",
+    "Ore",
+    "Grain",
+    "Wool"
+};
+
 inline CardType index_card(int card_index) { return (CardType) card_index; }
 inline int card_index(CardType card) { return (int) card; }
 

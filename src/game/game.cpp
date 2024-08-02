@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "game.h"
 
@@ -15,6 +16,8 @@ Game::Game(int num_players) {
     players[player_i]->agent = new_agent;
     players[player_i]->activated = true;
   }
+
+  game_state = GameStates::ReadyToStart;
 }
 
 Game::~Game() {
@@ -36,12 +39,20 @@ bool move_in_available_moves(Move move, Move *available_moves) {
   return false;
 }
 
-
 void Game::start_game() {
+  game_state = GameStates::Starting;
+
   Move chosen_move;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    current_player = players[player_i];
 
-    Player *current_player = players[player_i];
+      // std::unique_lock<std::mutex> lock(human_turn);
+
+      // game_state = GameStates::WaitingForPlayer;
+
+      // cv.wait(lock, [this] { return input_received; });
+
+      // game_state = GameStates::Starting;
 
     // let player select first town
     current_player->set_cards(1, 1, 0, 1, 1);
@@ -58,7 +69,6 @@ void Game::start_game() {
     if (!move_in_available_moves(chosen_move, current_player->available_moves))
     { throw std::invalid_argument("Not an available move!"); }
     current_player->place_street(chosen_move.index);
-  }
 
   for (int player_i = Game::num_players; player_i >= 0; player_i--) {
 
@@ -86,6 +96,11 @@ void Game::start_game() {
 
 }
 
+void Game::human_input_received() {
+  std::lock_guard<std::mutex> lock(human_turn);
+  input_received = true;
+  cv.notify_one();
+}
 
 void Game::step_round() {
   Move chosen_move;

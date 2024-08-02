@@ -132,6 +132,10 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
   // Initialize the game and board on screen
   game_pointer = game;
   viewport.NewMap(game_pointer);
+
+  for (int player_i = 0; player_i < game->num_players; player_i++) {
+    show_player_window[player_i] = true;
+  }
 }
 
 void App::Refresh() {
@@ -162,6 +166,13 @@ void App::Refresh() {
     {
       ImGui::MenuItem("Board", NULL, &show_board_window);
       ImGui::MenuItem("Game", NULL, &show_game_window);
+
+      for (int player_i = 0; player_i < game_pointer->num_players; player_i++) {
+        char player_string[12];
+        sprintf(player_string, "Player %i", player_i + 1);
+        ImGui::MenuItem(player_string, NULL, &show_player_window[player_i]);
+      }
+
       ImGui::EndMenu();
     }
 
@@ -180,9 +191,20 @@ void App::Refresh() {
     ImGui::End();
   }
 
+  // Game Menu
   if (show_game_window) {
     ImGui::Begin("Game", &show_game_window);
     WindowGame(game_pointer);
+
+    ImGui::End();
+  }
+
+  // Player Windows
+  for (int player_i = 0; player_i < game_pointer->num_players; player_i++) {
+    char player_string[12];
+    sprintf(player_string, "Player %i", player_i + 1);
+    ImGui::Begin(player_string, &show_player_window[player_i]);
+    WindowPlayer(game_pointer, player_i);
 
     ImGui::End();
   }

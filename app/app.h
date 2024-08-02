@@ -15,6 +15,7 @@
 #include "viewport.h"
 #include "window_board.h"
 #include "window_game.h"
+#include "window_player.h"
 
 
 class App {
@@ -33,6 +34,7 @@ class App {
     bool show_demo_window = false;
     bool show_board_window = true;
     bool show_game_window = true;
+    bool show_player_window[4] = {false, false, false, false};
 
     Game* game_pointer;
 
