@@ -1,22 +1,26 @@
 #include "gui_player.h"
+#include "iostream"
 
-GuiPlayer::GuiPlayer(Player *connected_player, std::mutex *mutex, std::condition_variable *con_var, bool *received) {
+GuiPlayer::GuiPlayer(Player *connected_player) {
   player = connected_player;
-
-  // Mutex system
-  waiting = mutex;
-  cv = con_var;
-  input_received = received;
 }
 
 Move GuiPlayer::get_move(Board *board, int cards[5]) {
   Move selected_move;
 
-  std::unique_lock<std::mutex> lock(*waiting);
+  std::cout << "test" << std::endl;
+  std::unique_lock<std::mutex> lock(waiting);
 
   player_state = PlayerStates::Playing;
 
-  cv->wait(lock, [this] { return input_received; });
+  cv.wait(lock, [this] { return input_received; });
+
+  player_state = PlayerStates::Waiting;
+
+  return selected_move;
+}
+
+void GuiPlayer::human_input_received() {
 
 }
 
