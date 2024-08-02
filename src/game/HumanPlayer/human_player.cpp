@@ -17,6 +17,12 @@ void HumanPlayer::player_print(std::string text) {
 Move HumanPlayer::get_move(Board *board, int cards[5]) {
   Move selected_move;
 
+  player_print("Cards:\n");
+
+  for (int card_i = 0; card_i < 5; ++card_i) {
+    player_print("    " + card_name(index_card(card_i)) + " = " + std::to_string(cards[card_i]) + "\n");
+  }
+
   player_print("Possible moves:\n");
 
   int move_i;
@@ -33,7 +39,8 @@ Move HumanPlayer::get_move(Board *board, int cards[5]) {
   while (!valid_selection) {
     player_print("Select a move:");
     std::cin >> selected_move_i;
-    if (selected_move_i < move_i) {
+    selected_move_i--;
+    if (selected_move_i >= 0 && selected_move_i < move_i) {
       valid_selection = true;
     } else {
       player_print("Invalid selection!\n");

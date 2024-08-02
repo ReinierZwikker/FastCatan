@@ -1,4 +1,6 @@
 #include <stdexcept>
+#include <random>
+#include <iostream>
 
 #include "game.h"
 
@@ -15,6 +17,8 @@ Game::Game(int num_players) {
     players[player_i]->agent = new_agent;
     players[player_i]->activated = true;
   }
+
+  roll_dice();
 }
 
 Game::~Game() {
@@ -60,7 +64,7 @@ void Game::start_game() {
     current_player->place_street(chosen_move.index);
   }
 
-  for (int player_i = Game::num_players; player_i >= 0; player_i--) {
+  for (int player_i = Game::num_players-1; player_i >= 0; player_i--) {
 
     Player *current_player = players[player_i];
 
@@ -73,6 +77,7 @@ void Game::start_game() {
     current_player->place_village(chosen_move.index);
 
     // let player select second street
+    // TODO force player to select street adjacent to second village
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnStreet, players);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
@@ -152,8 +157,14 @@ void Game::step_round() {
 
 
 int Game::roll_dice() {
-  // TODO generate random roll with 2d6 probabilities
-  return game_seed * 1;
+  std::mt19937 gen(randomDevice());
+  std::uniform_int_distribution<> dice(1, 6);
+  int die_1 = dice(gen);
+  int die_2 = dice(gen);
+
+  printf("Rolled dice: %d + %d = %d\n", die_1, die_2, die_1 + die_2);
+
+  return die_1 + die_2;
 }
 
 
@@ -162,13 +173,19 @@ int Game::roll_dice() {
  */
 void Game::give_cards(int rolled_number) {
   // TODO Add check for bank reserves
-  for (Tile *tile : board.tiles) { if (tile->number_token == rolled_number || rolled_number == -1) {
-    for (Corner *corner : tile->corners) { if (corner->color != NoColor) {
-      if (corner->occupancy == Village) {
-        players[color_index(corner->color)]->add_cards(tile2card(tile->type), 1);
-      } else if (corner->occupancy == City) {
-        players[color_index(corner->color)]->add_cards(tile2card(tile->type), 2);
+  for (Tile tile : board.tile_array) {
+    if (tile.number_token == rolled_number || rolled_number == -1) {
+      for (Corner *corner : tile.corners) {
+        if (corner->color != NoColor) {
+          if (corner->occupancy == Village) {
+            players[color_index(corner->color)]->add_cards(tile2card(tile.type), 1);
+            std::cout << "Giving one " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
+          } else if (corner->occupancy == City) {
+            players[color_index(corner->color)]->add_cards(tile2card(tile.type), 2);
+            std::cout << "Giving two " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
+          }
+        }
       }
-    } }
-  } }
+    }
+  }
 }

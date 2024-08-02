@@ -1,6 +1,8 @@
 #ifndef FASTCATAN_GAME_H
 #define FASTCATAN_GAME_H
 
+#include <random>
+
 #include "player.h"
 #include "board.h"
 #include "HumanPlayer/human_player.h"
@@ -11,7 +13,7 @@ struct Game {
   ~Game();
 
   // TODO generate random game seed
-  int game_seed = 1;
+  std::random_device randomDevice;
 
   int num_players;
   // Player order: [Green, Red, White, Blue]

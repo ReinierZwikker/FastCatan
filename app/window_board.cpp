@@ -95,7 +95,7 @@ void WindowBoard(Game* game, ViewPort* viewport) {
 
     // Corner Occupancy
     current_item = game->board.corner_array[corner_id].occupancy;
-    ImGui::Combo("Corner Occupancy", &current_item, "EmpyCorner\0Village\0City\0\0");
+    ImGui::Combo("Corner Occupancy", &current_item, "EmptyCorner\0Village\0City\0\0");
     if (current_item != game->board.corner_array[corner_id].occupancy) {
       game->board.corner_array[corner_id].occupancy = static_cast<CornerOccupancy>(current_item);
     }

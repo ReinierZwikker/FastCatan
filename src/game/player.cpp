@@ -15,44 +15,6 @@ Player::~Player() {
   free(available_moves);
 }
 
-int Player::place_street(int street_id) {
-  if (board->street_array[street_id].color == NoColor &&
-      resources_left[0] > 0) {
-    board->street_array[street_id].color = player_color;
-    resources_left[0]--; // Remove one street from pool
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-int Player::place_village(int corner_id) {
-  if (board->corner_array[corner_id].color == NoColor &&
-      board->corner_array[corner_id].occupancy == EmptyCorner &&
-      resources_left[1] > 0) {
-    board->corner_array[corner_id].occupancy = Village;
-    board->corner_array[corner_id].color = player_color;
-    resources_left[1]--; // Remove one village from pool
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-int Player::place_city(int corner_id) {
-  if (board->corner_array[corner_id].color == player_color &&
-      board->corner_array[corner_id].occupancy == Village &&
-      resources_left[2] > 0) {
-    board->corner_array[corner_id].occupancy = City;
-    board->corner_array[corner_id].color = player_color;
-    resources_left[2]--; // Remove one city from pool
-    resources_left[1]++; // Return one village to pool
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
 bool corner_occupied(Corner *corner, Color color) {
   if (color == NoColor) {
     return corner->occupancy == Village || corner->occupancy == City;
@@ -64,62 +26,139 @@ bool corner_occupied(Corner *corner, Color color) {
 bool corner_village_available(Corner *corner) {
   if (corner_occupied(corner, NoColor)) {
     return false;
-  } else {
-    bool valid = true;
-    for (auto & street : corner->streets) {
-      if (street != nullptr) {
-        if (corner_occupied(street->corners[0], NoColor)) {
-          valid = false;
-        }
-        if (corner_occupied(street->corners[1], NoColor)) {
-          valid = false;
-        }
+  }
+  bool valid = true;
+  for (auto & street : corner->streets) {
+    if (street != nullptr) {
+      if (corner_occupied(street->corners[0], NoColor)) {
+        valid = false;
+      }
+      if (corner_occupied(street->corners[1], NoColor)) {
+        valid = false;
       }
     }
   }
-  return true;
+  return valid;
 }
+
+bool corner_city_available(Corner *corner, Color color) {
+  return corner->occupancy == Village
+      && corner->color == color;
+}
+
 
 bool Player::resources_for_street() {
   return cards[card_index(Brick)] >= 1
-      && cards[card_index(Lumber)] >= 1
-      && resources_left[0] >= 1;
+         && cards[card_index(Lumber)] >= 1
+         && resources_left[0] >= 1;
 }
 
 bool Player::resources_for_village() {
   return cards[card_index(Brick)] >= 1
-      && cards[card_index(Lumber)] >= 1
-      && cards[card_index(Grain)] >= 1
-      && cards[card_index(Wool)] >= 1
+         && cards[card_index(Lumber)] >= 1
+         && cards[card_index(Grain)] >= 1
+         && cards[card_index(Wool)] >= 1
          && resources_left[1] >= 1;
 }
 
 bool Player::resources_for_city() {
   return cards[card_index(Ore)] >= 3
-      && cards[card_index(Grain)] >= 2
+         && cards[card_index(Grain)] >= 2
          && resources_left[2] >= 1;
 }
 
 bool Player::resources_for_development() {
   return cards[card_index(Ore)] >= 1
-      && cards[card_index(Grain)] >= 1
-      && cards[card_index(Wool)] >= 1;
+         && cards[card_index(Grain)] >= 1
+         && cards[card_index(Wool)] >= 1;
+}
+
+int Player::place_street(int street_id) {
+  if (board->street_array[street_id].color == NoColor
+   && resources_for_street()) {
+    board->street_array[street_id].color = player_color;
+    resources_left[0]--; // Remove one street from pool
+    remove_cards(Brick, 1);
+    remove_cards(Lumber, 1);
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+int Player::place_village(int corner_id) {
+  if (corner_village_available(&board->corner_array[corner_id])
+   && resources_for_village()) {
+    board->corner_array[corner_id].occupancy = Village;
+    board->corner_array[corner_id].color = player_color;
+    resources_left[1]--; // Remove one village from pool
+    remove_cards(Brick, 1);
+    remove_cards(Lumber, 1);
+    remove_cards(Grain, 1);
+    remove_cards(Wool, 1);
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+int Player::place_city(int corner_id) {
+  if (corner_city_available(&board->corner_array[corner_id], player_color)
+   && resources_for_city()) {
+    board->corner_array[corner_id].occupancy = City;
+    board->corner_array[corner_id].color = player_color;
+    resources_left[2]--; // Remove one city from pool
+    resources_left[1]++; // Return one village to pool
+    remove_cards(Ore, 3);
+    remove_cards(Grain, 2);
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+Move *Player::add_new_move(int move_id) {
+  if (move_id >= max_available_moves) {
+    printf("Ran out of available moves!");
+    return nullptr;
+  }
+  available_moves[move_id] = Move();
+  return &available_moves[move_id];
 }
 
 Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
   int current_move_id = 0;
+  Move *current_move;
+
+  // Streets
+  if (turn_type == openingTurnStreet || turn_type == normalTurn) {
+    for (int street_i = 0; street_i < amount_of_streets; ++street_i) {
+      if (board->street_array[street_i].color == NoColor
+          && (corner_occupied(board->street_array[street_i].corners[0], player_color)
+           || corner_occupied(board->street_array[street_i].corners[1], player_color))
+          && resources_for_street()) {
+        current_move = add_new_move(current_move_id);
+        if (current_move == nullptr) { return available_moves; }
+
+        current_move->move_type = buildStreet;
+        current_move->index = street_i;
+
+        ++current_move_id;
+      }
+    }
+  }
+
   // Villages
   if (turn_type == openingTurnVillage || turn_type == normalTurn) {
     for (int corner_i = 0; corner_i < amount_of_corners; ++corner_i) {
       if (corner_village_available(&board->corner_array[corner_i])
        && resources_for_village()) {
-        if (current_move_id >= max_available_moves) {
-          printf("Ran out of available moves!");
-          return available_moves;
-        }
-        available_moves[current_move_id] = Move();
-        available_moves[current_move_id].move_type = buildVillage;
-        available_moves[current_move_id].index = corner_i;
+        current_move = add_new_move(current_move_id);
+        if (current_move == nullptr) { return available_moves; }
+
+        current_move->move_type = buildVillage;
+        current_move->index = corner_i;
+
         ++current_move_id;
       }
     }
@@ -128,39 +167,20 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
   // Cities
   if (turn_type == normalTurn) {
     for (int corner_i = 0; corner_i < amount_of_corners; ++corner_i) {
-      if (board->corner_array[corner_i].occupancy == Village
-       && board->corner_array[corner_i].color == player_color
+      if (corner_city_available(&board->corner_array[corner_i], player_color)
        && resources_for_city()) {
-        if (current_move_id >= max_available_moves) {
-          printf("Ran out of available moves!");
-          return available_moves;
-        }
-        available_moves[current_move_id] = Move();
-        available_moves[current_move_id].move_type = buildCity;
-        available_moves[current_move_id].index = corner_i;
+        current_move = add_new_move(current_move_id);
+        if (current_move == nullptr) { return available_moves; }
+
+        current_move->move_type = buildCity;
+        current_move->index = corner_i;
+
         ++current_move_id;
       }
     }
   }
 
-  // Streets
-  if (turn_type == openingTurnStreet || turn_type == normalTurn) {
-    for (int street_i = 0; street_i < amount_of_streets; ++street_i) {
-      if (board->street_array[street_i].color == NoColor
-       && (corner_occupied(board->street_array[street_i].corners[0], player_color)
-        || corner_occupied(board->street_array[street_i].corners[1], player_color))
-       && resources_for_street()) {
-        if (current_move_id >= max_available_moves) {
-          printf("Ran out of available moves!");
-          return available_moves;
-        }
-        available_moves[current_move_id] = Move();
-        available_moves[current_move_id].move_type = buildStreet;
-        available_moves[current_move_id].index = street_i;
-        ++current_move_id;
-      }
-    }
-  }
+
 
   // Development Card
   // TODO implement development cards
@@ -178,13 +198,12 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
   if (turn_type == robberTurn) {
     for (int tile_i = 0; tile_i < amount_of_tiles; ++tile_i) {
       if (!board->tile_array[tile_i].robber) {
-        if (current_move_id >= max_available_moves) {
-          printf("Ran out of available moves!");
-          return available_moves;
-        }
-        available_moves[current_move_id] = Move();
-        available_moves[current_move_id].move_type = moveRobber;
-        available_moves[current_move_id].index = tile_i;
+        current_move = add_new_move(current_move_id);
+        if (current_move == nullptr) { return available_moves; }
+
+        current_move->move_type = moveRobber;
+        current_move->index = tile_i;
+
         ++current_move_id;
       }
     }
@@ -192,12 +211,12 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
 
   // End Turn
   if (turn_type == normalTurn) {
-    if (current_move_id >= max_available_moves) {
-      printf("Ran out of available moves!");
-      return available_moves;
-    }
-    available_moves[current_move_id] = Move();
-    available_moves[current_move_id].move_type = endTurn;
+
+    current_move = add_new_move(current_move_id);
+    if (current_move == nullptr) { return available_moves; }
+
+    current_move->move_type = endTurn;
+
     ++current_move_id;
   }
 
@@ -221,4 +240,8 @@ void Player::set_cards(int brick, int lumber, int ore, int grain, int wool) {
 
 void Player::add_cards(CardType card_type, int amount) {
   cards[card_index(card_type)] += amount;
+}
+
+void Player::remove_cards(CardType card_type, int amount) {
+  cards[card_index(card_type)] -= amount;
 }

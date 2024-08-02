@@ -37,6 +37,16 @@ public:
 
   int cards[5]{};
 
+
+
+
+  virtual ~Player();
+
+  bool resources_for_street();
+  bool resources_for_village();
+  bool resources_for_city();
+  bool resources_for_development();
+
   // TODO evaluate if we want to keep this here
   int place_street(int street_id);
   int place_village(int corner_id);
@@ -44,15 +54,11 @@ public:
 
   Move *update_available_moves(TurnType turn_type, Player *players[4]);
 
-  virtual ~Player();
-
   void set_cards(int brick, int lumber, int ore, int grain, int wool);
   void add_cards(CardType card_type, int amount);
+  void remove_cards(CardType card_type, int amount);
 
-  bool resources_for_street();
-  bool resources_for_village();
-  bool resources_for_city();
-  bool resources_for_development();
+  Move *add_new_move(int move_id);
 };
 
 #endif //FASTCATAN_PLAYER_H
