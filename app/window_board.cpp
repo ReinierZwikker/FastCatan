@@ -14,11 +14,6 @@ static CornerSelectionItem corner_selection_item{};
 static bool refresh_map;
 
 void WindowBoard(Game* game, ViewPort* viewport) {
-  if (ImGui::Button("Start game?")) {
-    game->start_game();
-    refresh_map = true;
-  }
-
   if (ImGui::Button("Reshuffle")) {
     game->board.Randomize();
     refresh_map = true;
@@ -112,8 +107,15 @@ void WindowBoard(Game* game, ViewPort* viewport) {
       game->board.corner_array[corner_id].color = static_cast<Color>(current_item);
     }
 
+    // Corner Harbor
+    current_item = game->board.corner_array[corner_id].harbor;
+    ImGui::Combo("Corner Harbor", &current_item, "None\0Generic\0Brick\0Grain\0Wool\0Lumber\0Ore\0\0");
+    if (current_item != game->board.corner_array[corner_id].harbor) {
+      game->board.corner_array[corner_id].harbor = static_cast<HarborType>(current_item);
+    }
+
     // Streets
-    if (ImGui::CollapsingHeader("Streets")) {
+    if (ImGui::TreeNode("Streets##2")) {
       Street* street_0 = game->board.corner_array[corner_id].streets[0];
       Street* street_1 = game->board.corner_array[corner_id].streets[1];
       Street* street_2 = game->board.corner_array[corner_id].streets[2];
@@ -154,13 +156,11 @@ void WindowBoard(Game* game, ViewPort* viewport) {
         ImGui::Text("Street right - Not connected");
       }
 
-
+      ImGui::TreePop();
     }
-
-
   }
 
-  if (ImGui::CollapsingHeader("Street")) {
+  if (ImGui::CollapsingHeader("Streets")) {
     ImGui::InputInt("Street ID", &street_id);
     if (street_id < 0) {
       street_id = 0;
@@ -174,6 +174,36 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     ImGui::Combo("Street Color", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
     if (current_item != game->board.street_array[street_id].color) {
       game->board.street_array[street_id].color = static_cast<Color>(current_item);
+    }
+
+    if (ImGui::TreeNode("Corners##2")) {
+      Corner* corner_0 = game->board.street_array[street_id].corners[0];
+      Corner* corner_1 = game->board.street_array[street_id].corners[1];
+
+      if (corner_0 != nullptr) {
+        current_item = game->board.corner_array[corner_0->id].color;
+        ImGui::Text("Corner 1 [%i]", corner_0->id);
+        ImGui::Combo("Corner Color##1", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
+        if (current_item != game->board.corner_array[corner_0->id].color) {
+          game->board.corner_array[corner_0->id].color = static_cast<Color>(current_item);
+        }
+      }
+      else {
+        ImGui::Text("Corner 1 - Not connected");
+      }
+
+      if (corner_1 != nullptr) {
+        current_item = game->board.corner_array[corner_1->id].color;
+        ImGui::Text("Corner 2 [%i]", corner_1->id);
+        ImGui::Combo("Corner Color##2", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
+        if (current_item != game->board.corner_array[corner_1->id].color) {
+          game->board.corner_array[corner_1->id].color = static_cast<Color>(current_item);
+        }
+      }
+      else {
+        ImGui::Text("Corner 2- Not connected");
+      }
+      ImGui::TreePop();
     }
   }
 

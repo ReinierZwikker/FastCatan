@@ -21,6 +21,7 @@ set(SOURCES
         app/app.cpp
         app/viewport.cpp
         app/window_board.cpp
+        app/window_game.cpp
         app/3rd_party/imgui/imgui.cpp
         app/3rd_party/imgui/imgui_demo.cpp
         app/3rd_party/imgui/imgui_draw.cpp

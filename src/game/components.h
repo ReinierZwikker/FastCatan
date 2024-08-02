@@ -101,8 +101,7 @@ inline std::string card_name(CardType card) { return card_names[card_index(card)
 struct Street {
   int id = -1;
   Color color = Color::NoColor;  // Who is occupying the street
-  Corner *corner_1 = nullptr;
-  Corner *corner_2 = nullptr;
+  Corner *corners[2] = {nullptr, nullptr};
 };
 
 /******************
@@ -121,9 +120,10 @@ enum HarborType {
 
 struct Harbor {
   int tile_id;
-  int corner_1;
-  int corner_2;
+  int corners[2];
   HarborType type;
+
+  Harbor(int, int, int, HarborType);
 };
 
 /******************

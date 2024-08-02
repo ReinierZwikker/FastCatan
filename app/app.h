@@ -14,6 +14,7 @@
 // Include other GUI
 #include "viewport.h"
 #include "window_board.h"
+#include "window_game.h"
 
 
 class App {
@@ -31,6 +32,7 @@ class App {
     // Show Bools
     bool show_demo_window = false;
     bool show_board_window = true;
+    bool show_game_window = true;
 
     Game* game_pointer;
 

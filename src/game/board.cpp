@@ -25,6 +25,27 @@ bool compare_number_tokens(int number_token_1, int number_token_2) {
   }
 }
 
+void AddCorner2Street(Corner* corner, Street* street) {
+  if (street->corners[0] == nullptr) {
+    street->corners[0] = corner;
+  }
+  else if (street->corners[1] == nullptr) {
+    street->corners[1] = corner;
+  }
+  else {
+    std::cout << "Error encountered while linking corner [" << corner->id << "] to street [" << street->id <<
+                 "], street [" << street->id << "] already has to corners linked (corner ["
+                 << street->corners[0]->id << "] and corner[" << street->corners[1]->id << "]" << std::endl;
+  }
+}
+
+Harbor::Harbor(int input_tile_id, int input_corner_1, int input_corner_2, HarborType harbor_type) {
+  tile_id = input_tile_id;
+  corners[0] = input_corner_1;
+  corners[1] = input_corner_2;
+  type = harbor_type;
+}
+
 
 Board::Board() {
 
@@ -37,16 +58,15 @@ Board::Board() {
   }
 
   LinkParts();
-  // LinkStreetsToCorners();
-  // TODO LinkCornersToStreets
   InitializeTilesAndTokens();
   Randomize();
-  CheckNumberTokens();
+  AddHarbors();
 
 }
 
 /*
- * Links all the memory addresses of corners and streets to their corresponding tile
+ * Links all the memory addresses of corners and streets to their corresponding tile and
+ * corners to streets and vise versa.
  */
 void Board::LinkParts() {
 
@@ -133,7 +153,7 @@ void Board::LinkParts() {
   bool expanding = true;
   for (int row = 0; row < corner_rows; row++) {
     // Check if the corners are expanding
-    if (row < corner_rows - 1 && corners_in_row[row] < corners_in_row[row + 1]) {
+    if (row < corner_rows - 1 && corners_in_row[row] <= corners_in_row[row + 1]) {
       expanding = true;
     }
     else {
@@ -144,42 +164,45 @@ void Board::LinkParts() {
       // Add only right
       if (column == 0) {
         corners[row][column].streets[2] = &streets[2 * row][column];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column]);
       }
       // Add only left
       else if (column == corners_in_row[row] - 1) {
         corners[row][column].streets[0] = &streets[2 * row][column - 1];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column - 1]);
       }
       // Add left and right
       else {
         corners[row][column].streets[2] = &streets[2 * row][column];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column]);
         corners[row][column].streets[0] = &streets[2 * row][column - 1];
+        AddCorner2Street(&corners[row][column], &streets[2 * row][column - 1]);
       }
 
       if (expanding) {
         // Add below
         if (column % 2 == 0) {
-          std::cout << row << ", " << column << " Below1: " << 2 * row + 1 << ", " << column / 2 << std::endl;
           corners[row][column].streets[1] = &streets[2 * row + 1][column / 2];
+          AddCorner2Street(&corners[row][column], &streets[2 * row + 1][column / 2]);
         }
         // Add above
         else if (row != 0) {
           corners[row][column].streets[1] = &streets[2 * row - 1][(column - 1) / 2];
-          std::cout << row << ", " << column << " Above1: " << 2 * row - 1 << ", " << (column - 1) / 2 << std::endl;
+          AddCorner2Street(&corners[row][column], &streets[2 * row - 1][(column - 1) / 2]);
         }
       }
       else {
         // Add above
         if (column % 2 == 0) {
           corners[row][column].streets[1] = &streets[2 * row - 1][column / 2];
-          std::cout << row << ", " << column << " Above2: " << 2 * row - 1 << ", " << column / 2 << std::endl;
+          AddCorner2Street(&corners[row][column], &streets[2 * row - 1][column / 2]);
         }
         // Add below
         else if (row < corner_rows - 1) {
           corners[row][column].streets[1] = &streets[2 * row + 1][(column - 1) / 2];
-          std::cout << row << ", " << column << " Below2: " << 2 * row + 1 << ", " << (column - 1) / 2 << std::endl;
+          AddCorner2Street(&corners[row][column], &streets[2 * row + 1][(column - 1) / 2]);
         }
       }
-
     }
   }
 
@@ -307,139 +330,14 @@ void Board::Randomize() {
 }
 
 /*
- * Write the board layout to a more usable form for further calculations.
- */
-void Board::RewriteBoardLayout() {
-  for (int row = 0; row < tile_rows; row++) {
-    if (row < tile_rows - 1){
-      tile_diff[row] = tiles_in_row[row] - tiles_in_row[row + 1];
-
-      if (tile_diff[row] == 1) {
-        row_decrease[row + 1] = 1;
-      }
-      else if (tile_diff[row] == -1) {
-        row_decrease[row + 1] = 0;
-      }
-      else {
-        throw std::invalid_argument("Map layout not supported!");
-      }
-    }
-    else {
-      row_decrease[row + 1] = 1;
-    }
-
-    previous_rows[row + 1] = previous_rows[row] + 2 * tiles_in_row[row] + 1 + 2 * row_decrease[row];
-  }
-  previous_rows[0] = 0;  // I don't know why this has to be there, but it breaks without it
-}
-
-/*
- * Link the corners and streets to the respective tile
- * and repeat this for all tile_array.
- */
-void Board::LinkCornersAndStreetsToTiles() {
-
-  // TODO Rewrite this function to use the new corner 2D array
-
-  /* TODO Fix error that causes the streets to be linked wrong
-   *    There are tiles that have multiple overlapping streets with neighbouring tiles,
-   *    which shouldn't be possible.
-   *    Problem: street array isn't ordered the same way as corners
-   *    Solution: Use correct street ordering scheme, see board.txt
-   */
-
-  int current_column = 0;
-  int current_row = 0;
-
-  for (auto & tile : tile_array) {
-    // Check if the next row is reached
-    if (current_column + 1 > tiles_in_row[current_row]) {
-      current_column = 0;
-      current_row++;
-    }
-
-    // Top side of the tile
-    for (int corner_i = 0; corner_i < 3; corner_i++) {
-      int corner_id = corner_i + 2 * current_column + previous_rows[current_row] + row_decrease[current_row];
-      tile.corners[corner_i] = &corner_array[corner_id];
-      tile.streets[corner_i] = &street_array[corner_id];
-      //                     TODO Fix this ^
-    }
-    // Bottom side of the tile
-    for (int corner_i = 0; corner_i < 3; corner_i++) {
-      int corner_id = 3 - corner_i + 2 * current_column + previous_rows[current_row + 1] - row_decrease[current_row + 1];
-      tile.corners[corner_i + 3] = &corner_array[corner_id];
-      tile.streets[corner_i + 3] = &street_array[corner_id];
-      //                         TODO Fix this ^
-    }
-
-    current_column++;
-  }
-}
-
-/*
- * Link the streets to the connected corner.
- * Run after linking corners and streets to tile_array!
- */
-void Board::LinkStreetsToCorners() {
-
-  // TODO Verify that this works after fixing street linking
-
-  int current_column = 0;
-  int current_row = 0;
-
-  for (auto & tile : tile_array) {
-    // Check if the next row is reached
-    if (current_column + 1 > tiles_in_row[current_row]) {
-      current_column = 0;
-      current_row++;
-    }
-
-    for (int corner_i = 0; corner_i < 6; ++corner_i) {
-      //printf("\n");
-      for (int street_offset : {-1, 0}) {
-        auto street_i = corner_i + street_offset;
-        if (street_i < 0) {
-          street_i += 6;
-        }
-        bool continue_placing = true;
-        int current_slot_id = 0;
-        while (continue_placing) {
-          if (tile.corners[corner_i]->streets[current_slot_id] == nullptr) {
-            // Set street if slot is empty
-            tile.corners[corner_i]->streets[current_slot_id] = tile.streets[street_i];
-            //printf("Adding street %d to corner %d in slot %d on tile (%d, %d)\n", street_i, corner_i, current_slot_id, current_row, current_column);
-            continue_placing = false;
-          } else if (tile.corners[corner_i]->streets[current_slot_id] == tile.streets[street_i]) {
-            // Stop if street is already added
-            continue_placing = false;
-          } else {
-            // Try next slot
-            current_slot_id++;
-            if (current_slot_id > 3) {
-              throw std::out_of_range("Cannot link street to corner!");
-            }
-          }
-        }
-      }
-    }
-
-    current_column++;
-  }
-}
-
-
-
-
-/*
  * Adds harbor types to pre-defined corners of selected tile_array.
  */
-//void Board::AddHarbors() {
-//  for (auto harbor : harbors) {
-//    tile_array[harbor.tile_id].corners[harbor.corner_1]->harbor = harbor.type;
-//    tile_array[harbor.tile_id].corners[harbor.corner_2]->harbor = harbor.type;
-//  }
-//}
+void Board::AddHarbors() {
+  for (auto harbor : harbors) {
+    tile_array[harbor.tile_id].corners[harbor.corners[0]]->harbor = harbor.type;
+    tile_array[harbor.tile_id].corners[harbor.corners[1]]->harbor = harbor.type;
+  }
+}
 
 /*
  * Prints board to the console.
