@@ -4,7 +4,7 @@
 #include <iostream>
 
 void WindowGame(Game* game) {
-  // std::thread start_thread;
+  std::thread start_thread;
 
   if (ImGui::BeginTable("split", 4)) {
     ImGui::TableNextColumn(); ImGui::Text("Game Status:");
@@ -17,15 +17,12 @@ void WindowGame(Game* game) {
   }
 
   if (ImGui::Button("Start")) {
-    // start_thread = std::thread(&Game::start_game, game);
+    start_thread = std::thread(&Game::start_game, game);
+    start_thread.detach();
   }
 
   if (ImGui::Button("Resume")) {
-    // game->human_input_received();
+    game->human_input_received();
+    start_thread.join();
   }
-
-//  if (start_thread.joinable()) {
-//    start_thread.join();
-//  }
-
 }

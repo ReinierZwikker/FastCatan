@@ -49,13 +49,13 @@ void Game::start_game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     current_player = players[player_i];
 
-    // std::unique_lock<std::mutex> lock(human_turn);
+     std::unique_lock<std::mutex> lock(human_turn);
 
-    // game_state = GameStates::WaitingForPlayer;
+     game_state = GameStates::WaitingForPlayer;
 
-    // cv.wait(lock, [this] { return input_received; });
+     cv.wait(lock, [this] { return input_received; });
 
-    // game_state = GameStates::Starting;
+     game_state = GameStates::Starting;
 
     // let player select first town
     current_player->set_cards(1, 1, 0, 1, 1);
