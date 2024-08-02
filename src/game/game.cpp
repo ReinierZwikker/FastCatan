@@ -19,8 +19,6 @@ Game::Game(int num_players) {
   }
 
   game_state = GameStates::ReadyToStart;
-
-  roll_dice();
 }
 
 Game::~Game() {
