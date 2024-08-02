@@ -8,6 +8,7 @@ class PlayerAgent {
 public:
   virtual inline Move get_move(Board *board, int cards[5]) { return {}; }
   virtual inline void finish_round(Board *board) {}
+  virtual inline PlayerType get_player_type() { return NoPlayer; }
 };
 
 class Player {
@@ -21,7 +22,7 @@ public:
    * Agent should implement the following function:
    * get_move(board, cards, available_moves)
    * finish_round(board, scores)
-   *
+   * get_player_type()
    */
 
   PlayerAgent *agent = nullptr;

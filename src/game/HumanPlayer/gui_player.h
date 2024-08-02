@@ -27,6 +27,9 @@ public:
   explicit GuiPlayer(Player *connected_player);
   Move get_move(Board *board, int cards[5]) override;
   void finish_round(Board *board) override;
+
+  inline PlayerType get_player_type() override { return player_type; }
+
   ~GuiPlayer();
 
   std::mutex waiting;
@@ -39,6 +42,7 @@ public:
 
 private:
   Player *player;
+  const PlayerType player_type = consolePlayer;
 };
 
 

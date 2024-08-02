@@ -38,6 +38,8 @@ bool street_available(Street *street, Color color, bool opening_turn) {
       }
     }
   }
+  bool adjacent = 
+
   return street->color == NoColor
       && (corner_occupied(street->corners[0], color)
        || corner_occupied(street->corners[1], color))
@@ -106,7 +108,7 @@ bool Player::resources_for_development() {
 }
 
 int Player::place_street(int street_id) {
-  if (board->street_array[street_id].color == NoColor
+  if (street_available(&board->street_array[street_id], player_color, false)
    && resources_for_street()) {
     board->street_array[street_id].color = player_color;
     resources_left[0]--; // Remove one street from pool

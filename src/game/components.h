@@ -304,5 +304,15 @@ inline std::string move2string(Move move) {
   return "Invalid Move";
 }
 
+/******************
+ *    PLAYERS     *
+ ******************/
+
+enum PlayerType {
+    consolePlayer,
+    guiPlayer,
+    NNPlayer,
+    NoPlayer
+};
 
 #endif //FASTCATAN_COMPONENTS_H
