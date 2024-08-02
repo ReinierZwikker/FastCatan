@@ -11,6 +11,7 @@
 class HumanPlayer : public PlayerAgent {
 public:
   explicit HumanPlayer(Player *connected_player);
+  Move get_move_gui(Board *board, int cards[5]) override;
   Move get_move(Board *board, int cards[5]) override;
   void finish_round(Board *board) override;
   void player_print(std::string text);

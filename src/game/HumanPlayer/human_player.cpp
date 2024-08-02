@@ -14,6 +14,11 @@ void HumanPlayer::player_print(std::string text) {
 }
 
 
+Move HumanPlayer::get_move_gui(Board *board, int cards[5]) {
+  return player->available_moves[0];
+}
+
+
 Move HumanPlayer::get_move(Board *board, int cards[5]) {
   Move selected_move;
 

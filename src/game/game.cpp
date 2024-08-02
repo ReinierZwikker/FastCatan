@@ -18,6 +18,8 @@ Game::Game(int num_players) {
     players[player_i]->activated = true;
   }
 
+  game_state = GameStates::ReadyToStart;
+
   roll_dice();
 }
 
@@ -40,27 +42,37 @@ bool move_in_available_moves(Move move, Move *available_moves) {
   return false;
 }
 
-
 void Game::start_game() {
+  game_state = GameStates::Starting;
+
   Move chosen_move;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    current_player = players[player_i];
 
-    Player *current_player = players[player_i];
+    // std::unique_lock<std::mutex> lock(human_turn);
+
+    // game_state = GameStates::WaitingForPlayer;
+
+    // cv.wait(lock, [this] { return input_received; });
+
+    // game_state = GameStates::Starting;
 
     // let player select first town
     current_player->set_cards(1, 1, 0, 1, 1);
     current_player->update_available_moves(openingTurnVillage, players);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
-    if (!move_in_available_moves(chosen_move, current_player->available_moves))
-      { throw std::invalid_argument("Not an available move!"); }
+    if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
+      throw std::invalid_argument("Not an available move!");
+    }
     current_player->place_village(chosen_move.index);
 
     // let player select first street
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnStreet, players);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
-    if (!move_in_available_moves(chosen_move, current_player->available_moves))
-    { throw std::invalid_argument("Not an available move!"); }
+    if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
+      throw std::invalid_argument("Not an available move!");
+    }
     current_player->place_street(chosen_move.index);
   }
 
@@ -91,6 +103,11 @@ void Game::start_game() {
 
 }
 
+void Game::human_input_received() {
+  std::lock_guard<std::mutex> lock(human_turn);
+  input_received = true;
+  cv.notify_one();
+}
 
 void Game::step_round() {
   Move chosen_move;

@@ -3,7 +3,7 @@
 
 #include "../app/3rd_party/imgui/imgui.h"
 #include "../app/viewport.h"
-#include "game/game.h"
+#include "../src/game/game.h"
 
 void WindowGame(Game*);
 
