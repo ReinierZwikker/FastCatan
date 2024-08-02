@@ -10,18 +10,6 @@
 
 #include <string>
 
-enum PlayerStates {
-  Waiting,
-  Playing,
-  Finished
-};
-
-static const char* player_states[] = {
-    "Waiting",
-    "Playing",
-    "Thanks for playing!"
-};
-
 class GuiPlayer : public PlayerAgent {
 public:
   explicit GuiPlayer(Player *connected_player);
@@ -29,20 +17,22 @@ public:
   void finish_round(Board *board) override;
 
   inline PlayerType get_player_type() override { return player_type; }
+  inline PlayerState get_player_state() override { return player_state; }
 
   ~GuiPlayer();
 
   std::mutex waiting;
   std::condition_variable cv;
   bool input_received;
-  void human_input_received();
+  void unpause(Move move) override;
 
   char* tag[20];
-  PlayerStates player_state = PlayerStates::Waiting;
+  PlayerState player_state = PlayerState::Waiting;
 
 private:
+  Move selected_move;
   Player *player;
-  const PlayerType player_type = consolePlayer;
+  const PlayerType player_type = guiPlayer;
 };
 
 

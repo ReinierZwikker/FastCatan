@@ -9,6 +9,8 @@ public:
   virtual inline Move get_move(Board *board, int cards[5]) { return {}; }
   virtual inline void finish_round(Board *board) {}
   virtual inline PlayerType get_player_type() { return NoPlayer; }
+  virtual inline PlayerState get_player_state() { return Waiting; }
+  virtual inline void unpause(Move move) {}
 };
 
 class Player {

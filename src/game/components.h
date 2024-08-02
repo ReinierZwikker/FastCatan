@@ -151,6 +151,7 @@ struct Corner {
   HarborType harbor = HarborType::Harbor_None;  // What type of harbor is on this corner
 
   Street *streets[3] = {nullptr, nullptr, nullptr}; // pointer list of streets that are connected to this corner, starting at the vertical street
+  float coordinates[2] = {0.0f, 0.0f}; // used by openGL
 };
 
 static const char corner_shortnames[] = {
@@ -206,11 +207,13 @@ static const char tile_shortnames[] = {
 struct Tile {
   int number_token;  // The number on the tile
   TileType type;  // The type of tile
-  float color[3];  // Color when displayed in OpenGL
   bool robber;  // Is a robber occupying the tile
 
   Corner *corners[6];  // pointer list of corners, starts counting in the top left corner
   Street *streets[6];  // pointer list of streets, starts counting at the top left line
+
+  float color[3];  // Color when displayed in OpenGL
+  float coordinates[2] = {0.0f, 0.0f};  // used by openGL
 };
 
 /******************
@@ -313,6 +316,18 @@ enum PlayerType {
     guiPlayer,
     NNPlayer,
     NoPlayer
+};
+
+enum PlayerState {
+  Waiting,
+  Playing,
+  Finished
+};
+
+static const char* player_state_char[] = {
+    "Waiting",
+    "Playing",
+    "Thanks for playing!"
 };
 
 #endif //FASTCATAN_COMPONENTS_H

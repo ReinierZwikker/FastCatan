@@ -14,14 +14,20 @@
 enum GameStates {
   UnInitialized,
   ReadyToStart,
-  Starting,
+  SetupRound,
+  SetupRoundFinished,
+  PlayingRound,
+  RoundFinished,
   WaitingForPlayer,
 };
 
 static const char* game_states[] = {
     "UnInitialized",
     "Ready to start",
-    "Starting",
+    "Setup Round",
+    "Setup Round Finished",
+    "Playing Round",
+    "Round Finished",
     "Waiting for player"
 };
 
@@ -33,7 +39,7 @@ struct Game {
   GameStates game_state = UnInitialized;
   std::mutex human_turn;
   std::condition_variable cv;
-  bool input_received = false;
+  Move gui_moves[4]{};
   void human_input_received();
 
   // TODO generate random game seed
@@ -43,6 +49,7 @@ struct Game {
   // Player order: [Green, Red, White, Blue]
   Player *players[4]{};
   Player *current_player;
+  int current_player_id = 0;
 
   Board board = Board();
 
@@ -55,6 +62,8 @@ struct Game {
 
 
   int roll_dice();
+  int die_1 = 0;
+  int die_2 = 0;
 
   void give_cards(int rolled_number);
 

@@ -13,7 +13,7 @@ Game::Game(int num_players) {
   Game::num_players = num_players;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = new Player(&board, index_color(player_i));
-    auto *new_agent = new ConsolePlayer(players[player_i]);
+    auto *new_agent = new GuiPlayer(players[player_i]);
     players[player_i]->agent = new_agent;
     players[player_i]->activated = true;
   }
@@ -41,19 +41,12 @@ bool move_in_available_moves(Move move, Move *available_moves) {
 }
 
 void Game::start_game() {
-  game_state = GameStates::Starting;
+  game_state = GameStates::SetupRound;
 
   Move chosen_move;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     current_player = players[player_i];
-
-//     std::unique_lock<std::mutex> lock(human_turn);
-//
-//     game_state = GameStates::WaitingForPlayer;
-//
-//     cv.wait(lock, [this] { return input_received; });
-//
-//     game_state = GameStates::Starting;
+    current_player_id = player_i;
 
     // let player select first town
     current_player->set_cards(1, 1, 0, 1, 1);
@@ -76,7 +69,8 @@ void Game::start_game() {
 
   for (int player_i = Game::num_players-1; player_i >= 0; player_i--) {
 
-    Player *current_player = players[player_i];
+    current_player = players[player_i];
+    current_player_id = player_i;
 
     // let player select second town
     current_player->set_cards(1, 1, 0, 1, 1);
@@ -99,12 +93,11 @@ void Game::start_game() {
   // Give starting cards, as if all numbers are rolled
   give_cards(-1);
 
+  game_state = GameStates::SetupRoundFinished;
 }
 
 void Game::human_input_received() {
-  std::lock_guard<std::mutex> lock(human_turn);
-  input_received = true;
-  cv.notify_one();
+  current_player->agent->unpause(gui_moves[current_player_id]);
 }
 
 void Game::step_round() {
@@ -112,7 +105,8 @@ void Game::step_round() {
 
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
 
-    Player *current_player = players[player_i];
+    current_player = players[player_i];
+    current_player_id = player_i;
 
     if (players[player_i]->activated) {
       int dice_roll = roll_dice();
@@ -168,14 +162,17 @@ void Game::step_round() {
       }
     }
   }
+
+  ++current_round;
+  game_state = RoundFinished;
 }
 
 
 int Game::roll_dice() {
   std::mt19937 gen(randomDevice());
   std::uniform_int_distribution<> dice(1, 6);
-  int die_1 = dice(gen);
-  int die_2 = dice(gen);
+  die_1 = dice(gen);
+  die_2 = dice(gen);
 
   printf("Rolled dice: %d + %d = %d\n", die_1, die_2, die_1 + die_2);
 

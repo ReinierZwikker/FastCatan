@@ -131,9 +131,11 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
 
   // Initialize the game and board on screen
   game_pointer = game;
+  viewport.CalculateCoordinates(game_pointer);
   viewport.NewMap(game_pointer);
 
   for (int player_i = 0; player_i < game->num_players; player_i++) {
+    CheckAvailableTypes(game_pointer, player_i);
     show_player_window[player_i] = true;
   }
 }
@@ -168,7 +170,7 @@ void App::Refresh() {
       ImGui::MenuItem("Game", NULL, &show_game_window);
 
       for (int player_i = 0; player_i < game_pointer->num_players; player_i++) {
-        char player_string[12];
+        char player_string[16];
         sprintf(player_string, "Player %i", player_i + 1);
         ImGui::MenuItem(player_string, NULL, &show_player_window[player_i]);
       }
@@ -202,9 +204,9 @@ void App::Refresh() {
   // Player Windows
   for (int player_i = 0; player_i < game_pointer->num_players; player_i++) {
     char player_string[12];
-    sprintf(player_string, "Player %i", player_i + 1);
+    sprintf(player_string, "Player %i - %s", player_i + 1, color_name(index_color(player_i)).c_str());
     ImGui::Begin(player_string, &show_player_window[player_i]);
-    WindowPlayer(game_pointer, player_i);
+    WindowPlayer(game_pointer, &viewport, player_i);
 
     ImGui::End();
   }

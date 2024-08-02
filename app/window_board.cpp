@@ -9,8 +9,9 @@ int current_item;
 int current_corner;
 int current_street;
 
-static TileSelectionItem tile_selection_item{};
-static CornerSelectionItem corner_selection_item{};
+static SelectionItem tile_selection_item{};
+static SelectionItem corner_selection_item{};
+static SelectionItem street_selection_item{};
 static bool refresh_map;
 
 void WindowBoard(Game* game, ViewPort* viewport) {
@@ -174,6 +175,10 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     else if (street_id > amount_of_streets - 1) {
       street_id = amount_of_streets - 1;
     }
+    street_selection_item.id = street_id;
+    street_selection_item.game = game;
+    street_selection_item.render = true;
+    viewport->street_selection_item = street_selection_item;
 
     // Corner Color
     current_item = game->board.street_array[street_id].color;

@@ -9,6 +9,9 @@ Player::Player(Board *global_board, Color assigned_color) {
   player_color = assigned_color;
 
   available_moves = (Move *) malloc(max_available_moves * sizeof(Move));
+  for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+    available_moves[move_i] = Move();
+  }
 }
 
 Player::~Player() {

@@ -6,29 +6,28 @@
 
 #include "../src/game/game.h"
 
-// Used to delay the tile selection render
-struct TileSelectionItem {
+// Used to delay the selection render
+struct SelectionItem {
   int id;
   Game* game;
+  CornerOccupancy corner_occupancy;
   bool render;
 };
 
-// Use to delay the corner selection render
-struct CornerSelectionItem {
-  int id;
-  Game* game;
-  bool render;
-};
 
 class ViewPort {
   public:
     ViewPort();
 
-    static void NewMap(Game*);
+    void NewMap(Game*);
+    void CalculateCoordinates(Game* game);
     void Refresh(Game*);
 
-    TileSelectionItem tile_selection_item{};
-    CornerSelectionItem corner_selection_item{};
+    SelectionItem tile_selection_item{};
+    SelectionItem corner_selection_item{};
+    SelectionItem player_corner_selection_item{};
+    SelectionItem street_selection_item{};
+    SelectionItem player_street_selection_item{};
 
   private:
     float x_spacing = 0.13f;
@@ -49,10 +48,12 @@ class ViewPort {
     float ConvertCornerRow2y(int, int, bool) const;
 
     void DrawTile(float, float, Tile) const;
-    void DrawTileSelection(int, Game*);
+    void DrawTileSelection(int, Game*) const;
     void DrawCorner(float, float, Corner) const;
-    void DrawCornerSelection(int, Game*);
-    void DrawStreet(float, float, float, float, Street) const;
+    void DrawCornerSelection(int, Game*) const;
+    void DrawCornerPlayerSelection(int id, Game *game, CornerOccupancy occupancy) const;
+    void DrawStreet(int, Game*) const;
+    void DrawStreetSelection(int id, Game* game) const;
 
 };
 

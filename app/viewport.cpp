@@ -54,6 +54,37 @@ float ViewPort::ConvertCornerRow2y(int column, int row, bool increasing) const {
   }
 }
 
+void ViewPort::CalculateCoordinates(Game* game) {
+  float x, y, tile_shift;
+  float previous_x, previous_y;
+
+  for (int row = 0; row < tile_rows; row++) {
+    // Shift x location based on row to interlock the hexagons
+    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
+
+    for (int column = 0; column < tiles_in_row[row]; column++) {
+      game->board.tiles[row][column].coordinates[0] = ConvertTileColumn2x(column, tile_shift);
+      game->board.tiles[row][column].coordinates[1] = ConvertTileRow2y(row);
+    }
+  }
+
+  tile_shift = 0;
+  for (int row = 0; row < corner_rows; row++) {
+    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
+    for (int column = 0; column < corners_in_row[row]; column++) {
+      if (row < 3) {
+        x = ConvertCornerColumn2x(column, tile_shift);
+        y = ConvertCornerRow2y(column, row, true);
+      } else {
+        x = ConvertCornerColumn2x(column, tile_shift - x_spacing/2);
+        y = ConvertCornerRow2y(column, row, false);
+      }
+      game->board.corners[row][column].coordinates[0] = x;
+      game->board.corners[row][column].coordinates[1] = y;
+    }
+  }
+}
+
 void SetTileColor(Tile* tile) {
   switch(tile->type) {
     case TileType::Hills:
@@ -99,6 +130,7 @@ void ViewPort::NewMap(Game* game) {
     SetTileColor(&tile_i);
   }
 }
+
 
 void ViewPort::DrawTile(float x, float y, Tile tile) const {
   // Fill
@@ -248,22 +280,9 @@ void ViewPort::DrawTile(float x, float y, Tile tile) const {
   glPopMatrix();
 }
 
-void ViewPort::DrawTileSelection(int id, Game* game) {
-  float x, y, shift;
-  int row = 0;
-  int column = 0;
-
-  for (int i = 0; i < id; i++) {
-    column += 1;
-    if (column == tiles_in_row[row]) {
-      row += 1;
-      column = 0;
-      shift = CalculateTileShift(shift, row, &game->board);
-    }
-  }
-
-  x = ConvertTileColumn2x(column, shift);
-  y = ConvertTileRow2y(row);
+void ViewPort::DrawTileSelection(int id, Game* game) const {
+  float x = game->board.tile_array[id].coordinates[0];
+  float y = game->board.tile_array[id].coordinates[1];
 
   glPushMatrix();
     glTranslatef(x, y, 0.0);
@@ -337,27 +356,9 @@ void ViewPort::DrawCorner(float x, float y, Corner corner) const {
   }
 }
 
-void ViewPort::DrawCornerSelection(int id, Game* game) {
-  float x, y, shift;
-  int row = 0;
-  int column = 0;
-
-  for (int i = 0; i < id; i++) {
-    column += 1;
-    if (column == corners_in_row[row]) {
-      row += 1;
-      column = 0;
-      shift = CalculateTileShift(shift, row, &game->board);
-    }
-  }
-
-  if (row < 3) {
-    x = ConvertCornerColumn2x(column, shift);
-    y = ConvertCornerRow2y(column, row, true);
-  } else {
-    x = ConvertCornerColumn2x(column, shift - x_spacing/2);
-    y = ConvertCornerRow2y(column, row, false);
-  }
+void ViewPort::DrawCornerSelection(int id, Game* game) const {
+  float x = game->board.corner_array[id].coordinates[0];
+  float y = game->board.corner_array[id].coordinates[1];
 
   glPushMatrix();
     glTranslatef(x, y - 0.01f, 0.0);
@@ -378,15 +379,53 @@ void ViewPort::DrawCornerSelection(int id, Game* game) {
   glPopMatrix();
 }
 
-void ViewPort::DrawStreet(float x_1, float x_2, float y_1, float y_2, Street street) const {
-  if (street.color != Color::NoColor) {
+void ViewPort::DrawCornerPlayerSelection(int id, Game* game, CornerOccupancy occupancy) const {
+  float x = game->board.corner_array[id].coordinates[0];
+  float y = game->board.corner_array[id].coordinates[1];
+
+  glPushMatrix();
+  glTranslatef(x, y, 0.0);
+  glScalef(x_scale * 0.3f, y_scale * 0.3f, 0.0);
+  glBegin(GL_POLYGON);
+
+  glColor3f(0.8f, 0.0f, 0.5f);
+
+  switch (occupancy) {
+    case CornerOccupancy::Village:
+      glVertex2f(-0.5f, -0.7f);
+      glVertex2f(-0.5f,  0.2f);
+      glVertex2f( 0.0f,  0.9f);
+      glVertex2f( 0.5f,  0.2f);
+      glVertex2f( 0.5f, -0.7f);
+      glEnd();
+      glPopMatrix();
+      break;
+    case CornerOccupancy::City:
+      glVertex2f(-0.6f, -1.0f);
+      glVertex2f(-0.6f,  0.6f);
+      glVertex2f(-0.3f,  1.0f);
+      glVertex2f( 0.0f,  0.6f);
+      glVertex2f( 0.0f,  0.0f);
+      glVertex2f( 0.6f,  0.0f);
+      glVertex2f( 0.6f, -1.0f);
+      glEnd();
+      glPopMatrix();
+      break;
+    default:
+      glEnd();
+      glPopMatrix();
+  }
+}
+
+void ViewPort::DrawStreet(int id, Game* game) const {
+  if (game->board.street_array[id].color != Color::NoColor) {
     glPushMatrix();
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       glLineWidth(3);
 
       glBegin(GL_LINES);
 
-        switch (street.color) {
+        switch (game->board.street_array[id].color) {
           case Color::Blue:
             glColor3f(0.0f, 0.0f, 1.0f);
             break;
@@ -401,6 +440,11 @@ void ViewPort::DrawStreet(float x_1, float x_2, float y_1, float y_2, Street str
             break;
         }
 
+        float x_1 = game->board.street_array[id].corners[0]->coordinates[0];
+        float y_1 = game->board.street_array[id].corners[0]->coordinates[1];
+        float x_2 = game->board.street_array[id].corners[1]->coordinates[0];
+        float y_2 = game->board.street_array[id].corners[1]->coordinates[1];
+
         glVertex2f(x_1, y_1 - lower_road);
         glVertex2f(x_2, y_2 - lower_road);
 
@@ -411,18 +455,37 @@ void ViewPort::DrawStreet(float x_1, float x_2, float y_1, float y_2, Street str
   }
 }
 
-void ViewPort::Refresh(Game* game) {
-  float x, y, tile_shift;
-  float previous_x, previous_y;
-  for (int row = 0; row < tile_rows; row++) {
-    // Shift x location based on row to interlock the hexagons
-    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
+void ViewPort::DrawStreetSelection(int id, Game* game) const {
+  glPushMatrix();
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glLineWidth(3);
 
-    for (int column = 0; column < tiles_in_row[row]; column++) {
-      x = ConvertTileColumn2x(column, tile_shift);
-      y = ConvertTileRow2y(row);
-      DrawTile(x, y, game->board.tiles[row][column]);
-    }
+  glBegin(GL_LINES);
+
+  glColor3f(0.8f, 0.0f, 0.5f);
+
+  float x_1 = game->board.street_array[id].corners[0]->coordinates[0];
+  float y_1 = game->board.street_array[id].corners[0]->coordinates[1];
+  float x_2 = game->board.street_array[id].corners[1]->coordinates[0];
+  float y_2 = game->board.street_array[id].corners[1]->coordinates[1];
+
+  glVertex2f(x_1, y_1 - lower_road);
+  glVertex2f(x_2, y_2 - lower_road);
+
+  glEnd();
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glPopMatrix();
+}
+
+void ViewPort::Refresh(Game* game) {
+  float x, y;
+
+  // Render the Tiles
+  for (auto & tile_i : game->board.tile_array) {
+    x = tile_i.coordinates[0];
+    y = tile_i.coordinates[1];
+    DrawTile(x, y, tile_i);
   }
 
   // Render the Tile Selection
@@ -431,56 +494,36 @@ void ViewPort::Refresh(Game* game) {
     tile_selection_item.render = false;
   }
 
-  tile_shift = 0;
-  float y_below;
-  for (int row = 0; row < corner_rows; row++) {
-    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
-    for (int column = 0; column < corners_in_row[row]; column++) {
-      if (row < 3) {
-        x = ConvertCornerColumn2x(column, tile_shift);
-        y = ConvertCornerRow2y(column, row, true);
-        if (column % 2 == 0) {
-          y_below = ConvertCornerRow2y(column + 1, row + 1, true);
-          DrawStreet(x, x, y_below, y, game->board.streets[2 * row + 1][column/2]);
-        }
-      } else {
-        x = ConvertCornerColumn2x(column, tile_shift - x_spacing/2);
-        y = ConvertCornerRow2y(column, row, false);
-        if (column % 2 == 1 && row < corner_rows - 1) {
-          y_below = ConvertCornerRow2y(column, row + 1, true);
-          DrawStreet(x, x, y_below, y, game->board.streets[2 * row + 1][column/2]);
-        }
-      }
-
-      if (column != 0) {
-        DrawStreet(previous_x, x, previous_y, y, game->board.streets[2 * row][column - 1]);
-      }
-      previous_x = x;
-      previous_y = y;
-    }
+  // Render the Streets
+  for (auto & street : game->board.street_array) {
+    DrawStreet(street.id, game);
   }
 
-  tile_shift = 0;
-  for (int row = 0; row < corner_rows; row++) {
-    tile_shift = CalculateTileShift(tile_shift, row, &game->board);
-    for (int column = 0; column < corners_in_row[row]; column++) {
-      if (row < 3) {
-        x = ConvertCornerColumn2x(column, tile_shift);
-        y = ConvertCornerRow2y(column, row, true);
-      } else {
-        x = ConvertCornerColumn2x(column, tile_shift - x_spacing/2);
-        y = ConvertCornerRow2y(column, row, false);
-      }
-      DrawCorner(x, y, game->board.corners[row][column]);
-      previous_x = x;
-      previous_y = y;
-    }
+  // Render the Street Selection
+  if (street_selection_item.render) {
+    DrawStreetSelection(street_selection_item.id, street_selection_item.game);
+    street_selection_item.render = false;
+  }
+  if (player_street_selection_item.render) {
+    DrawStreetSelection(player_street_selection_item.id, player_street_selection_item.game);
+    player_street_selection_item.render = false;
+  }
+
+  // Render the Corners
+  for (auto & corner_i : game->board.corner_array) {
+    x = corner_i.coordinates[0];
+    y = corner_i.coordinates[1];
+    DrawCorner(x, y, corner_i);
   }
 
   // Render the Corner Selection
   if (corner_selection_item.render) {
     DrawCornerSelection(corner_selection_item.id, corner_selection_item.game);
     corner_selection_item.render = false;
+  }
+  if (player_corner_selection_item.render) {
+    DrawCornerPlayerSelection(player_corner_selection_item.id, player_corner_selection_item.game, player_corner_selection_item.corner_occupancy);
+    player_corner_selection_item.render = false;
   }
 
 }

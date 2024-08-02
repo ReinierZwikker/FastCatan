@@ -4,6 +4,7 @@
 #include "../app/3rd_party/imgui/imgui.h"
 #include "../app/viewport.h"
 #include "../src/game/game.h"
+#include "../src/game/components.h"
 
 void WindowGame(Game*);
 
