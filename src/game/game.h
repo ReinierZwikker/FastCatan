@@ -6,6 +6,7 @@
 #include "player.h"
 #include "board.h"
 #include "HumanPlayer/console_player.h"
+#include "HumanPlayer/gui_player.h"
 
 #include <mutex>
 #include <condition_variable>

@@ -24,14 +24,15 @@ static const char* player_states[] = {
 
 class GuiPlayer : public PlayerAgent {
 public:
-  explicit GuiPlayer(Player *connected_player, std::mutex *mutex, std::condition_variable *con_var, bool *received);
+  explicit GuiPlayer(Player *connected_player);
   Move get_move(Board *board, int cards[5]) override;
   void finish_round(Board *board) override;
   ~GuiPlayer();
 
-  std::mutex *waiting;
-  std::condition_variable *cv;
-  bool *input_received;
+  std::mutex waiting;
+  std::condition_variable cv;
+  bool input_received;
+  void human_input_received();
 
   char* tag[20];
   PlayerStates player_state = PlayerStates::Waiting;

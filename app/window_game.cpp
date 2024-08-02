@@ -5,6 +5,7 @@
 
 void WindowGame(Game* game) {
   std::thread start_thread;
+  std::thread step_round_thread;
 
   if (ImGui::BeginTable("split", 4)) {
     ImGui::TableNextColumn(); ImGui::Text("Game Status:");
@@ -16,14 +17,18 @@ void WindowGame(Game* game) {
     ImGui::EndTable();
   }
 
-  if (ImGui::Button("Start")) {
-    start_thread = std::thread(&Game::start_game, game);
-    start_thread.detach();
-  }
+  if (ImGui::BeginTable("split", 2)) {
+    ImGui::TableNextColumn();
+    if (ImGui::Button("Start Game")) {
+      start_thread = std::thread(&Game::start_game, game);
+      start_thread.detach();
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Button("Start Step Round")) {
+      step_round_thread = std::thread(&Game::step_round, game);
+      step_round_thread.detach();
+    }
 
-  if (ImGui::Button("Resume")) {
-    game->human_input_received();
-    game->step_round();
-    start_thread.join();
+    ImGui::EndTable();
   }
 }
