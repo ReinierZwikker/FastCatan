@@ -239,7 +239,25 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
 
   // Exchanging
   if (turn_type == normalTurn) {
+    for (int card_i = 0; card_i < 5; ++card_i) {
+      // TODO implement harbors?
+      if (cards[card_i] > 4) {
+        for (int card_j = 0; card_j < 5; ++card_j) {
+          if (card_i != card_j) {
+            current_move = add_new_move(current_move_id);
+            if (current_move == nullptr) { return available_moves; }
 
+            current_move->move_type = Exchange;
+            current_move->tx_card = index_card(card_i);
+            current_move->tx_amount = 4;
+            current_move->rx_card = index_card(card_j);
+            current_move->rx_amount = 1;
+
+            ++current_move_id;
+          }
+        }
+      }
+    }
   }
 
 
@@ -293,4 +311,8 @@ void Player::add_cards(CardType card_type, int amount) {
 
 void Player::remove_cards(CardType card_type, int amount) {
   cards[card_index(card_type)] -= amount;
+}
+
+int Player::get_total_amount_of_cards() {
+  return cards[0] + cards[1] + cards[2] + cards[3] + cards[4];
 }

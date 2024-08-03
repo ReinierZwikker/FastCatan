@@ -5,8 +5,9 @@
 
 #include "player.h"
 #include "board.h"
-#include "HumanPlayer/console_player.h"
+//#include "HumanPlayer/console_player.h"
 #include "HumanPlayer/gui_player.h"
+#include "AIPlayer/ai_zwik_player.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -42,7 +43,6 @@ struct Game {
   Move gui_moves[4]{};
   void human_input_received();
 
-  // TODO generate random game seed
   std::random_device randomDevice;
 
   int num_players;

@@ -24,6 +24,7 @@ Game::Game(int num_players) {
 Game::~Game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     free(players[player_i]->agent);
+    free(players[player_i]);
   }
 }
 
@@ -113,6 +114,23 @@ void Game::step_round() {
 
       if (dice_roll == 7) {
         // do robber turn
+        for (int player_j = 0; player_j < Game::num_players; player_j++) {
+          if (players[player_j]->get_total_amount_of_cards() > 7) {
+            // TODO Allow player to choose which cards get discarded!
+            std::mt19937 gen(randomDevice());
+            std::uniform_int_distribution<> card(0, 5);
+            for (int card_i = 0; card_i < players[player_j]->get_total_amount_of_cards() / 2; ++card_i) {
+              bool chosen = false;
+              while (!chosen) {
+                int chosen_card = card(gen);
+                if (players[player_j]->cards[chosen_card] > 0) {
+                  players[player_j]->remove_cards(index_card(chosen_card), 1);
+                  chosen = true;
+                }
+              }
+            }
+          }
+        }
         current_player->update_available_moves(robberTurn, players);
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
         // perform chosen move
@@ -144,13 +162,16 @@ void Game::step_round() {
             // TODO Implement trading
             break;
           case Exchange:
-            current_player->cards[card_index(chosen_move.tx_card)] -= 4;
-            current_player->cards[card_index(chosen_move.rx_card)]++;
+            current_player->remove_cards(chosen_move.tx_card, 4);
+            current_player->add_cards(chosen_move.rx_card, 1);
             break;
           case moveRobber:
+            board.current_robber_tile->robber = false;
+            board.current_robber_tile = &board.tile_array[chosen_move.index];
+            board.current_robber_tile->robber = true;
             // TODO Implement robber movement
             // Only possible if development cards are implemented
-            // TODO make robber position changeable
+            // TODO Implement card stealing?
             break;
           case NoMove:
             throw std::invalid_argument("No Move is never a valid move!");
@@ -184,9 +205,9 @@ int Game::roll_dice() {
  * Give cards to players for each tile of the rolled number, or for all tiles if rolled_number = -1
  */
 void Game::give_cards(int rolled_number) {
-  // TODO Add check for bank reserves
+  // TODO Add check for bank reserves?
   for (Tile tile : board.tile_array) {
-    if (tile.number_token == rolled_number || rolled_number == -1) {
+    if ((tile.number_token == rolled_number && !tile.robber) || rolled_number == -1) {
       for (Corner *corner : tile.corners) {
         if (corner->color != NoColor) {
           if (corner->occupancy == Village) {

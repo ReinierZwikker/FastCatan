@@ -61,6 +61,8 @@ public:
   void add_cards(CardType card_type, int amount);
   void remove_cards(CardType card_type, int amount);
 
+  int get_total_amount_of_cards();
+
   Move *add_new_move(int move_id);
 };
 

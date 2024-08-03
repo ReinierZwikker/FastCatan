@@ -16,6 +16,8 @@ public:
   Street street_array[amount_of_streets]{};
   Street *streets[street_rows]{};
 
+  Tile *current_robber_tile;
+
   void Randomize();
   void PrintBoard();
   bool CheckNumberTokens();

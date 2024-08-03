@@ -22,10 +22,10 @@ int main(int argc, char *argv[]) {
 }
 
 // TODO GuiPlayer
+  // TODO Handle RobberTurn
 
 // TODO Robber
-  // TODO Block Resources
-  // TODO Move Robber
+  // TODO Show Robber
   // TODO Pull card when moved
 
 // TODO VictoryPoints
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
 // TODO Trading
 
-// TODO Exchanging
+// TODO Exchanging with harbor
 
 // TODO Streets Highlight
 

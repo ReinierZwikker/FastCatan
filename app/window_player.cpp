@@ -171,6 +171,22 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     }
   }
 
+  if (ImGui::CollapsingHeader("Resources")) {
+    if (ImGui::BeginTable("split", 2)) {
+      ImGui::TableNextColumn(); ImGui::Text("Resource");
+      ImGui::TableNextColumn(); ImGui::Text("Amount");
+      ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
+      ImGui::TableNextColumn(); ImGui::Text("Streets");
+      ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->resources_left[0]);
+      ImGui::TableNextColumn(); ImGui::Text("Villages");
+      ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->resources_left[1]);
+      ImGui::TableNextColumn(); ImGui::Text("Cities");
+      ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->resources_left[2]);
+
+      ImGui::EndTable();
+    }
+  }
+
   if (ImGui::CollapsingHeader("Possible Moves")) {
     ImGui::Checkbox("Show All Moves", &show_all_moves);
 

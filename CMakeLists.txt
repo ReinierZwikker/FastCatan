@@ -20,6 +20,8 @@ set(SOURCES
         src/game/HumanPlayer/console_player.h
         src/game/HumanPlayer/gui_player.cpp
         src/game/HumanPlayer/gui_player.h
+        src/game/AIPlayer/ai_zwik_player.cpp
+        src/game/AIPlayer/ai_zwik_player.h
         app/app.cpp
         app/viewport.cpp
         app/window_board.cpp

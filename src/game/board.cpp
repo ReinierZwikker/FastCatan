@@ -263,6 +263,8 @@ void Board::AddTileTypeAndNumberTokensToTiles() {
     }
     else {
       tile.number_token = 0;
+      tile.robber = true;
+      current_robber_tile = &tile;
     }
   }
 }
