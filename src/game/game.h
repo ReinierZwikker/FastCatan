@@ -7,7 +7,7 @@
 #include "board.h"
 //#include "HumanPlayer/console_player.h"
 #include "HumanPlayer/gui_player.h"
-#include "AIPlayer/ai_zwik_player.h"
+//#include "AIPlayer/ai_zwik_player.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -19,6 +19,7 @@ enum GameStates {
   SetupRoundFinished,
   PlayingRound,
   RoundFinished,
+  GameFinished,
   WaitingForPlayer,
 };
 
@@ -29,6 +30,7 @@ static const char* game_states[] = {
     "Setup Round Finished",
     "Playing Round",
     "Round Finished",
+    "Game Finished",
     "Waiting for player"
 };
 
@@ -38,6 +40,7 @@ struct Game {
 
   // Handle game state
   GameStates game_state = UnInitialized;
+  Color game_winner = NoColor;
   std::mutex human_turn;
   std::condition_variable cv;
   Move gui_moves[4]{};

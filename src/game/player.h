@@ -36,11 +36,11 @@ public:
   Color player_color = NoColor;
 
   //                      {Streets, Villages, Cities}
-  int resources_left[3] = {     14,        5,      4};
+  int resources_left[3] = {     15,        5,      4};
 
   int cards[5]{};
 
-
+  int victory_points = 0;
 
 
   virtual ~Player();
@@ -64,6 +64,8 @@ public:
   int get_total_amount_of_cards();
 
   Move *add_new_move(int move_id);
+
+  int check_victory_points();
 };
 
 #endif //FASTCATAN_PLAYER_H

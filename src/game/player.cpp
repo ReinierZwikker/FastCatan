@@ -316,3 +316,9 @@ void Player::remove_cards(CardType card_type, int amount) {
 int Player::get_total_amount_of_cards() {
   return cards[0] + cards[1] + cards[2] + cards[3] + cards[4];
 }
+
+int Player::check_victory_points() {
+  // TODO implement other sources of VPs
+  victory_points = (5 - resources_left[1]) + 2 * (4 - resources_left[2]);
+  return victory_points;
+}

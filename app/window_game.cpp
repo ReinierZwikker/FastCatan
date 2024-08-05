@@ -38,8 +38,16 @@ void WindowGame(Game* game) {
   if (ImGui::BeginTable("split", 4)) {
     ImGui::TableNextColumn(); ImGui::Text("Dice Roll:");
     ImGui::TableNextColumn(); ImGui::Text("%i + %i = %i", game->die_1, game->die_2, game->die_1 + game->die_2);
-    ImGui::TableNextColumn();
-    ImGui::TableNextColumn();
+    ImGui::TableNextColumn(); ImGui::Text("Winning Player:");
+    if (game->game_winner == NoColor) {
+      ImGui::TableNextColumn(); ImGui::Text("Game in progress...");
+    } else {
+      ImGui::TableNextColumn(); ImGui::Text("%i - %s", color_index(game->game_winner), color_name(game->game_winner).c_str());
+    }
+    ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
+    for (int player_i = 0; player_i < 4; ++player_i) {
+      ImGui::TableNextColumn(); ImGui::Text("%s = %i VP", color_name(index_color(player_i)).c_str(), game->players[player_i]->victory_points);
+    }
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
     ImGui::EndTable();
@@ -61,9 +69,9 @@ void WindowGame(Game* game) {
 
   if (game->game_state == SetupRoundFinished || game->game_state == RoundFinished) {
     std::cout << "created thread" << std::endl;
+    game->game_state = PlayingRound;
     step_round_thread = std::thread(&Game::step_round, game);
     step_round_thread.detach();
-    game->game_state = PlayingRound;
   }
 
 }

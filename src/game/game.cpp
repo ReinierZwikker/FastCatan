@@ -180,12 +180,20 @@ void Game::step_round() {
             move_i = moves_per_turn;
             break;
         }
+
+        // Only win if victory points >= 10 on your turn
+        if (players[player_i]->check_victory_points() >= 10) {
+          game_state = GameFinished;
+          game_winner = index_color(player_i);
+        }
       }
     }
   }
 
   ++current_round;
-  game_state = RoundFinished;
+  if (game_state == PlayingRound) {
+    game_state = RoundFinished;
+  }
 }
 
 
