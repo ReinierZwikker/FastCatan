@@ -8,6 +8,7 @@
 //#include "HumanPlayer/console_player.h"
 #include "HumanPlayer/gui_player.h"
 //#include "AIPlayer/ai_zwik_player.h"
+#include "AIPlayer/random_player.h"
 
 #include <mutex>
 #include <condition_variable>

@@ -22,6 +22,8 @@ set(SOURCES
         src/game/HumanPlayer/gui_player.h
 #        src/game/AIPlayer/ai_zwik_player.cpp
 #        src/game/AIPlayer/ai_zwik_player.h
+        src/game/AIPlayer/random_player.cpp
+        src/game/AIPlayer/random_player.h
         app/app.cpp
         app/viewport.cpp
         app/window_board.cpp
