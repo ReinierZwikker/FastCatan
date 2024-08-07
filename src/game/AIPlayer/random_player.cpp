@@ -6,7 +6,7 @@
 RandomPlayer::RandomPlayer(Player *connected_player) {
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
-  player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
+  // player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
 }
 
 void RandomPlayer::player_print(std::string text) {
@@ -16,13 +16,11 @@ void RandomPlayer::player_print(std::string text) {
 Move RandomPlayer::get_move(Board *board, int cards[5]) {
   Move selected_move;
 
-  player_print("My Cards:\n");
-
-  for (int card_i = 0; card_i < 5; ++card_i) {
-    player_print("    " + card_name(index_card(card_i)) + " = " + std::to_string(cards[card_i]) + "\n");
-  }
-
-  player_print("My possible moves:\n");
+//  player_print("My Cards:\n");
+//  for (int card_i = 0; card_i < 5; ++card_i) {
+//    player_print("    " + card_name(index_card(card_i)) + " = " + std::to_string(cards[card_i]) + "\n");
+//  }
+//  player_print("My possible moves:\n");
 
   int move_i;
 
@@ -30,7 +28,7 @@ Move RandomPlayer::get_move(Board *board, int cards[5]) {
     if (player->available_moves[move_i].move_type == NoMove) {
       break;
     }
-    player_print("Move " + std::to_string(move_i + 1) + ": " + move2string(player->available_moves[move_i]) + "\n");
+//    player_print("Move " + std::to_string(move_i + 1) + ": " + move2string(player->available_moves[move_i]) + "\n");
   }
 
 
@@ -48,10 +46,8 @@ Move RandomPlayer::get_move(Board *board, int cards[5]) {
 
   selected_move = player->available_moves[selected_move_i];
 
-  player_print("Selecting a random move: " + std::to_string(selected_move_i) + "\n");
-
-
-  player_print("\nSelected move: " + move2string(selected_move) + "\n");
+//  player_print("Selecting a random move: " + std::to_string(selected_move_i) + "\n");
+//  player_print("\nSelected move: " + move2string(selected_move) + "\n");
   return selected_move;
 }
 
