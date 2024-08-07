@@ -7,6 +7,10 @@
 
 #include "../app/3rd_party/stb_image.h" // Currently not in use
 #include "iostream"
+#include <mutex>
+
+std::mutex viewport_mutex;
+
 
 ViewPort::ViewPort() {
 
@@ -307,7 +311,11 @@ void ViewPort::DrawTileSelection(int id, Game* game) const {
 }
 
 void ViewPort::DrawCorner(float x, float y, Corner corner) const {
-  if (corner.occupancy != CornerOccupancy::EmptyCorner) {
+  viewport_mutex.lock();
+  CornerOccupancy corner_occupancy = corner.occupancy;
+  viewport_mutex.unlock();
+
+  if (corner_occupancy != CornerOccupancy::EmptyCorner) {
     glPushMatrix();
     glTranslatef(x, y, 0.0);
     glScalef(x_scale * 0.3f, y_scale * 0.3f, 0.0);
@@ -331,7 +339,7 @@ void ViewPort::DrawCorner(float x, float y, Corner corner) const {
         break;
     }
 
-    switch (corner.occupancy) {
+    switch (corner_occupancy) {
       case CornerOccupancy::Village:
         glVertex2f(-0.5f, -0.7f);
         glVertex2f(-0.5f,  0.2f);
@@ -418,14 +426,18 @@ void ViewPort::DrawCornerPlayerSelection(int id, Game* game, CornerOccupancy occ
 }
 
 void ViewPort::DrawStreet(int id, Game* game) const {
-  if (game->board.street_array[id].color != Color::NoColor) {
+  viewport_mutex.lock();
+  Color street_color = game->board.street_array[id].color;
+  viewport_mutex.unlock();
+
+  if (street_color != Color::NoColor) {
     glPushMatrix();
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       glLineWidth(3);
 
       glBegin(GL_LINES);
 
-        switch (game->board.street_array[id].color) {
+        switch (street_color) {
           case Color::Blue:
             glColor3f(0.0f, 0.0f, 1.0f);
             break;

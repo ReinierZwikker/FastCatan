@@ -1,5 +1,8 @@
 #include "window_board.h"
 #include "iostream"
+#include <mutex>
+
+std::mutex board_mutex;
 
 static int tile_id = 0;
 static int corner_id = 0;
@@ -101,28 +104,35 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     viewport->corner_selection_item = corner_selection_item;
 
     // Corner Occupancy
+    board_mutex.lock();
     current_item = game->board.corner_array[corner_id].occupancy;
     ImGui::Combo("Corner Occupancy", &current_item, "EmptyCorner\0Village\0City\0\0");
     if (current_item != game->board.corner_array[corner_id].occupancy) {
       game->board.corner_array[corner_id].occupancy = static_cast<CornerOccupancy>(current_item);
     }
+    board_mutex.unlock();
 
     // Corner Color
+    board_mutex.lock();
     current_item = game->board.corner_array[corner_id].color;
     ImGui::Combo("Corner Color", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
     if (current_item != game->board.corner_array[corner_id].color) {
       game->board.corner_array[corner_id].color = static_cast<Color>(current_item);
     }
+    board_mutex.unlock();
 
     // Corner Harbor
+    board_mutex.lock();
     current_item = game->board.corner_array[corner_id].harbor;
     ImGui::Combo("Corner Harbor", &current_item, "None\0Generic\0Brick\0Grain\0Wool\0Lumber\0Ore\0\0");
     if (current_item != game->board.corner_array[corner_id].harbor) {
       game->board.corner_array[corner_id].harbor = static_cast<HarborType>(current_item);
     }
+    board_mutex.unlock();
 
     // Streets
     if (ImGui::TreeNode("Streets##2")) {
+      board_mutex.lock();
       Street* street_0 = game->board.corner_array[corner_id].streets[0];
       Street* street_1 = game->board.corner_array[corner_id].streets[1];
       Street* street_2 = game->board.corner_array[corner_id].streets[2];
@@ -163,6 +173,7 @@ void WindowBoard(Game* game, ViewPort* viewport) {
         ImGui::Text("Street right - Not connected");
       }
 
+      board_mutex.unlock();
       ImGui::TreePop();
     }
   }
@@ -180,14 +191,17 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     street_selection_item.render = true;
     viewport->street_selection_item = street_selection_item;
 
-    // Corner Color
+    // Street Color
+    board_mutex.lock();
     current_item = game->board.street_array[street_id].color;
     ImGui::Combo("Street Color", &current_item, "Green\0Red\0White\0Blue\0NoColor\0\0");
     if (current_item != game->board.street_array[street_id].color) {
       game->board.street_array[street_id].color = static_cast<Color>(current_item);
     }
+    board_mutex.unlock();
 
     if (ImGui::TreeNode("Corners##2")) {
+      board_mutex.lock();
       Corner* corner_0 = game->board.street_array[street_id].corners[0];
       Corner* corner_1 = game->board.street_array[street_id].corners[1];
 
@@ -214,6 +228,8 @@ void WindowBoard(Game* game, ViewPort* viewport) {
       else {
         ImGui::Text("Corner 2- Not connected");
       }
+
+      board_mutex.unlock();
       ImGui::TreePop();
     }
   }
