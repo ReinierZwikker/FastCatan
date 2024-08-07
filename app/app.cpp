@@ -131,6 +131,7 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
 
   // Initialize the game and board on screen
   game_pointer = game;
+  game->gui_controlled = true;
   viewport.CalculateCoordinates(game_pointer);
   viewport.NewMap(game_pointer);
 
