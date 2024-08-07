@@ -13,30 +13,6 @@
 #include <mutex>
 #include <condition_variable>
 
-enum GameStates {
-  UnInitialized,
-  ReadyToStart,
-  SetupRound,
-  SetupRoundFinished,
-  PlayingRound,
-  RoundFinished,
-  GameFinished,
-  WaitingForPlayer,
-  UnavailableMove,
-};
-
-static const char* game_states[] = {
-    "UnInitialized",
-    "Ready to start",
-    "Setup Round",
-    "Setup Round Finished",
-    "Playing Round",
-    "Round Finished",
-    "Game Finished",
-    "Waiting for player",
-    "Unavailable Move"
-};
-
 struct Game {
   explicit Game(int num_players);
   ~Game();
@@ -53,6 +29,7 @@ struct Game {
   std::mutex move_lock;
   std::condition_variable cv;
   Move gui_moves[4]{};
+  std::mutex mutex;
   void human_input_received();
 
   std::random_device randomDevice;

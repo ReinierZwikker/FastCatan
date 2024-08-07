@@ -19,7 +19,6 @@ public:
 
   bool activated = false;
 
-
   /*  === Link to player agent ===
    * Agent should implement the following function:
    * get_move(board, cards, available_moves)
@@ -37,11 +36,8 @@ public:
 
   //                      {Streets, Villages, Cities}
   int resources_left[3] = {     15,        5,      4};
-
   int cards[5]{};
-
   int victory_points = 0;
-
 
   virtual ~Player();
 

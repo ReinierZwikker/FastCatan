@@ -43,7 +43,6 @@ Move RandomPlayer::get_move(Board *board, int cards[5]) {
     selected_move_i = random_move(gen);
 
   }
-
   selected_move = player->available_moves[selected_move_i];
 
 //  player_print("Selecting a random move: " + std::to_string(selected_move_i) + "\n");

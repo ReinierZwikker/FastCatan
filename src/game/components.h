@@ -330,4 +330,32 @@ static const char* player_state_char[] = {
     "Thanks for playing!"
 };
 
+/******************
+ *    Game     *
+ ******************/
+
+enum GameStates {
+  UnInitialized,
+  ReadyToStart,
+  SetupRound,
+  SetupRoundFinished,
+  PlayingRound,
+  RoundFinished,
+  GameFinished,
+  WaitingForPlayer,
+  UnavailableMove,
+};
+
+static const char* game_states[] = {
+    "UnInitialized",
+    "Ready to start",
+    "Setup Round",
+    "Setup Round Finished",
+    "Playing Round",
+    "Round Finished",
+    "Game Finished",
+    "Waiting for player",
+    "Unavailable Move"
+};
+
 #endif //FASTCATAN_COMPONENTS_H

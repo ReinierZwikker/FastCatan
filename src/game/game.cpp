@@ -65,7 +65,7 @@ void Game::unavailable_move(Move move, std::string info) {
   printf("\nMove Warning!\n");
 
   if (gui_controlled) {
-    printf("Move [%i] not available\nIndex: %i\nPlayer: %i\n", chosen_move.move_type, chosen_move.index, current_player_id + 1);
+    printf("Move [%i] not available\nIndex: %i\nPlayer: %i\n", chosen_move.move_type, chosen_move.index, current_player_id.load() + 1);
     printf("Information: %s\n", info.c_str());
     if (move.move_type == Exchange) {
       printf("Exchange %i %s for %i %s\n", chosen_move.tx_amount, card_names[chosen_move.tx_card].c_str(),
