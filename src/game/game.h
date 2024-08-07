@@ -22,6 +22,7 @@ enum GameStates {
   RoundFinished,
   GameFinished,
   WaitingForPlayer,
+  UnavailableMove,
 };
 
 static const char* game_states[] = {
@@ -32,17 +33,24 @@ static const char* game_states[] = {
     "Playing Round",
     "Round Finished",
     "Game Finished",
-    "Waiting for player"
+    "Waiting for player",
+    "Unavailable Move"
 };
 
 struct Game {
   explicit Game(int num_players);
   ~Game();
+  void add_players();
 
   // Handle game state
   GameStates game_state = UnInitialized;
   Color game_winner = NoColor;
-  std::mutex human_turn;
+
+  bool gui_controlled = false;
+
+  // Threading
+  bool move_lock_opened;
+  std::mutex move_lock;
   std::condition_variable cv;
   Move gui_moves[4]{};
   void human_input_received();
@@ -58,12 +66,14 @@ struct Game {
   Board board = Board();
 
   int current_round = 0;
+  Move chosen_move;
+
+  void unavailable_move(Move move, std::string);
 
   void start_game();
-
   void step_round();
-
-
+  void run_game();
+  void reset();
 
   int roll_dice();
   int die_1 = 0;

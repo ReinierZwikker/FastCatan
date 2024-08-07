@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <random>
 #include <iostream>
+#include <pthread.h>
 
 #include "game.h"
 
@@ -11,6 +12,19 @@ Game::Game(int num_players) {
   }
 
   Game::num_players = num_players;
+  add_players();
+
+  game_state = GameStates::ReadyToStart;
+}
+
+Game::~Game() {
+  for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    delete(players[player_i]->agent);
+    delete(players[player_i]);
+  }
+}
+
+void Game::add_players() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = new Player(&board, index_color(player_i));
 //    auto *new_agent = new GuiPlayer(players[player_i]);
@@ -18,34 +32,58 @@ Game::Game(int num_players) {
     players[player_i]->agent = new_agent;
     players[player_i]->activated = true;
   }
-
-  game_state = GameStates::ReadyToStart;
 }
 
-Game::~Game() {
-  for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    free(players[player_i]->agent);
-    free(players[player_i]);
+bool move_in_available_moves(Move move, Move *available_moves, bool print = false) {
+  if (print) {
+    printf("Checking Move [%i]\n", move.move_type);
   }
-}
 
-bool move_in_available_moves(Move move, Move *available_moves) {
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+    if (print) {
+      printf("Move [%i]\n", available_moves[move_i].move_type);
+    }
+
     if (available_moves[move_i].move_type == NoMove) {
+      if (print) {
+        printf("No Move\n");
+      }
       return false;
     }
 
     if (move == available_moves[move_i]) {
+      if (print) {
+        printf("Move [%i] approved\n", move_i);
+      }
       return true;
     }
   }
   return false;
 }
 
+void Game::unavailable_move(Move move, std::string info) {
+  printf("\nMove Warning!\n");
+
+  if (gui_controlled) {
+    printf("Move [%i] not available\nIndex: %i\nPlayer: %i\n", chosen_move.move_type, chosen_move.index, current_player_id + 1);
+    printf("Information: %s\n", info.c_str());
+    if (move.move_type == Exchange) {
+      printf("Exchange %i %s for %i %s\n", chosen_move.tx_amount, card_names[chosen_move.tx_card].c_str(),
+             chosen_move.rx_amount, card_names[chosen_move.rx_card].c_str());
+    }
+
+    std::unique_lock<std::mutex> lock(move_lock);
+    game_state = GameStates::UnavailableMove;
+    cv.wait(lock, [this] { return move_lock_opened; });
+  }
+  else {
+    throw std::invalid_argument("Not an available move!");
+  }
+}
+
 void Game::start_game() {
   game_state = GameStates::SetupRound;
 
-  Move chosen_move;
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     current_player = players[player_i];
     current_player_id = player_i;
@@ -55,7 +93,7 @@ void Game::start_game() {
     current_player->update_available_moves(openingTurnVillage, players);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
-      throw std::invalid_argument("Not an available move!");
+      unavailable_move(chosen_move, "first village");
     }
     current_player->place_village(chosen_move.index);
 
@@ -64,7 +102,7 @@ void Game::start_game() {
     current_player->update_available_moves(openingTurnStreet, players);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
-      throw std::invalid_argument("Not an available move!");
+      unavailable_move(chosen_move, "first street");
     }
     current_player->place_street(chosen_move.index);
   }
@@ -78,8 +116,9 @@ void Game::start_game() {
     current_player->set_cards(1, 1, 0, 1, 1);
     current_player->update_available_moves(openingTurnVillage, players);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
-    if (!move_in_available_moves(chosen_move, current_player->available_moves))
-    { throw std::invalid_argument("Not an available move!"); }
+    if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
+      unavailable_move(chosen_move, "second village");
+    }
     current_player->place_village(chosen_move.index);
 
     // let player select second street
@@ -87,8 +126,9 @@ void Game::start_game() {
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnStreet, players);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
-    if (!move_in_available_moves(chosen_move, current_player->available_moves))
-    { throw std::invalid_argument("Not an available move!"); }
+    if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
+      unavailable_move(chosen_move, "second street");
+    }
     current_player->place_street(chosen_move.index);
   }
 
@@ -103,8 +143,6 @@ void Game::human_input_received() {
 }
 
 void Game::step_round() {
-  Move chosen_move;
-
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
 
     current_player = players[player_i];
@@ -141,9 +179,9 @@ void Game::step_round() {
         current_player->update_available_moves(normalTurn, players);
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
 
-
-        if (!move_in_available_moves(chosen_move, current_player->available_moves))
-          { throw std::invalid_argument("Not an available move!"); }
+        if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
+          unavailable_move(chosen_move, "normal turn");
+        }
 
         // perform chosen move
         switch (chosen_move.move_type) {
@@ -197,6 +235,30 @@ void Game::step_round() {
   }
 }
 
+void Game::run_game() {
+  this->start_game();
+
+  while (game_state != GameFinished && current_round < 500) {
+    this->step_round();
+  }
+
+  game_state = GameFinished;
+}
+
+void Game::reset() {
+  game_winner = NoColor;
+  current_round = 0;
+  board.Reset();
+
+  for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    delete(players[player_i]->agent);
+    delete(players[player_i]);
+  }
+  current_player = nullptr;
+
+  add_players();
+  game_state = ReadyToStart;
+}
 
 int Game::roll_dice() {
   std::mt19937 gen(randomDevice());
@@ -204,7 +266,7 @@ int Game::roll_dice() {
   die_1 = dice(gen);
   die_2 = dice(gen);
 
-  printf("Rolled dice: %d + %d = %d\n", die_1, die_2, die_1 + die_2);
+  // printf("Rolled dice: %d + %d = %d\n", die_1, die_2, die_1 + die_2);
 
   return die_1 + die_2;
 }
@@ -221,10 +283,10 @@ void Game::give_cards(int rolled_number) {
         if (corner->color != NoColor) {
           if (corner->occupancy == Village) {
             players[color_index(corner->color)]->add_cards(tile2card(tile.type), 1);
-            std::cout << "Giving one " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
+            // std::cout << "Giving one " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
           } else if (corner->occupancy == City) {
             players[color_index(corner->color)]->add_cards(tile2card(tile.type), 2);
-            std::cout << "Giving two " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
+            // std::cout << "Giving two " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
           }
         }
       }
