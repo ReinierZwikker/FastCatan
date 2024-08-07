@@ -238,11 +238,19 @@ void Game::step_round() {
 void Game::run_game() {
   this->start_game();
 
-  while (game_state != GameFinished && current_round < 500) {
+  while (game_state != GameFinished && current_round < max_rounds) {
     this->step_round();
   }
 
   game_state = GameFinished;
+}
+
+void Game::run_multiple_games() {
+  while (keep_running) {
+    run_game();
+    this->reset();
+    ++games_played;
+  }
 }
 
 void Game::reset() {

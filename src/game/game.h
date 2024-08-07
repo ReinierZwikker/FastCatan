@@ -12,13 +12,16 @@
 
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 struct Game {
-  explicit Game(int num_players);
+  explicit Game(int num_players = 4);
   ~Game();
   void add_players();
 
   // Handle game state
+  std::atomic<bool> keep_running = true;
+  std::atomic<int> games_played = 0;
   GameStates game_state = UnInitialized;
   Color game_winner = NoColor;
 
@@ -50,6 +53,7 @@ struct Game {
   void start_game();
   void step_round();
   void run_game();
+  void run_multiple_games();
   void reset();
 
   int roll_dice();

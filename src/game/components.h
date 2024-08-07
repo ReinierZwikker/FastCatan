@@ -34,6 +34,7 @@ static const int max_harbors[9] = {4, 1, 1, 1, 1, 1};
 
 static const int max_available_moves = 200;
 static const int moves_per_turn = 25;
+static const int max_rounds = 500;
 
 
 /******************

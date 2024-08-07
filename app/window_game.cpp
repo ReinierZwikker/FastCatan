@@ -4,7 +4,9 @@
 #include <iostream>
 #include <string>
 
+bool keep_running = false;
 bool run = false;
+int num_games = 0;
 
 void WindowGame(Game* game) {
   std::thread start_thread;
@@ -116,6 +118,45 @@ void WindowGame(Game* game) {
     }
 
     ImGui::EndTable();
+  }
+
+//  if (game->game_state == SetupRoundFinished || game->game_state == RoundFinished) {
+//    game->game_state = PlayingRound;
+//    step_round_thread = std::thread(&Game::step_round, game);
+//    step_round_thread.detach();
+//  }
+
+  // Start game button
+
+//
+//  if (ImGui::Button("Reset")) {
+//    game->reset();
+//  }
+//
+  ImGui::Checkbox("Keep Running", &keep_running);
+
+
+  if (ImGui::Button("Run Multiple Games")) {
+    run = true;
+  }
+
+
+  if (run) {
+    if (keep_running) {
+      if (game_state == ReadyToStart) {
+        game_thread = std::thread(&Game::run_game, game);
+        game_thread.detach();
+        ++num_games;
+        std::cout << num_games << std::endl;
+      }
+      else if (game_state == GameFinished){
+        game->reset();
+      }
+    }
+    else {
+      run = false;
+      num_games = 0;
+    }
   }
 
 }
