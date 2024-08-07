@@ -33,7 +33,6 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5]) {
 //    player_print("Move " + std::to_string(move_i + 1) + ": " + move2string(player->available_moves[move_i]) + "\n");
   }
 
-
   std::mt19937 gen(randomDevice());
   std::uniform_int_distribution<> random_move(0, move_i-1);
 

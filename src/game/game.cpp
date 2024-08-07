@@ -23,8 +23,8 @@ Game::Game(int num_players) {
 
 Game::~Game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    free(players[player_i]->agent);
-    free(players[player_i]);
+    delete(players[player_i]->agent);
+    delete(players[player_i]);
   }
 }
 
