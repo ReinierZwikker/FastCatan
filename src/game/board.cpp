@@ -341,6 +341,19 @@ void Board::AddHarbors() {
   }
 }
 
+void Board::Reset() {
+  // Reset Corners
+  for (auto & corner_i : corner_array) {
+    corner_i.occupancy = CornerOccupancy::EmptyCorner;
+    corner_i.color = Color::NoColor;
+  }
+
+  // Reset Streets
+  for (auto & street_i : street_array) {
+    street_i.color = Color::NoColor;
+  }
+}
+
 /*
  * Prints board to the console.
  * */
