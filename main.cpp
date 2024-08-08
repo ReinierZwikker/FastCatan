@@ -40,14 +40,8 @@ int main(int argc, char *argv[]) {
   // TODO Show Robber
   // TODO Pull card when moved
 
-// TODO VictoryPoints
-  // TODO Longest Road
-  // TODO Largest Army
-
 // TODO Trading
 
 // TODO Exchanging with harbor
-
-// TODO Streets Highlight
 
 // TODO Graphics
