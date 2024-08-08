@@ -233,7 +233,7 @@ Move *Player::add_new_move(int move_id) {
   return &available_moves[move_id];
 }
 
-Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
+Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int current_development_card) {
   int current_move_id = 0;
   Move *current_move;
 
@@ -285,10 +285,29 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
     }
   }
 
-
-
   // Development Card
   // TODO implement development cards
+  if (turn_type == normalTurn) {
+    if (resources_for_development() && current_development_card < amount_of_development_cards) {
+      current_move = add_new_move(current_move_id);
+      if (current_move == nullptr) { return available_moves; }
+
+      current_move->move_type = buyDevelopment;
+
+      ++current_move_id;
+    }
+    for (DevelopmentType const& dev_card : development_cards) {
+      if (!played_development_card && dev_card != VictoryPoint) {
+        current_move = add_new_move(current_move_id);
+        if (current_move == nullptr) { return available_moves; }
+
+        current_move->move_type = playDevelopment;
+        current_move->index = dev_card_index(dev_card);
+
+        ++current_move_id;
+      }
+    }
+  }
 
   // Trading
 
@@ -373,6 +392,23 @@ void Player::remove_cards(CardType card_type, int amount) {
   }
 }
 
+void Player::add_development(DevelopmentType development_card) {
+  development_cards.push_back(development_card);
+  if (development_card == VictoryPoint) {
+    ++victory_cards;
+  }
+}
+
+void Player::play_development(int development_index) {
+  switch(development_cards[development_index]) {
+    case Knight:
+      ++played_knight_cards;
+  }
+
+  development_cards.erase(development_cards.begin() + development_index);
+  played_development_card = true;
+}
+
 int Player::get_total_amount_of_cards() {
   return cards[0] + cards[1] + cards[2] + cards[3] + cards[4];
 }
@@ -382,8 +418,14 @@ int Player::check_victory_points() {
   victory_points = (5 - resources_left[1]) + 2 * (4 - resources_left[2]);  // Cities and Villages
 
   if (longest_trading_route) {
-    victory_points += 2;
+    victory_points += 2;  // Longest trade route
   }
+
+  if (most_knights_played) {
+    victory_points += 2;  // Most knights activated
+  }
+
+  victory_points += victory_cards;  // Victory cards
 
   return victory_points;
 }

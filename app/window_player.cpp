@@ -212,6 +212,25 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     }
   }
 
+  if (ImGui::CollapsingHeader("Development Cards")) {
+    if (ImGui::BeginTable("split", 1)) {
+      ImGui::TableNextColumn(); ImGui::Text("Played: ");
+      player_mutex.lock();
+      ImGui::TableNextColumn(); ImGui::Text("Knights: %i", game->players[player_id]->played_knight_cards);
+      player_mutex.unlock();
+
+
+      ImGui::TableNextColumn(); ImGui::Text("Available: ");
+      player_mutex.lock();
+      for (DevelopmentType const& i : game->players[player_id]->development_cards) {
+        ImGui::TableNextColumn(); ImGui::Text("%s", dev_card_names_char[i]);
+      }
+      player_mutex.unlock();
+
+      ImGui::EndTable();
+    }
+  }
+
   if (ImGui::CollapsingHeader("Resources")) {
     if (ImGui::BeginTable("split", 2)) {
       player_mutex.lock();

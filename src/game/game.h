@@ -2,6 +2,7 @@
 #define FASTCATAN_GAME_H
 
 #include <random>
+#include <algorithm>
 
 #include "player.h"
 #include "board.h"
@@ -45,11 +46,16 @@ struct Game {
 
   // Victory items
   unsigned int longest_trade_route = 0;
+  unsigned int most_played_knights = 0;
 
   Board board = Board();
 
   int current_round = 0;
   Move chosen_move;
+
+  // Bank
+  DevelopmentType development_cards[amount_of_development_cards]{};
+  int current_development_card = 0;
 
   void unavailable_move(Move move, std::string);
 
@@ -64,6 +70,8 @@ struct Game {
   int die_2 = 0;
 
   void check_longest_trade_route();
+  void check_knights_played();
+  void shuffle_development_cards();
   void give_cards(int rolled_number);
 
 };

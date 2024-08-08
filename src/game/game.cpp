@@ -14,6 +14,16 @@ Game::Game(int num_players) {
   Game::num_players = num_players;
   add_players();
 
+  // Initialize development cards
+  int current_dev_card = 0;
+  for (int dev_card_i = 0; dev_card_i < 5; ++dev_card_i) {
+    for (int i = 0; i < max_development_cards[dev_card_i]; ++i) {
+      development_cards[current_dev_card] = index_dev_card(dev_card_i);
+
+      ++current_dev_card;
+    }
+  }
+
   game_state = GameStates::ReadyToStart;
 }
 
@@ -90,7 +100,7 @@ void Game::start_game() {
 
     // let player select first town
     current_player->set_cards(1, 1, 0, 1, 1);
-    current_player->update_available_moves(openingTurnVillage, players);
+    current_player->update_available_moves(openingTurnVillage, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "first village");
@@ -99,7 +109,7 @@ void Game::start_game() {
 
     // let player select first street
     current_player->set_cards(1, 1, 0, 0, 0);
-    current_player->update_available_moves(openingTurnStreet, players);
+    current_player->update_available_moves(openingTurnStreet, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "first street");
@@ -114,7 +124,7 @@ void Game::start_game() {
 
     // let player select second town
     current_player->set_cards(1, 1, 0, 1, 1);
-    current_player->update_available_moves(openingTurnVillage, players);
+    current_player->update_available_moves(openingTurnVillage, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "second village");
@@ -124,7 +134,7 @@ void Game::start_game() {
     // let player select second street
     // TODO force player to select street adjacent to second village
     current_player->set_cards(1, 1, 0, 0, 0);
-    current_player->update_available_moves(openingTurnStreet, players);
+    current_player->update_available_moves(openingTurnStreet, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "second street");
@@ -136,7 +146,6 @@ void Game::start_game() {
   give_cards(-1);
 
   game_state = GameStates::SetupRoundFinished;
-  std::cout << std::endl;
 }
 
 void Game::human_input_received() {
@@ -170,13 +179,13 @@ void Game::step_round() {
             }
           }
         }
-        current_player->update_available_moves(robberTurn, players);
+        current_player->update_available_moves(robberTurn, players, current_development_card);
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
         // perform chosen move
       } else { give_cards(dice_roll); }
 
       for (int move_i = 0; move_i < moves_per_turn; ++move_i) {
-        current_player->update_available_moves(normalTurn, players);
+        current_player->update_available_moves(normalTurn, players, current_development_card);
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
 
         if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
@@ -197,6 +206,13 @@ void Game::step_round() {
             break;
           case buyDevelopment:
             // TODO Implement development cards
+            // Get the next development card of the deck
+            current_player->add_development(development_cards[current_development_card]);
+            ++current_development_card;
+            break;
+          case playDevelopment:
+            current_player->play_development(chosen_move.index);
+            check_knights_played();
             break;
           case Trade:
             // TODO Implement trading
@@ -227,6 +243,8 @@ void Game::step_round() {
           game_winner = index_color(player_i);
         }
       }
+
+      current_player->played_development_card = false;
     }
   }
 
@@ -264,8 +282,11 @@ void Game::reset() {
     delete(players[player_i]);
   }
   current_player = nullptr;
-
   add_players();
+
+  shuffle_development_cards();
+  current_development_card = 0;
+
   game_state = ReadyToStart;
 }
 
@@ -280,7 +301,9 @@ int Game::roll_dice() {
   return die_1 + die_2;
 }
 
-
+/*
+ * Check which player has the longest trade route to give that player 2 VPs
+ */
 void Game::check_longest_trade_route() {
   if (current_player->longest_route > 2 && current_player->longest_route > longest_trade_route) {
     current_player->longest_trading_route = true;
@@ -292,6 +315,26 @@ void Game::check_longest_trade_route() {
       }
     }
   }
+}
+
+/*
+ * Check which player has played the most knights to give that player 2 VPs
+ */
+void Game::check_knights_played() {
+  if (current_player->played_knight_cards > 2 && current_player->played_knight_cards > most_played_knights) {
+    current_player->most_knights_played = true;
+    most_played_knights = current_player->played_knight_cards;
+
+    for (int player_i = 0; player_i < num_players; ++player_i) {
+      if (player_i != current_player_id) {
+        players[player_i]->most_knights_played = false;
+      }
+    }
+  }
+}
+
+void Game::shuffle_development_cards() {
+  std::shuffle(development_cards, development_cards + amount_of_development_cards, randomDevice);
 }
 
 /*

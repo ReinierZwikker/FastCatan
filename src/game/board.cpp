@@ -217,7 +217,7 @@ void Board::InitializeTilesAndTokens() {
   int current_tile_type_i = 0;
   for (int tile_type_i = 0; tile_type_i < 6; tile_type_i++) {
     for (int i = 0; i < max_terrain_tiles[tile_type_i]; i++) {
-      available_tiles[current_tile_type_i] = static_cast<TileType>(tile_type_i);
+      available_tiles[current_tile_type_i] = index_tile(tile_type_i);
 
       current_tile_type_i++;
     }

@@ -29,6 +29,11 @@ static const int max_number_tokens[11] = {1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 1};
 // Max amount of tile_array included in the game
 static const int max_terrain_tiles[6] = {3, 4, 3, 4, 4, 1};
 
+// Max amount of development cards in the game
+// {Knight, VP, Monopoly, Research, Streets}
+static const int max_development_cards[5] = {14, 5, 2, 2, 2};
+static const int amount_of_development_cards = 25;
+
 // Harbors
 static const int max_harbors[9] = {4, 1, 1, 1, 1, 1};
 
@@ -103,9 +108,41 @@ inline int card_index(CardType card) { return (int) card; }
 
 inline std::string card_name(CardType card) { return card_names[card_index(card)]; }
 
-/******************
+/******************************
+ *     Development Cards      *
+ ******************************/
+
+enum DevelopmentType {
+  Knight,
+  VictoryPoint,
+  Monopoly,
+  YearOfPlenty,
+  RoadBuilding,
+  None
+};
+
+static const std::string dev_card_names[] = {
+    "Knight",
+    "Victory Point",
+    "Monopoly",
+    "Year of Plenty",
+    "Road Building"
+};
+
+static const char* dev_card_names_char[] = {
+    "Knight",
+    "Victory Point",
+    "Monopoly",
+    "Year of Plenty",
+    "Road Building"
+};
+
+inline DevelopmentType index_dev_card(int dev_card_index) { return (DevelopmentType) dev_card_index; }
+inline int dev_card_index(DevelopmentType dev_card) { return (int) dev_card; }
+
+/*****************
  *    Street     *
- ******************/
+ *****************/
 
 struct Street {
   int id = -1;
@@ -222,13 +259,14 @@ struct Tile {
  ******************/
 
 enum MoveType {
-  buildStreet,    // Specify: Street Index
-  buildVillage,   // Specify: Corner Index
-  buildCity,      // Specify: Corner Index
-  buyDevelopment, // Specify: -
-  Trade,          // Specify: Other Player, Transmitting Card, Receiving Card, Amount
-  Exchange,       // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
-  moveRobber,     // Specify: Tile Index
+  buildStreet,     // Specify: Street Index
+  buildVillage,    // Specify: Corner Index
+  buildCity,       // Specify: Corner Index
+  buyDevelopment,  // Specify: -
+  playDevelopment, // Specify: Development Index
+  Trade,           // Specify: Other Player, Transmitting Card, Receiving Card, Amount
+  Exchange,        // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
+  moveRobber,      // Specify: Tile Index
   endTurn,
   NoMove
 };
@@ -287,6 +325,8 @@ inline std::string move2string(Move move) {
       return "Building City at corner " + std::to_string(move.index);
     case buyDevelopment:
       return "Buying one Development Card";
+    case playDevelopment:
+      return "Playing the " + dev_card_names[move.index] + " Development Card";
     case Trade:
       return "Trading "
         + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
@@ -297,7 +337,7 @@ inline std::string move2string(Move move) {
              + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
              + " for "
              + std::to_string(move.rx_amount) + " " + card_name(move.rx_card)
-             + "with the bank";
+             + " with the bank";
     case moveRobber:
       return "Moving Robber to tile " + std::to_string(move.index);
     case endTurn:

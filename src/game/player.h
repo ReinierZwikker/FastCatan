@@ -2,6 +2,7 @@
 #define FASTCATAN_PLAYER_H
 
 #include <set>
+#include <vector>
 #include <atomic>
 #include "components.h"
 #include "board.h"
@@ -40,6 +41,16 @@ public:
   int resources_left[3] = {     15,        5,      4};
   int cards[5]{};
 
+  // Development Cards
+  std::vector<DevelopmentType> development_cards{};
+  bool played_development_card = false;
+  int victory_cards = 0;
+
+  // Knights
+  int played_knight_cards = 0;
+  bool most_knights_played = false;
+
+  // Longest trade route
   std::atomic<unsigned int> longest_route = 0;  // The longest route this player has
   bool longest_trading_route = false;  // If this player gets the victory points for longest route
 
@@ -60,11 +71,14 @@ public:
   int place_village(int corner_id);
   int place_city(int corner_id);
 
-  Move *update_available_moves(TurnType turn_type, Player *players[4]);
+  Move *update_available_moves(TurnType turn_type, Player *players[4], int current_development_card);
 
   void set_cards(int brick, int lumber, int ore, int grain, int wool);
   void add_cards(CardType card_type, int amount);
   void remove_cards(CardType card_type, int amount);
+
+  void add_development(DevelopmentType development_card);
+  void play_development(int development_index);
 
   int get_total_amount_of_cards();
 
