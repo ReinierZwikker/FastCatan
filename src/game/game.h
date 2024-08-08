@@ -43,6 +43,9 @@ struct Game {
   Player *current_player;
   int current_player_id = 0;
 
+  // Victory items
+  unsigned int longest_trade_route = 0;
+
   Board board = Board();
 
   int current_round = 0;
@@ -60,6 +63,7 @@ struct Game {
   int die_1 = 0;
   int die_2 = 0;
 
+  void check_longest_trade_route();
   void give_cards(int rolled_number);
 
 };

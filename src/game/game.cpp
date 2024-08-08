@@ -187,6 +187,7 @@ void Game::step_round() {
         switch (chosen_move.move_type) {
           case buildStreet:
             current_player->place_street(chosen_move.index);
+            check_longest_trade_route();
             break;
           case buildVillage:
             current_player->place_village(chosen_move.index);
@@ -279,6 +280,19 @@ int Game::roll_dice() {
   return die_1 + die_2;
 }
 
+
+void Game::check_longest_trade_route() {
+  if (current_player->longest_route > 2 && current_player->longest_route > longest_trade_route) {
+    current_player->longest_trading_route = true;
+    longest_trade_route = current_player->longest_route;
+
+    for (int player_i = 0; player_i < num_players; ++player_i) {
+      if (player_i != current_player_id) {
+        players[player_i]->longest_trading_route = false;
+      }
+    }
+  }
+}
 
 /*
  * Give cards to players for each tile of the rolled number, or for all tiles if rolled_number = -1

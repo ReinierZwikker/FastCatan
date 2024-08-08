@@ -39,7 +39,10 @@ public:
   //                      {Streets, Villages, Cities}
   int resources_left[3] = {     15,        5,      4};
   int cards[5]{};
-  std::atomic<unsigned int> longest_route = 0;
+
+  std::atomic<unsigned int> longest_route = 0;  // The longest route this player has
+  bool longest_trading_route = false;  // If this player gets the victory points for longest route
+
   std::atomic<int> victory_points = 0;
 
   virtual ~Player();

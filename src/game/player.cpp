@@ -379,6 +379,11 @@ int Player::get_total_amount_of_cards() {
 
 int Player::check_victory_points() {
   // TODO implement other sources of VPs
-  victory_points = (5 - resources_left[1]) + 2 * (4 - resources_left[2]);
+  victory_points = (5 - resources_left[1]) + 2 * (4 - resources_left[2]);  // Cities and Villages
+
+  if (longest_trading_route) {
+    victory_points += 2;
+  }
+
   return victory_points;
 }
