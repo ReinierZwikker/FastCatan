@@ -136,6 +136,7 @@ void Game::start_game() {
   give_cards(-1);
 
   game_state = GameStates::SetupRoundFinished;
+  std::cout << std::endl;
 }
 
 void Game::human_input_received() {
@@ -144,7 +145,6 @@ void Game::human_input_received() {
 
 void Game::step_round() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-
     current_player = players[player_i];
     current_player_id = player_i;
 

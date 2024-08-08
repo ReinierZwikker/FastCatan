@@ -124,7 +124,63 @@ bool Player::resources_for_development() {
          && cards[card_index(Wool)] >= 1;
 }
 
+std::set<int> Player::traverse_route(int street_id, std::set<int> previous_streets, std::set<int>* other_route,
+                                     int previous_corner) {
+  previous_streets.insert(street_id);
+  std::set<int> return_route = previous_streets;
+
+  for (Corner* corner : board->street_array[street_id].corners) {
+    for (Street* street : corner->streets) {
+      // Check if the street is defined, is from the current player and if it is not already counted
+      // Also check if we are not moving back through the same corner
+      if (street != nullptr && street->color == player_color && corner->id != previous_corner &&
+          previous_streets.find(street->id) == previous_streets.end() &&
+          other_route->find(street->id) == other_route->end()) {
+
+        std::set<int> route = traverse_route(street->id, previous_streets, other_route, corner->id);
+
+        if (route.size() > return_route.size()) {
+          return_route = route;
+        };
+      }
+    }
+  }
+
+  return return_route;
+}
+
+unsigned int Player::check_longest_route(int street_id) {
+  unsigned int route_length = 0;
+  std::set<int> route = {street_id};
+
+  for (Corner* corner : board->street_array[street_id].corners) {
+    std::set<int> local_route {street_id};
+    for (Street* street : corner->streets) {
+      if (street != nullptr && street->color == player_color) {
+        local_route = {street_id};
+
+        std::set<int> traveled_route = traverse_route(street->id, local_route, &route, corner->id);
+
+        if (traveled_route.size() > local_route.size()) {
+          local_route = traveled_route;
+        };
+      }
+    }
+    if (route.size() == 1) {
+      route = local_route;  // Replace the main route with the longest local route
+    }
+    route_length += local_route.size() - 1;
+  }
+
+  return route_length + 1;
+}
+
 int Player::place_street(int street_id) {
+  unsigned int local_longest_route = check_longest_route(street_id);
+  if (local_longest_route > longest_route) {
+    longest_route = local_longest_route;
+  }
+
   if (street_available(&board->street_array[street_id], player_color, false)
    && resources_for_street()) {
     board->street_array[street_id].color = player_color;
@@ -306,11 +362,15 @@ void Player::set_cards(int brick, int lumber, int ore, int grain, int wool) {
 }
 
 void Player::add_cards(CardType card_type, int amount) {
-  cards[card_index(card_type)] += amount;
+  if (card_type != NoCard) {
+    cards[card_index(card_type)] += amount;
+  }
 }
 
 void Player::remove_cards(CardType card_type, int amount) {
-  cards[card_index(card_type)] -= amount;
+  if (card_type != NoCard) {
+    cards[card_index(card_type)] -= amount;
+  }
 }
 
 int Player::get_total_amount_of_cards() {

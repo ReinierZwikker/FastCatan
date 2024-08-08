@@ -136,10 +136,10 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
   viewport.CalculateCoordinates(game_pointer);
   viewport.NewMap(game_pointer);
 
-//  for (int player_i = 0; player_i < game->num_players; player_i++) {
-//    CheckAvailableTypes(game_pointer, player_i);
-//    show_player_window[player_i] = true;
-//  }
+  for (int player_i = 0; player_i < game->num_players; player_i++) {
+    CheckAvailableTypes(game_pointer, player_i);
+    show_player_window[player_i] = true;
+  }
 }
 
 void App::Refresh() {

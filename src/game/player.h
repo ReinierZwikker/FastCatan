@@ -1,6 +1,8 @@
 #ifndef FASTCATAN_PLAYER_H
 #define FASTCATAN_PLAYER_H
 
+#include <set>
+#include <atomic>
 #include "components.h"
 #include "board.h"
 
@@ -37,7 +39,8 @@ public:
   //                      {Streets, Villages, Cities}
   int resources_left[3] = {     15,        5,      4};
   int cards[5]{};
-  int victory_points = 0;
+  std::atomic<unsigned int> longest_route = 0;
+  std::atomic<int> victory_points = 0;
 
   virtual ~Player();
 
@@ -45,6 +48,9 @@ public:
   bool resources_for_village();
   bool resources_for_city();
   bool resources_for_development();
+
+  std::set<int> traverse_route(int street_id, std::set<int> previous_streets, std::set<int>* other_route, int previous_corner);
+  unsigned int check_longest_route(int street_id);
 
   // TODO evaluate if we want to keep this here
   int place_street(int street_id);

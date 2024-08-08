@@ -54,9 +54,7 @@ void WindowGame(Game* game) {
     }
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
     for (int player_i = 0; player_i < 4; ++player_i) {
-      mutex.lock();
-      ImGui::TableNextColumn(); ImGui::Text("%s = %i VP", color_name(index_color(player_i)).c_str(), game->players[player_i]->victory_points);
-      mutex.unlock();
+      ImGui::TableNextColumn(); ImGui::Text("%s = %i VP", color_name(index_color(player_i)).c_str(), game->players[player_i]->victory_points.load());
     }
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
@@ -133,30 +131,30 @@ void WindowGame(Game* game) {
 //    game->reset();
 //  }
 //
-  ImGui::Checkbox("Keep Running", &keep_running);
-
-
-  if (ImGui::Button("Run Multiple Games")) {
-    run = true;
-  }
-
-
-  if (run) {
-    if (keep_running) {
-      if (game_state == ReadyToStart) {
-        game_thread = std::thread(&Game::run_game, game);
-        game_thread.detach();
-        ++num_games;
-        std::cout << num_games << std::endl;
-      }
-      else if (game_state == GameFinished){
-        game->reset();
-      }
-    }
-    else {
-      run = false;
-      num_games = 0;
-    }
-  }
+//  ImGui::Checkbox("Keep Running", &keep_running);
+//
+//
+//  if (ImGui::Button("Run Multiple Games")) {
+//    run = true;
+//  }
+//
+//
+//  if (run) {
+//    if (keep_running) {
+//      if (game_state == ReadyToStart) {
+//        game_thread = std::thread(&Game::run_game, game);
+//        game_thread.detach();
+//        ++num_games;
+//        std::cout << num_games << std::endl;
+//      }
+//      else if (game_state == GameFinished){
+//        game->reset();
+//      }
+//    }
+//    else {
+//      run = false;
+//      num_games = 0;
+//    }
+//  }
 
 }
