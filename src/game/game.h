@@ -71,6 +71,7 @@ struct Game {
 
   void check_longest_trade_route();
   void check_knights_played();
+  void move_robber(int tile_index);
   void shuffle_development_cards();
   void give_cards(int rolled_number);
 

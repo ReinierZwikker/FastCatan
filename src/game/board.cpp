@@ -252,6 +252,7 @@ void Board::AddTileTypeAndNumberTokensToTiles() {
   int current_tile = 0;
   for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
     tile_array[tile_i].type = available_tiles[tile_i];
+    tile_array[tile_i].robber = false;
   }
 
   int current_token = 0;

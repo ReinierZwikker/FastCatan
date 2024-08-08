@@ -222,8 +222,8 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
 
       ImGui::TableNextColumn(); ImGui::Text("Available: ");
       player_mutex.lock();
-      for (DevelopmentType const& i : game->players[player_id]->development_cards) {
-        ImGui::TableNextColumn(); ImGui::Text("%s", dev_card_names_char[i]);
+      for (DevelopmentCard const& dev_card : game->players[player_id]->development_cards) {
+        ImGui::TableNextColumn(); ImGui::Text("%s", dev_card_names_char[dev_card.type]);
       }
       player_mutex.unlock();
 

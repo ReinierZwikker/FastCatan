@@ -137,6 +137,11 @@ static const char* dev_card_names_char[] = {
     "Road Building"
 };
 
+struct DevelopmentCard {
+  DevelopmentType type = None;
+  bool bought_this_round = true;
+};
+
 inline DevelopmentType index_dev_card(int dev_card_index) { return (DevelopmentType) dev_card_index; }
 inline int dev_card_index(DevelopmentType dev_card) { return (int) dev_card; }
 

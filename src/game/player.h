@@ -42,7 +42,7 @@ public:
   int cards[5]{};
 
   // Development Cards
-  std::vector<DevelopmentType> development_cards{};
+  std::vector<DevelopmentCard> development_cards{};
   bool played_development_card = false;
   int victory_cards = 0;
 
@@ -77,8 +77,9 @@ public:
   void add_cards(CardType card_type, int amount);
   void remove_cards(CardType card_type, int amount);
 
-  void add_development(DevelopmentType development_card);
+  void buy_development(DevelopmentType development_card);
   void play_development(int development_index);
+  void activate_development_cards();
 
   int get_total_amount_of_cards();
 

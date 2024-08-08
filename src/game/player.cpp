@@ -295,13 +295,14 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
 
       ++current_move_id;
     }
-    for (DevelopmentType const& dev_card : development_cards) {
-      if (!played_development_card && dev_card != VictoryPoint) {
+    for (int i = 0; i < development_cards.size(); ++i) {
+      if (!played_development_card && development_cards[i].type != VictoryPoint &&
+          !development_cards[i].bought_this_round) {
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
         current_move->move_type = playDevelopment;
-        current_move->index = dev_card_index(dev_card);
+        current_move->index = i;
 
         ++current_move_id;
       }
@@ -391,21 +392,35 @@ void Player::remove_cards(CardType card_type, int amount) {
   }
 }
 
-void Player::add_development(DevelopmentType development_card) {
+void Player::buy_development(DevelopmentType development_type) {
+  DevelopmentCard development_card;
+  development_card.type = development_type;
+  development_card.bought_this_round = true;
+
   development_cards.push_back(development_card);
-  if (development_card == VictoryPoint) {
+  if (development_type == VictoryPoint) {
     ++victory_cards;
   }
+
+  remove_cards(Grain, 1);
+  remove_cards(Wool, 1);
+  remove_cards(Ore, 1);
 }
 
 void Player::play_development(int development_index) {
-  switch(development_cards[development_index]) {
-    case Knight:
-      ++played_knight_cards;
+  if (development_cards[development_index].type == Knight) {
+    ++played_knight_cards;
   }
 
   development_cards.erase(development_cards.begin() + development_index);
   played_development_card = true;
+}
+
+void Player::activate_development_cards() {
+  played_development_card = false;
+  for (DevelopmentCard & dev_card : development_cards) {
+    dev_card.bought_this_round = false;
+  }
 }
 
 int Player::get_total_amount_of_cards() {

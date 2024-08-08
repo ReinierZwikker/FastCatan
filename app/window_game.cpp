@@ -23,6 +23,8 @@ void WindowGame(Game* game) {
   int die_2 = game->die_2;
   GameStates game_state = game->game_state;
   Color game_winner = game->game_winner;
+  int longest_route = (int)game->longest_trade_route;
+  int most_knights = (int)game->most_played_knights;
   mutex.unlock();
 
   std::string current_color = color_name(index_color(current_player));
@@ -40,10 +42,6 @@ void WindowGame(Game* game) {
     ImGui::TableNextColumn(); ImGui::Text("%i - %s", current_player, current_color.c_str());
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
-    ImGui::EndTable();
-  }
-
-  if (ImGui::BeginTable("split", 4)) {
     ImGui::TableNextColumn(); ImGui::Text("Dice Roll:");
     ImGui::TableNextColumn(); ImGui::Text("%i + %i = %i", die_1, die_2, die_1 + die_2);
     ImGui::TableNextColumn(); ImGui::Text("Winning Player:");
@@ -56,6 +54,12 @@ void WindowGame(Game* game) {
     for (int player_i = 0; player_i < 4; ++player_i) {
       ImGui::TableNextColumn(); ImGui::Text("%s = %i VP", color_name(index_color(player_i)).c_str(), game->players[player_i]->victory_points.load());
     }
+    ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
+
+    ImGui::TableNextColumn(); ImGui::Text("Longest Route:");
+    ImGui::TableNextColumn(); ImGui::Text("%i", longest_route);
+    ImGui::TableNextColumn(); ImGui::Text("Most Knights:");
+    ImGui::TableNextColumn(); ImGui::Text("%i", most_knights);
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
     ImGui::EndTable();
@@ -116,6 +120,23 @@ void WindowGame(Game* game) {
     }
 
     ImGui::EndTable();
+  }
+
+  if (ImGui::CollapsingHeader("Development Cards")) {
+    if (ImGui::BeginTable("split", 1)) {
+      mutex.lock();
+      ImGui::TableNextColumn(); ImGui::Text("Current: %i", game->current_development_card);
+      mutex.unlock();
+
+      ImGui::TableNextColumn(); ImGui::Text("Available: ");
+      mutex.lock();
+      for (DevelopmentType const& dev_card : game->development_cards) {
+        ImGui::TableNextColumn(); ImGui::Text("%s", dev_card_names_char[dev_card]);
+      }
+      mutex.unlock();
+
+      ImGui::EndTable();
+    }
   }
 
 //  if (game->game_state == SetupRoundFinished || game->game_state == RoundFinished) {

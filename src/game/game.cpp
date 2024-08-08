@@ -181,7 +181,7 @@ void Game::step_round() {
         }
         current_player->update_available_moves(robberTurn, players, current_development_card);
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
-        // perform chosen move
+        move_robber(chosen_move.index);
       } else { give_cards(dice_roll); }
 
       for (int move_i = 0; move_i < moves_per_turn; ++move_i) {
@@ -207,12 +207,23 @@ void Game::step_round() {
           case buyDevelopment:
             // TODO Implement development cards
             // Get the next development card of the deck
-            current_player->add_development(development_cards[current_development_card]);
-            ++current_development_card;
+            if (current_development_card < amount_of_development_cards) {
+              current_player->buy_development(development_cards[current_development_card]);
+              ++current_development_card;
+            }
+            else {
+              throw std::invalid_argument("Development Cards out of range");
+            }
             break;
           case playDevelopment:
             current_player->play_development(chosen_move.index);
             check_knights_played();
+            switch(chosen_move.index) {
+              case Knight:
+                current_player->update_available_moves(robberTurn, players, current_development_card);
+                Move knight_move = current_player->agent->get_move(&board, current_player->cards);
+                move_robber(knight_move.index);
+            }
             break;
           case Trade:
             // TODO Implement trading
@@ -244,7 +255,7 @@ void Game::step_round() {
         }
       }
 
-      current_player->played_development_card = false;
+      current_player->activate_development_cards();
     }
   }
 
@@ -331,6 +342,15 @@ void Game::check_knights_played() {
       }
     }
   }
+}
+
+/*
+ * Sets all tiles to no robbers and then sets the inserted tile_index to have a robber
+ */
+void Game::move_robber(int tile_index) {
+  board.current_robber_tile->robber = false;
+  board.current_robber_tile = &board.tile_array[tile_index];
+  board.current_robber_tile->robber = true;
 }
 
 void Game::shuffle_development_cards() {

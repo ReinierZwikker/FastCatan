@@ -282,6 +282,25 @@ void ViewPort::DrawTile(float x, float y, Tile tile) const {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   glPopMatrix();
+  // Robber
+  viewport_mutex.lock();
+  bool robber = tile.robber;
+  viewport_mutex.unlock();
+
+  if (robber) {
+    glPushMatrix();
+    glTranslatef(x - 0.04f, y, 0.0);
+    glScalef(x_scale + 0.1f, y_scale + 0.1f, 0.0);
+
+    glBegin(GL_POLYGON);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glVertex2f(-0.05f, -0.05f);
+    glVertex2f( 0.00f,  0.05f);
+    glVertex2f( 0.05f, -0.05f);
+    glEnd();
+
+    glPopMatrix();
+  }
 }
 
 void ViewPort::DrawTileSelection(int id, Game* game) const {
