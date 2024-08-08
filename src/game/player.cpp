@@ -238,7 +238,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
   Move *current_move;
 
   // Streets
-  if (turn_type == openingTurnStreet || turn_type == normalTurn) {
+  if (turn_type == openingTurnStreet || turn_type == normalTurn || turn_type == devTurnStreet) {
     for (int street_i = 0; street_i < amount_of_streets; ++street_i) {
       if (street_available(&board->street_array[street_i], player_color, turn_type == openingTurnStreet)
        && resources_for_street()) {
@@ -348,6 +348,19 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
 
         ++current_move_id;
       }
+    }
+  }
+
+  // Year Of Plenty or Monopoly (Development Card)
+  if (turn_type == devTurnYearOfPlenty || turn_type == devTurnMonopoly) {
+    for (int card_type_i = 0; card_type_i < 5; ++card_type_i) {
+      current_move = add_new_move(current_move_id);
+      if (current_move == nullptr) { return available_moves; }
+
+      current_move->move_type = getCardBank;
+      current_move->index = card_type_i;
+
+      ++current_move_id;
     }
   }
 

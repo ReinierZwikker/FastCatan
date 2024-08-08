@@ -272,6 +272,7 @@ enum MoveType {
   Trade,           // Specify: Other Player, Transmitting Card, Receiving Card, Amount
   Exchange,        // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
   moveRobber,      // Specify: Tile Index
+  getCardBank,     // Specify: Card
   endTurn,
   NoMove
 };
@@ -285,6 +286,9 @@ enum TurnType {
   normalTurn,
   robberTurn,
   tradeTurn,
+  devTurnMonopoly,
+  devTurnYearOfPlenty,
+  devTurnStreet,
   noTurn
 };
 

@@ -133,7 +133,6 @@ void Game::start_game() {
     current_player->place_village(chosen_move.index);
 
     // let player select second street
-    // TODO force player to select street adjacent to second village
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnStreet, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
@@ -194,6 +193,7 @@ void Game::step_round() {
         }
 
         // perform chosen move
+        Move move;
         switch (chosen_move.move_type) {
           case buildStreet:
             current_player->place_street(chosen_move.index);
@@ -206,7 +206,6 @@ void Game::step_round() {
             current_player->place_city(chosen_move.index);
             break;
           case buyDevelopment:
-            // TODO Implement development cards
             // Get the next development card of the deck
             if (current_development_card < amount_of_development_cards) {
               current_player->buy_development(development_cards[current_development_card]);
@@ -217,15 +216,74 @@ void Game::step_round() {
             }
             break;
           case playDevelopment:
-            current_player->play_development(chosen_move.index);
             switch(current_player->development_cards[chosen_move.index].type) {
               case Knight:
                 check_knights_played();
 
                 current_player->update_available_moves(robberTurn, players, current_development_card);
-                Move knight_move = current_player->agent->get_move(&board, current_player->cards);
-                move_robber(knight_move.index);
+                move = current_player->agent->get_move(&board, current_player->cards);
+
+                if (!move_in_available_moves(move, current_player->available_moves)) {
+                  unavailable_move(move, "dev Knight turn");
+                }
+
+                move_robber(move.index);
+
+                break;
+
+              case Monopoly:
+                // Chose a card to steal
+                current_player->update_available_moves(devTurnYearOfPlenty, players, current_development_card);
+                move = current_player->agent->get_move(&board, current_player->cards);
+
+                if (!move_in_available_moves(move, current_player->available_moves)) {
+                  unavailable_move(move, "dev Year of Plenty turn");
+                }
+
+                // Steal the chosen card type from the other players
+                for (int i = 0; i < num_players; ++i) {
+                  current_player->cards[move.index] += players[i]->cards[move.index];
+                  players[i]->cards[move.index] = 0;
+                }
+
+                break;
+
+              case YearOfPlenty:
+                // Let the player chose two free cards
+                for (int card_i = 0; card_i < 2; ++card_i) {
+                  current_player->update_available_moves(devTurnYearOfPlenty, players, current_development_card);
+                  move = current_player->agent->get_move(&board, current_player->cards);
+
+                  if (!move_in_available_moves(move, current_player->available_moves)) {
+                    unavailable_move(move, "dev Year of Plenty turn");
+                  }
+
+                  current_player->add_cards(index_card(move.index), 1);
+                }
+                break;
+
+              case RoadBuilding:
+                // Let the player place two streets
+                for (int street_i = 0; street_i < 2; ++street_i) {
+                  current_player->add_cards(Brick, 1);
+                  current_player->add_cards(Lumber, 1);
+                  current_player->update_available_moves(devTurnStreet, players, current_development_card);
+                  move = current_player->agent->get_move(&board, current_player->cards);
+
+                  if (move.move_type != NoMove) {
+                    if (!move_in_available_moves(move, current_player->available_moves)) {
+                      unavailable_move(move, "dev Road Building turn");
+                    }
+
+                    current_player->place_street(chosen_move.index);
+                  }
+                }
+                check_longest_trade_route();
+
+                break;
             }
+            current_player->play_development(chosen_move.index);
+
             break;
           case Trade:
             // TODO Implement trading
