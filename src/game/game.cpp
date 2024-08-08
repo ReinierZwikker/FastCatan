@@ -23,6 +23,7 @@ Game::Game(int num_players) {
       ++current_dev_card;
     }
   }
+  shuffle_development_cards();
 
   game_state = GameStates::ReadyToStart;
 }
@@ -217,9 +218,10 @@ void Game::step_round() {
             break;
           case playDevelopment:
             current_player->play_development(chosen_move.index);
-            check_knights_played();
-            switch(chosen_move.index) {
+            switch(current_player->development_cards[chosen_move.index].type) {
               case Knight:
+                check_knights_played();
+
                 current_player->update_available_moves(robberTurn, players, current_development_card);
                 Move knight_move = current_player->agent->get_move(&board, current_player->cards);
                 move_robber(knight_move.index);
@@ -297,6 +299,8 @@ void Game::reset() {
 
   shuffle_development_cards();
   current_development_card = 0;
+  longest_trade_route = 0;
+  most_knights_played = 0;
 
   game_state = ReadyToStart;
 }
@@ -332,10 +336,9 @@ void Game::check_longest_trade_route() {
  * Check which player has played the most knights to give that player 2 VPs
  */
 void Game::check_knights_played() {
-  if (current_player->played_knight_cards > 2 && current_player->played_knight_cards > most_played_knights) {
+  if (current_player->played_knight_cards > 2 && current_player->played_knight_cards > most_knights_played) {
     current_player->most_knights_played = true;
-    most_played_knights = current_player->played_knight_cards;
-
+    most_knights_played = current_player->played_knight_cards;
     for (int player_i = 0; player_i < num_players; ++player_i) {
       if (player_i != current_player_id) {
         players[player_i]->most_knights_played = false;

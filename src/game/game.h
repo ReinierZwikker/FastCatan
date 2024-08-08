@@ -46,7 +46,7 @@ struct Game {
 
   // Victory items
   unsigned int longest_trade_route = 0;
-  unsigned int most_played_knights = 0;
+  unsigned int most_knights_played = 0;
 
   Board board = Board();
 

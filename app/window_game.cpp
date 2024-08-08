@@ -24,7 +24,20 @@ void WindowGame(Game* game) {
   GameStates game_state = game->game_state;
   Color game_winner = game->game_winner;
   int longest_route = (int)game->longest_trade_route;
-  int most_knights = (int)game->most_played_knights;
+  int most_knights = (int)game->most_knights_played;
+  mutex.unlock();
+
+  mutex.lock();
+  Color longest_route_color = NoColor;
+  Color most_knights_color = NoColor;
+  for (int player_i = 0; player_i < num_players; ++player_i) {
+    if(game->players[player_i]->longest_trading_route) {
+      longest_route_color = game->players[player_i]->player_color;
+    };
+    if(game->players[player_i]->most_knights_played) {
+      most_knights_color = game->players[player_i]->player_color;
+    };
+  }
   mutex.unlock();
 
   std::string current_color = color_name(index_color(current_player));
@@ -57,9 +70,9 @@ void WindowGame(Game* game) {
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
     ImGui::TableNextColumn(); ImGui::Text("Longest Route:");
-    ImGui::TableNextColumn(); ImGui::Text("%i", longest_route);
+    ImGui::TableNextColumn(); ImGui::Text("%s - %i", color_names[longest_route_color].c_str(), longest_route);
     ImGui::TableNextColumn(); ImGui::Text("Most Knights:");
-    ImGui::TableNextColumn(); ImGui::Text("%i", most_knights);
+    ImGui::TableNextColumn(); ImGui::Text("%s - %i", color_names[most_knights_color].c_str(), most_knights);
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
     ImGui::EndTable();
