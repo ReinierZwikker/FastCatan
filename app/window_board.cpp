@@ -7,6 +7,7 @@ std::mutex board_mutex;
 static int tile_id = 0;
 static int corner_id = 0;
 static int street_id = 0;
+int player_selection = 0;
 
 int current_item;
 int current_corner;
@@ -231,6 +232,13 @@ void WindowBoard(Game* game, ViewPort* viewport) {
 
       board_mutex.unlock();
       ImGui::TreePop();
+    }
+
+    ImGui::Combo("Corner Color##2", &player_selection, "Green\0Red\0White\0Blue\0NoColor\0\0");
+    if (ImGui::Button("Calculate Longest Route")) {
+      board_mutex.lock();
+      game->players[player_selection]->check_longest_route(street_id, game->players[player_selection]->player_color);
+      board_mutex.unlock();
     }
   }
 

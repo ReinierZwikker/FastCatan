@@ -25,6 +25,9 @@ Game::Game(int num_players) {
   }
   shuffle_development_cards();
 
+  longest_road_player = nullptr;
+  most_knights_player = nullptr;
+
   game_state = GameStates::ReadyToStart;
 }
 
@@ -197,10 +200,11 @@ void Game::step_round() {
         switch (chosen_move.move_type) {
           case buildStreet:
             current_player->place_street(chosen_move.index);
-            check_longest_trade_route();
+            check_longest_road();
             break;
           case buildVillage:
             current_player->place_village(chosen_move.index);
+            check_longest_road();
             break;
           case buildCity:
             current_player->place_city(chosen_move.index);
@@ -278,7 +282,7 @@ void Game::step_round() {
                     current_player->place_street(chosen_move.index);
                   }
                 }
-                check_longest_trade_route();
+                check_longest_road();
 
                 break;
             }
@@ -353,12 +357,12 @@ void Game::reset() {
     delete(players[player_i]);
   }
   current_player = nullptr;
+  longest_road_player = nullptr;
+  most_knights_player = nullptr;
   add_players();
 
   shuffle_development_cards();
   current_development_card = 0;
-  longest_trade_route = 0;
-  most_knights_played = 0;
 
   game_state = ReadyToStart;
 }
@@ -377,30 +381,64 @@ int Game::roll_dice() {
 /*
  * Check which player has the longest trade route to give that player 2 VPs
  */
-void Game::check_longest_trade_route() {
-  if (current_player->longest_route > 2 && current_player->longest_route > longest_trade_route) {
-    current_player->longest_trading_route = true;
-    longest_trade_route = current_player->longest_route;
-
-    for (int player_i = 0; player_i < num_players; ++player_i) {
-      if (player_i != current_player_id) {
-        players[player_i]->longest_trading_route = false;
-      }
+void Game::check_longest_road() {
+  if (current_player->longest_route > 4) {
+    if (longest_road_player == nullptr) {
+      longest_road_player = current_player;
+      longest_road_player->road_leader = true;
+    }
+    else if (current_player->longest_route > longest_road_player->longest_route) {
+      longest_road_player->road_leader = false;
+      longest_road_player = current_player;
+      longest_road_player->road_leader = true;
     }
   }
+}
+
+void Game::check_longest_road_interrupt() {
+  unsigned int longest_route = 0;
+  Player* local_longest_road_player = nullptr;
+  bool tie = false;
+
+  for (Player *local_player : players) {
+    if (local_player->longest_route > longest_route) {
+      longest_route = local_player->longest_route;
+      local_longest_road_player = local_player;
+      tie = false;  // Reset the player tie
+    }
+    else if (local_player->longest_route == longest_route) {
+      tie = true;
+    }
+  }
+
+  if (local_longest_road_player != longest_road_player) {
+    if (!tie && local_longest_road_player->longest_route > 4) {
+      if (longest_road_player != nullptr) {
+        longest_road_player->road_leader = false;
+      }
+      longest_road_player = local_longest_road_player;
+      longest_road_player->road_leader = true;
+    }
+    else {
+      longest_road_player = nullptr;
+    }
+  }
+
 }
 
 /*
  * Check which player has played the most knights to give that player 2 VPs
  */
 void Game::check_knights_played() {
-  if (current_player->played_knight_cards > 2 && current_player->played_knight_cards > most_knights_played) {
-    current_player->most_knights_played = true;
-    most_knights_played = current_player->played_knight_cards;
-    for (int player_i = 0; player_i < num_players; ++player_i) {
-      if (player_i != current_player_id) {
-        players[player_i]->most_knights_played = false;
-      }
+  if (current_player->played_knight_cards > 2) {
+    if (most_knights_player == nullptr) {
+      most_knights_player = current_player;
+      most_knights_player->knight_leader = true;
+    }
+    else if (current_player->played_knight_cards > most_knights_player->played_knight_cards) {
+      most_knights_player->knight_leader = false;
+      most_knights_player = current_player;
+      most_knights_player->knight_leader = true;
     }
   }
 }

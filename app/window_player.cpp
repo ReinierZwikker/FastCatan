@@ -99,9 +99,13 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     }
 
     ImGui::TableNextColumn(); ImGui::Text("Longest Route");
-    ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->longest_route.load());
+    player_mutex.lock();
+    ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->longest_route);
+    player_mutex.unlock();
     ImGui::TableNextColumn(); ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("End Turn").x);
-    ImGui::Text("%i VP", game->players[player_id]->victory_points.load());
+    player_mutex.lock();
+    ImGui::Text("%i VP", game->players[player_id]->victory_points);
+    player_mutex.unlock();
 
     ImGui::EndTable();
   }

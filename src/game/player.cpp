@@ -125,23 +125,25 @@ bool Player::resources_for_development() {
 }
 
 std::set<int> Player::traverse_route(int street_id, std::set<int> previous_streets, std::set<int>* other_route,
-                                     int previous_corner) {
+                                     int previous_corner, Color color) {
   previous_streets.insert(street_id);
   std::set<int> return_route = previous_streets;
 
   for (Corner* corner : board->street_array[street_id].corners) {
-    for (Street* street : corner->streets) {
-      // Check if the street is defined, is from the current player and if it is not already counted
-      // Also check if we are not moving back through the same corner
-      if (street != nullptr && street->color == player_color && corner->id != previous_corner &&
-          previous_streets.find(street->id) == previous_streets.end() &&
-          other_route->find(street->id) == other_route->end()) {
+    // Check if not moving back through the same corner and that the corner is not occupied by another player
+    if ((corner->color == color || corner->color == NoColor) && corner->id != previous_corner) {
+      for (Street* street : corner->streets) {
+        // Check if the street is defined, is from the current player and if it is not already counted
+        if (street != nullptr && street->color == color &&
+            previous_streets.find(street->id) == previous_streets.end() &&
+            other_route->find(street->id) == other_route->end()) {
 
-        std::set<int> route = traverse_route(street->id, previous_streets, other_route, corner->id);
+          std::set<int> route = traverse_route(street->id, previous_streets, other_route, corner->id, color);
 
-        if (route.size() > return_route.size()) {
-          return_route = route;
-        };
+          if (route.size() > return_route.size()) {
+            return_route = route;
+          };
+        }
       }
     }
   }
@@ -149,37 +151,38 @@ std::set<int> Player::traverse_route(int street_id, std::set<int> previous_stree
   return return_route;
 }
 
-unsigned int Player::check_longest_route(int street_id) {
+void Player::check_longest_route(int street_id, Color color) {
   unsigned int route_length = 0;
   std::set<int> route = {street_id};
 
   for (Corner* corner : board->street_array[street_id].corners) {
-    std::set<int> local_route {street_id};
-    for (Street* street : corner->streets) {
-      if (street != nullptr && street->color == player_color) {
-        local_route = {street_id};
+    if (corner->color == color || corner->color == NoColor) {
+      std::set<int> local_route {street_id};
+      for (Street* street : corner->streets) {
+        if (street != nullptr && street->color == color && street->id != street_id) {
+          local_route = {street_id};
 
-        std::set<int> traveled_route = traverse_route(street->id, local_route, &route, corner->id);
+          std::set<int> traveled_route = traverse_route(street->id, local_route, &route, corner->id, color);
 
-        if (traveled_route.size() > local_route.size()) {
-          local_route = traveled_route;
-        };
+          if (traveled_route.size() > local_route.size()) {
+            local_route = traveled_route;
+          };
+        }
       }
+      if (route.size() == 1) {
+        route = local_route;  // Replace the main route with the longest local route
+      }
+      route_length += local_route.size() - 1;
     }
-    if (route.size() == 1) {
-      route = local_route;  // Replace the main route with the longest local route
-    }
-    route_length += local_route.size() - 1;
   }
 
-  return route_length + 1;
+  if (route_length + 1 > longest_route) {
+    longest_route = route_length + 1;
+  }
 }
 
 int Player::place_street(int street_id) {
-  unsigned int local_longest_route = check_longest_route(street_id);
-  if (local_longest_route > longest_route) {
-    longest_route = local_longest_route;
-  }
+  check_longest_route(street_id, player_color);
 
   if (street_available(&board->street_array[street_id], player_color, false)
    && resources_for_street()) {
@@ -207,6 +210,15 @@ int Player::place_village(int corner_id) {
   } else {
     return 1;
   }
+
+  // Check all adjacent roads for longest route, to see if the village interrupted the longest road.
+  for (auto & street : board->corner_array[corner_id].streets) {
+    if (street->color != NoColor) {
+      int street_id = street->id;
+      check_longest_route(street_id, street->color);
+    }
+  }
+
 }
 
 int Player::place_city(int corner_id) {
@@ -443,11 +455,11 @@ int Player::get_total_amount_of_cards() {
 int Player::check_victory_points() {
   victory_points = (5 - resources_left[1]) + 2 * (4 - resources_left[2]);  // Cities and Villages
 
-  if (longest_trading_route) {
+  if (road_leader) {
     victory_points += 2;  // Longest trade route
   }
 
-  if (most_knights_played) {
+  if (knight_leader) {
     victory_points += 2;  // Most knights activated
   }
 

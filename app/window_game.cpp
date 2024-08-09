@@ -23,20 +23,29 @@ void WindowGame(Game* game) {
   int die_2 = game->die_2;
   GameStates game_state = game->game_state;
   Color game_winner = game->game_winner;
-  int longest_route = (int)game->longest_trade_route;
-  int most_knights = (int)game->most_knights_played;
+  mutex.unlock();
+
+  int longest_route, most_knights;
+  Color longest_route_color, most_knights_color;
+  mutex.lock();
+  if (game->longest_road_player != nullptr) {
+    longest_route = game->longest_road_player->longest_route;
+    longest_route_color = game->longest_road_player->player_color;
+  }
+  else {
+    longest_route = 0;
+    longest_route_color = NoColor;
+  }
   mutex.unlock();
 
   mutex.lock();
-  Color longest_route_color = NoColor;
-  Color most_knights_color = NoColor;
-  for (int player_i = 0; player_i < num_players; ++player_i) {
-    if(game->players[player_i]->longest_trading_route) {
-      longest_route_color = game->players[player_i]->player_color;
-    };
-    if(game->players[player_i]->most_knights_played) {
-      most_knights_color = game->players[player_i]->player_color;
-    };
+  if (game->most_knights_player != nullptr) {
+    most_knights = game->most_knights_player->played_knight_cards;
+    most_knights_color = game->most_knights_player->player_color;
+  }
+  else {
+    most_knights = 0;
+    most_knights_color = NoColor;
   }
   mutex.unlock();
 
@@ -64,9 +73,11 @@ void WindowGame(Game* game) {
       ImGui::TableNextColumn(); ImGui::Text("%i - %s", color_index(game_winner), color_name(game_winner).c_str());
     }
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
+    mutex.lock();
     for (int player_i = 0; player_i < 4; ++player_i) {
-      ImGui::TableNextColumn(); ImGui::Text("%s = %i VP", color_name(index_color(player_i)).c_str(), game->players[player_i]->victory_points.load());
+      ImGui::TableNextColumn(); ImGui::Text("%s = %i VP", color_name(index_color(player_i)).c_str(), game->players[player_i]->victory_points);
     }
+    mutex.unlock();
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
     ImGui::TableNextColumn(); ImGui::Text("Longest Route:");

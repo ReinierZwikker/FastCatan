@@ -3,7 +3,6 @@
 
 #include <set>
 #include <vector>
-#include <atomic>
 #include "components.h"
 #include "board.h"
 
@@ -48,13 +47,13 @@ public:
 
   // Knights
   int played_knight_cards = 0;
-  bool most_knights_played = false;
+  bool knight_leader = false;
 
   // Longest trade route
-  std::atomic<unsigned int> longest_route = 0;  // The longest route this player has
-  bool longest_trading_route = false;  // If this player gets the victory points for longest route
+  int longest_route = 0;  // The longest route this player has
+  bool road_leader = false;  // If this player gets the victory points for longest route
 
-  std::atomic<int> victory_points = 0;
+  int victory_points = 0;
 
   virtual ~Player();
 
@@ -63,8 +62,9 @@ public:
   bool resources_for_city();
   bool resources_for_development();
 
-  std::set<int> traverse_route(int street_id, std::set<int> previous_streets, std::set<int>* other_route, int previous_corner);
-  unsigned int check_longest_route(int street_id);
+  std::set<int> traverse_route(int street_id, std::set<int> previous_streets, std::set<int>* other_route,
+                               int previous_corner, Color color);
+  void check_longest_route(int street_id, Color color);
 
   // TODO evaluate if we want to keep this here
   int place_street(int street_id);

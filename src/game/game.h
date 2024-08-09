@@ -45,8 +45,8 @@ struct Game {
   int current_player_id = 0;
 
   // Victory items
-  unsigned int longest_trade_route = 0;
-  unsigned int most_knights_played = 0;
+  Player *longest_road_player;
+  Player *most_knights_player;
 
   Board board = Board();
 
@@ -69,7 +69,8 @@ struct Game {
   int die_1 = 0;
   int die_2 = 0;
 
-  void check_longest_trade_route();
+  void check_longest_road();
+  void check_longest_road_interrupt();
   void check_knights_played();
   void move_robber(int tile_index);
   void shuffle_development_cards();
