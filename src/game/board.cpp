@@ -217,7 +217,7 @@ void Board::InitializeTilesAndTokens() {
   int current_tile_type_i = 0;
   for (int tile_type_i = 0; tile_type_i < 6; tile_type_i++) {
     for (int i = 0; i < max_terrain_tiles[tile_type_i]; i++) {
-      available_tiles[current_tile_type_i] = static_cast<TileType>(tile_type_i);
+      available_tiles[current_tile_type_i] = index_tile(tile_type_i);
 
       current_tile_type_i++;
     }
@@ -252,6 +252,7 @@ void Board::AddTileTypeAndNumberTokensToTiles() {
   int current_tile = 0;
   for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
     tile_array[tile_i].type = available_tiles[tile_i];
+    tile_array[tile_i].robber = false;
   }
 
   int current_token = 0;
@@ -338,6 +339,19 @@ void Board::AddHarbors() {
   for (auto harbor : harbors) {
     tile_array[harbor.tile_id].corners[harbor.corners[0]]->harbor = harbor.type;
     tile_array[harbor.tile_id].corners[harbor.corners[1]]->harbor = harbor.type;
+  }
+}
+
+void Board::Reset() {
+  // Reset Corners
+  for (auto & corner_i : corner_array) {
+    corner_i.occupancy = CornerOccupancy::EmptyCorner;
+    corner_i.color = Color::NoColor;
+  }
+
+  // Reset Streets
+  for (auto & street_i : street_array) {
+    street_i.color = Color::NoColor;
   }
 }
 

@@ -19,6 +19,7 @@
 #include <windows.h>
 #include <GL/GL.h>
 #include <tchar.h>
+#include <mutex>
 
 
 // Support function for multi-viewports
@@ -131,16 +132,19 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
 
   // Initialize the game and board on screen
   game_pointer = game;
+  game->gui_controlled = true;
   viewport.CalculateCoordinates(game_pointer);
   viewport.NewMap(game_pointer);
 
-  for (int player_i = 0; player_i < game->num_players; player_i++) {
-    CheckAvailableTypes(game_pointer, player_i);
-    show_player_window[player_i] = true;
-  }
+//  for (int player_i = 0; player_i < game->num_players; player_i++) {
+//    CheckAvailableTypes(game_pointer, player_i);
+//    show_player_window[player_i] = true;
+//  }
 }
 
 void App::Refresh() {
+  std::mutex mutex;
+
   // Poll and handle messages (inputs, window resize, etc.)
   // See the WndProc() function below for our to dispatch events to the Win32 backend.
   while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
@@ -156,6 +160,10 @@ void App::Refresh() {
   ImGui_ImplWin32_NewFrame();
   ImGui::NewFrame();
 
+  mutex.lock();
+  int num_players = game_pointer->num_players;
+  mutex.unlock();
+
   if (ImGui::BeginMainMenuBar())
   {
     if (ImGui::BeginMenu("File"))
@@ -164,12 +172,18 @@ void App::Refresh() {
       ImGui::EndMenu();
     }
 
+    if (ImGui::BeginMenu("AI"))
+    {
+      ImGui::MenuItem("AI Menu", NULL, &show_ai_window);
+      ImGui::EndMenu();
+    }
+
     if (ImGui::BeginMenu("Debug"))
     {
       ImGui::MenuItem("Board", NULL, &show_board_window);
       ImGui::MenuItem("Game", NULL, &show_game_window);
 
-      for (int player_i = 0; player_i < game_pointer->num_players; player_i++) {
+      for (int player_i = 0; player_i < num_players; player_i++) {
         char player_string[16];
         sprintf(player_string, "Player %i", player_i + 1);
         ImGui::MenuItem(player_string, NULL, &show_player_window[player_i]);
@@ -185,8 +199,16 @@ void App::Refresh() {
   if (show_demo_window)
     ImGui::ShowDemoWindow(&show_demo_window);
 
+  // AI Menu
+  if (show_ai_window) {
+    ImGui::Begin("AI Menu", &show_ai_window);
+    training_in_progress = window_ai.show();
+
+    ImGui::End();
+  }
+
   // Board Menu
-  if (show_board_window) {
+  if (show_board_window && !training_in_progress) {
     ImGui::Begin("Board", &show_board_window);
     WindowBoard(game_pointer, &viewport);
 
@@ -194,7 +216,7 @@ void App::Refresh() {
   }
 
   // Game Menu
-  if (show_game_window) {
+  if (show_game_window && !training_in_progress) {
     ImGui::Begin("Game", &show_game_window);
     WindowGame(game_pointer);
 
@@ -202,13 +224,15 @@ void App::Refresh() {
   }
 
   // Player Windows
-  for (int player_i = 0; player_i < game_pointer->num_players; player_i++) {
-    char player_string[12];
-    sprintf(player_string, "Player %i - %s", player_i + 1, color_name(index_color(player_i)).c_str());
-    ImGui::Begin(player_string, &show_player_window[player_i]);
-    WindowPlayer(game_pointer, &viewport, player_i);
+  for (int player_i = 0; player_i < num_players; player_i++) {
+    if (show_player_window[player_i] && !training_in_progress) {
+      char player_string[12];
+      sprintf(player_string, "Player %i - %s", player_i + 1, color_name(index_color(player_i)).c_str());
+      ImGui::Begin(player_string, &show_player_window[player_i]);
+      WindowPlayer(game_pointer, &viewport, player_i);
 
-    ImGui::End();
+      ImGui::End();
+    }
   }
 
   // Rendering
@@ -217,7 +241,9 @@ void App::Refresh() {
   glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  viewport.Refresh(game_pointer);
+  if (!training_in_progress) {
+    viewport.Refresh(game_pointer);
+  }
 
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

@@ -14,6 +14,8 @@ set(SOURCES
         src/game/components.h
         src/game/game.cpp
         src/game/game.h
+        src/game/game_manager.cpp
+        src/game/game_manager.h
         src/game/player.cpp
         src/game/player.h
         src/game/HumanPlayer/console_player.cpp
@@ -29,6 +31,7 @@ set(SOURCES
         app/window_board.cpp
         app/window_game.cpp
         app/window_player.cpp
+        app/window_ai.cpp
         app/3rd_party/imgui/imgui.cpp
         app/3rd_party/imgui/imgui_demo.cpp
         app/3rd_party/imgui/imgui_draw.cpp
