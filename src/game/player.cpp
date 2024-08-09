@@ -234,14 +234,39 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4]) {
   // Development Card
   // TODO implement development cards
 
-  // Trading
+/*  // Trading
+  if (turn_type == normalTurn) {
+    for (int card_i = 0; card_i < 5; ++card_i) {
+      if (cards[card_i] >= 1) {
+        for (int card_j = 0; card_j < 5; ++card_j) {
+          if (card_i != card_j) {
+            for (int player_i = 0; player_i < 4; ++player_i) {
+              if (players[player_i]->cards[card_j] >= 1) {
+                current_move = add_new_move(current_move_id);
+                if (current_move == nullptr) { return available_moves; }
 
+                current_move->move_type = Trade;
+                current_move->tx_card = index_card(card_i);
+                current_move->tx_amount = 1;
+                // TODO implement more than 1to1 trading
+                current_move->rx_card = index_card(card_j);
+                current_move->rx_amount = 1;
+                current_move->other_player = index_color(player_i);
+
+                ++current_move_id;
+              }
+            }
+          }
+        }
+      }
+    }
+  }*/
 
   // Exchanging
   if (turn_type == normalTurn) {
     for (int card_i = 0; card_i < 5; ++card_i) {
       // TODO implement harbors?
-      if (cards[card_i] > 4) {
+      if (cards[card_i] >= 4) {
         for (int card_j = 0; card_j < 5; ++card_j) {
           if (card_i != card_j) {
             current_move = add_new_move(current_move_id);

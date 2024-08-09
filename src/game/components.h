@@ -290,13 +290,14 @@ inline std::string move2string(Move move) {
       return "Trading "
         + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
         + " for "
-        + std::to_string(move.rx_amount) + " " + card_name(move.rx_card);
+        + std::to_string(move.rx_amount) + " " + card_name(move.rx_card)
+        + " with " + color_name(move.other_player);
     case Exchange:
       return "Exchanging "
              + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
              + " for "
              + std::to_string(move.rx_amount) + " " + card_name(move.rx_card)
-             + "with the bank";
+             + " with the bank";
     case moveRobber:
       return "Moving Robber to tile " + std::to_string(move.index);
     case endTurn:
