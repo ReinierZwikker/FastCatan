@@ -40,7 +40,10 @@ static const int max_harbors[9] = {4, 1, 1, 1, 1, 1};
 static const int max_available_moves = 200;
 static const int moves_per_turn = 25;
 static const int max_rounds = 500;
-
+static const int max_moves_per_game = moves_per_turn + max_rounds +
+                                      max_development_cards[2] +
+                                      max_development_cards[3] * 2 +
+                                      max_development_cards[4] * 2;
 
 /******************
  *     COLORS     *
@@ -406,6 +409,24 @@ static const char* game_states[] = {
     "Game Finished",
     "Waiting for player",
     "Unavailable Move"
+};
+
+/******************
+ *    Logging     *
+ ******************/
+
+enum LogType {
+  EmptyLog,
+  MoveLog,
+  GameLog
+};
+
+struct Logger {
+  LogType type = EmptyLog;
+  FILE* file = nullptr;
+
+  std::string data = "Logger Data\n";
+  unsigned int writes = 0;
 };
 
 #endif //FASTCATAN_COMPONENTS_H

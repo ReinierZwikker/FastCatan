@@ -14,6 +14,8 @@ set(SOURCES
         src/game/components.h
         src/game/game.cpp
         src/game/game.h
+        src/game/game_manager.cpp
+        src/game/game_manager.h
         src/game/player.cpp
         src/game/player.h
         src/game/HumanPlayer/console_player.cpp

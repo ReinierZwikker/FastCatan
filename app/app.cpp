@@ -136,10 +136,10 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
   viewport.CalculateCoordinates(game_pointer);
   viewport.NewMap(game_pointer);
 
-  for (int player_i = 0; player_i < game->num_players; player_i++) {
-    CheckAvailableTypes(game_pointer, player_i);
-    show_player_window[player_i] = true;
-  }
+//  for (int player_i = 0; player_i < game->num_players; player_i++) {
+//    CheckAvailableTypes(game_pointer, player_i);
+//    show_player_window[player_i] = true;
+//  }
 }
 
 void App::Refresh() {
@@ -202,7 +202,7 @@ void App::Refresh() {
   // AI Menu
   if (show_ai_window) {
     ImGui::Begin("AI Menu", &show_ai_window);
-    training_in_progress = WindowAI();
+    training_in_progress = window_ai.show();
 
     ImGui::End();
   }

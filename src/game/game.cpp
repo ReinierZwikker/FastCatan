@@ -204,7 +204,7 @@ void Game::step_round() {
             break;
           case buildVillage:
             current_player->place_village(chosen_move.index);
-            check_longest_road();
+            check_longest_road_interrupt();
             break;
           case buildCity:
             current_player->place_city(chosen_move.index);
@@ -337,14 +337,6 @@ void Game::run_game() {
   }
 
   game_state = GameFinished;
-}
-
-void Game::run_multiple_games() {
-  while (keep_running) {
-    run_game();
-    this->reset();
-    ++games_played;
-  }
 }
 
 void Game::reset() {

@@ -1,18 +1,16 @@
 #include "window_ai.h"
-#include <thread>
-#include <iostream>
-#include <mutex>
 
-bool do_training = false;
-bool training = false;
-const unsigned int processor_count = std::thread::hardware_concurrency();
-int num_threads = 30;
+static char folder[50] = "logs";
 
-int games_played[50];
-Game games[50];
-std::thread threads[50];
+WindowAI::WindowAI() {
 
-bool WindowAI() {
+}
+
+WindowAI::~WindowAI() {
+
+}
+
+bool WindowAI::show() {
   int total_games_played = 0;
   std::mutex mutex;
 
@@ -26,31 +24,67 @@ bool WindowAI() {
     num_threads = 1;
   }
 
-  if (training) {
-    ImGui::BeginDisabled(true);
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-  }
-  if (ImGui::Button("Train")) {
-    for (int game_i = 0; game_i < num_threads; game_i++) {
-      threads[game_i] = std::thread(&Game::run_multiple_games, &games[game_i]);
-      threads[game_i].detach();
+  if (ImGui::BeginTable("split", 2)) {
+    ImGui::TableNextColumn();
+    if (training) {
+      ImGui::BeginDisabled(true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
     }
-    do_training = true;
-  }
-  if (training) {
-    ImGui::PopStyleVar();
-    ImGui::EndDisabled();
+    if (ImGui::Button("Train")) {
+      for (int game_i = 0; game_i < num_threads; game_i++) {
+        game_managers[game_i].keep_running = true;
+        game_managers[game_i].id = game_i;
+
+        game_managers[game_i].log.type = static_cast<LogType>(log_type);
+        game_managers[game_i].start_log(GameLog, std::string(folder) + "/GameLog_Thread_" + std::to_string(game_i), folder);
+
+        threads[game_i] = std::thread(&GameManager::run_multiple_games, &game_managers[game_i]);
+        threads[game_i].detach();
+      }
+      do_training = true;
+    }
+    if (training) {
+      ImGui::PopStyleVar();
+      ImGui::EndDisabled();
+    }
+
+    ImGui::TableNextColumn();
+    if (!training) {
+      ImGui::BeginDisabled(true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+    if (ImGui::Button("Stop Training")) {
+      for (int game_i = 0; game_i < num_threads; game_i++) {
+        game_managers[game_i].keep_running = false;
+      }
+      do_training = false;
+    }
+    if (!training) {
+      ImGui::PopStyleVar();
+      ImGui::EndDisabled();
+    }
+
+    ImGui::TableNextColumn();
+    ImGui::Combo("Log Type", &log_type, "No Logging\0Move Log\0Game Log\0\0");
+
+    ImGui::TableNextColumn();
+    ImGui::InputText("Folder", folder, 50);
+
+    ImGui::EndTable();
   }
 
   if (do_training) {
     training = true;
     for (int game_i = 0; game_i < num_threads; game_i++) {
-      int loaded_games_played = games[game_i].games_played.load();
+      int loaded_games_played = game_managers[game_i].games_played.load();
       ImGui::Text("[Thread %i] Game %i", game_i + 1, loaded_games_played);
       total_games_played += loaded_games_played;
     }
 
     ImGui::Text("Total games played: %i", total_games_played);
+  }
+  else {
+    training = false;
   }
 
   return training;

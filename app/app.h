@@ -34,13 +34,14 @@ class App {
     // Show Bools
     bool show_demo_window = false;
     bool show_board_window = false;
-    bool show_game_window = true;
+    bool show_game_window = false;
     bool show_player_window[4] = {false, false, false, false};
-    bool show_ai_window = false;
+    bool show_ai_window = true;
 
     bool training_in_progress = false;
 
     Game* game_pointer;
+    WindowAI window_ai;
 
     // TODO: Put into selection screen
     int amount_of_players = 4;
