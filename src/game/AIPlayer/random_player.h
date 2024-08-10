@@ -1,5 +1,5 @@
-#ifndef FASTCATAN_HUMAN_PLAYER_H
-#define FASTCATAN_HUMAN_PLAYER_H
+#ifndef FASTCATAN_RANDOM_PLAYER
+#define FASTCATAN_RANDOM_PLAYER
 
 #include "../components.h"
 #include "../board.h"
@@ -27,7 +27,7 @@ public:
 
 private:
   Player *player;
-  const PlayerType player_type = NNPlayer;
+  const PlayerType player_type = randomPlayer;
   const PlayerState player_state = Waiting;
   std::string console_tag;
 
@@ -35,4 +35,4 @@ private:
 };
 
 
-#endif //FASTCATAN_HUMAN_PLAYER_H
+#endif //FASTCATAN_RANDOM_PLAYER

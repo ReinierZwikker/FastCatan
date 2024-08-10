@@ -1,5 +1,5 @@
-#ifndef FASTCATAN_HUMAN_PLAYER_H
-#define FASTCATAN_HUMAN_PLAYER_H
+#ifndef FASTCATAN_CONSOLE_PLAYER_H
+#define FASTCATAN_CONSOLE_PLAYER_H
 
 #include "../components.h"
 #include "../board.h"
@@ -30,4 +30,4 @@ private:
 };
 
 
-#endif //FASTCATAN_HUMAN_PLAYER_H
+#endif //FASTCATAN_CONSOLE_PLAYER_H

@@ -1,5 +1,5 @@
-#ifndef IMGUIAPP_WINDOW_REPLAY_H
-#define IMGUIAPP_WINDOW_REPLAY_H
+#ifndef FASTCATAN_WINDOW_REPLAY_H
+#define FASTCATAN_WINDOW_REPLAY_H
 
 #include "../app/3rd_party/imgui/imgui.h"
 #include "../app/viewport.h"
@@ -19,18 +19,28 @@ class WindowReplay {
     WindowReplay();
     ~WindowReplay();
 
-    void show();
+    void show(Game*);
 
   private:
 
     void load_games(const std::string& folder);
     void transfer(const std::string& folder, int game_id);
 
+    GameStates game_state;
+    PlayerState player_state;
+    std::mutex mutex;
+
+    bool play = false;
+    unsigned int play_tick = 0;
+    float play_speed = 1;
+
     bool invalid_input_folder = false;
-    int game_number = 0;
+    bool replaying = false;
+    int current_game = 0;
+    int current_move = 1;
     int thread_id = 1;
     std::vector<GameSummary> loaded_games;
     std::vector<Move> loaded_moves;
 };
 
-#endif //IMGUIAPP_WINDOW_REPLAY_H
+#endif //FASTCATAN_WINDOW_REPLAY_H

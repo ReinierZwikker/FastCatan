@@ -7,10 +7,13 @@ GameManager::GameManager() {
 
 GameManager::~GameManager() {
   close_log();
+  delete log.game_summaries;
+  delete log.moves;
 }
 
 void GameManager::start_log(LogType log_type, const std::string& filename,
                             const std::filesystem::path& dirPath = "logs") {
+
   if (log.game_summaries == nullptr && log.move_file == nullptr) {
     if (!std::filesystem::exists(dirPath)) {
       std::filesystem::create_directory(dirPath);
@@ -36,13 +39,11 @@ void GameManager::start_log(LogType log_type, const std::string& filename,
 }
 
 void GameManager::close_log() const {
-  if (log.game_summary_file) {
+  if (log.game_summary_file != nullptr) {
     std::fclose(log.game_summary_file);
-    delete log.game_summaries;
   }
-  if (log.move_file) {
+  if (log.move_file != nullptr) {
     std::fclose(log.move_file);
-    delete log.moves;
   }
 }
 
@@ -53,6 +54,8 @@ void GameManager::add_game_to_log() {
     log.game_summaries->moves_played = log.writes;
     log.game_summaries->run_time = (uint8_t)(run_speed * 1000);
     log.game_summaries->winner = game.game_winner;
+    log.game_summaries->num_players = game.num_players;
+    log.game_summaries->seed = game.seed;
   }
 }
 
@@ -71,10 +74,8 @@ void GameManager::write_log_to_disk() const {
 void GameManager::run_multiple_games() {
 
   game.log = &log;
-
   while(keep_running) {
     clock_t begin_clock = clock();
-
     if (log.type == MoveLog || log.type == BothLogs) {
       Move move;
       move.type = MoveType::Replay;
@@ -82,19 +83,15 @@ void GameManager::run_multiple_games() {
       log.moves[0] = move;
       ++log.writes;
     }
-
     game.run_game();
-
     if (log.type == GameLog || log.type == BothLogs) {
       add_game_to_log();
     }
-
     write_log_to_disk();
     log.writes = 0;
 
     game.reset();
     ++games_played;
-
     clock_t end_clock = clock();
     run_speed = (double)(end_clock - begin_clock) / CLOCKS_PER_SEC;
   }

@@ -6,18 +6,18 @@
 
 #include "player.h"
 #include "board.h"
-//#include "HumanPlayer/console_player.h"
+#include "AIPlayer/random_player.h"
+#include "HumanPlayer/console_player.h"
 #include "HumanPlayer/gui_player.h"
 //#include "AIPlayer/ai_zwik_player.h"
-#include "AIPlayer/random_player.h"
 
 #include <mutex>
 #include <condition_variable>
 
 struct Game {
-  explicit Game(int num_players = 4);
+  explicit Game(bool gui = false, int num_players = 4, unsigned int input_seed = 42);
   ~Game();
-  void add_players();
+  void add_players(PlayerType player_type[4]);
 
   // Handle game state
   GameStates game_state = UnInitialized;
@@ -26,17 +26,16 @@ struct Game {
   bool gui_controlled = false;
 
   // Threading
-  bool move_lock_opened;
+  bool move_lock_opened = false;
   std::mutex move_lock;
   std::condition_variable cv;
-  Move gui_moves[4]{};
   std::mutex mutex;
-  void human_input_received();
+  void human_input_received(Move move);
 
   int num_players;
   // Player order: [Green, Red, White, Blue]
   Player *players[4]{};
-  Player *current_player;
+  Player *current_player = nullptr;
   int current_player_id = 0;
 
   // Victory items

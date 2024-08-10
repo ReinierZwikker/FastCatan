@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Define source files
 set(SOURCES
         main.cpp
+        app/resources.rc
         src/game/board.cpp
         src/game/board.h
         src/game/components.h
@@ -42,29 +43,21 @@ set(SOURCES
         app/3rd_party/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-set(TEST_SOURCES
-        app/test.cpp
-        app/viewport.cpp
-        app/3rd_party/imgui/imgui.cpp
-        app/3rd_party/imgui/imgui_demo.cpp
-        app/3rd_party/imgui/imgui_draw.cpp
-        app/3rd_party/imgui/imgui_tables.cpp
-        app/3rd_party/imgui/imgui_widgets.cpp
-        app/3rd_party/imgui/backends/imgui_impl_win32.cpp
-        app/3rd_party/imgui/backends/imgui_impl_opengl3.cpp
-)
-
 # Create executable
 add_executable(FastCatan ${SOURCES})
-add_executable(Test ${TEST_SOURCES})
+
+# Custom Icon
+set(IMAGE_SOURCE "${CMAKE_SOURCE_DIR}/app/logo.ico")
+set(IMAGE_DESTINATION "${CMAKE_BINARY_DIR}/logo.ico")
+
+add_custom_command(TARGET FastCatan
+        PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${IMAGE_SOURCE} ${IMAGE_DESTINATION}
+        COMMENT "Copying the icon to the build directory")
+
 
 # Include directories
 target_include_directories(FastCatan PRIVATE
-        src
-        app/3rd_party/imgui
-        app/3rd_party/imgui/backends
-        app)
-target_include_directories(Test PRIVATE
         src
         app/3rd_party/imgui
         app/3rd_party/imgui/backends
@@ -79,19 +72,10 @@ target_link_libraries(FastCatan PRIVATE
         OpenGL::GL
         Dwmapi.lib
 )
-target_link_libraries(Test PRIVATE
-        OpenGL::GL
-        Dwmapi.lib
-)
 
 # Link against additional libraries for Windows
 if(WIN32)
     target_link_libraries(FastCatan PRIVATE
-            opengl32
-            gdi32
-            user32
-    )
-    target_link_libraries(Test PRIVATE
             opengl32
             gdi32
             user32

@@ -1,6 +1,7 @@
 #include "window_replay.h"
 
 static std::string input_folder = "logs";
+std::thread game_thread;
 
 std::vector<std::string> split (const std::string &s, char delim) {
   std::vector<std::string> result;
@@ -22,7 +23,14 @@ WindowReplay::~WindowReplay() {
 
 }
 
-void WindowReplay::show() {
+void WindowReplay::show(Game* game) {
+
+  if (replaying) {
+    mutex.lock();
+    game_state = game->game_state;
+    player_state = game->current_player->agent->get_player_state();
+    mutex.unlock();
+  }
 
   char* input_folder_char = const_cast<char *>(input_folder.c_str());
   ImGui::InputText("Input Folder", input_folder_char, 50);
@@ -36,21 +44,150 @@ void WindowReplay::show() {
     thread_id = 12;
   }
 
-  ImGui::TableNextColumn();
   if (ImGui::Button("Load")) {
     load_games(input_folder);
   }
 
+  bool start_block = false;
+  if (loaded_moves.size() == 0 || replaying) {
+    start_block = true;
+    ImGui::BeginDisabled(true);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+  }
+  if (ImGui::Button("Replay")) {
+    mutex.lock();
+    game->num_players = loaded_games[current_game].num_players;
+    game->seed = loaded_games[current_game].seed;
+    PlayerType player_type[4];
+    for (int player_i = 0; player_i < game->num_players; ++player_i) {
+      player_type[player_i] = guiPlayer;
+    }
+    game->add_players(player_type);
+    game->reset();
+    mutex.unlock();
+
+    game_thread = std::thread(&Game::run_game, game);
+    game_thread.detach();
+
+    replaying = true;
+  }
+  if (start_block) {
+    ImGui::PopStyleVar();
+    ImGui::EndDisabled();
+  }
+
+  start_block = false;
+  if (!replaying || player_state != Playing) {
+    start_block = true;
+    ImGui::BeginDisabled(true);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+  }
+  ImGui::TableNextColumn();
+  if (ImGui::Button("Next Move")) {
+    game->human_input_received(loaded_moves[current_move]);
+    ++current_move;
+  }
+  if (start_block) {
+    ImGui::PopStyleVar();
+    ImGui::EndDisabled();
+  }
+
+  if (ImGui::BeginTable("play_menu", 4, ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Button1", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Fixed width for Button1
+    ImGui::TableSetupColumn("Button2", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Fixed width for Button2
+    ImGui::TableSetupColumn("Button3", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Fixed width for Button3
+    ImGui::TableSetupColumn("Slider", ImGuiTableColumnFlags_WidthStretch); // Slider takes up remaining space
+
+    ImGui::TableNextColumn();
+    start_block = false;
+    if (!replaying || play) {
+      start_block = true;
+      ImGui::BeginDisabled(true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+    if (ImGui::Button("Play", ImVec2(-1.0f, 0.0f))) {
+      play = true;
+    }
+    if (start_block) {
+      ImGui::PopStyleVar();
+      ImGui::EndDisabled();
+    }
+
+    ImGui::TableNextColumn();
+    start_block = false;
+    if (!replaying || !play) {
+      start_block = true;
+      ImGui::BeginDisabled(true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+    if (ImGui::Button("Pause", ImVec2(-1.0f, 0.0f))) {
+      play = false;
+    }
+    if (start_block) {
+      ImGui::PopStyleVar();
+      ImGui::EndDisabled();
+    }
+
+    ImGui::TableNextColumn();
+    start_block = false;
+    if (!replaying || current_move == 1) {
+      start_block = true;
+      ImGui::BeginDisabled(true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+    if (ImGui::Button("Stop", ImVec2(-1.0f, 0.0f))) {
+      replaying = false;
+      play = false;
+      play_tick = 0;
+      current_move = 1;
+      mutex.lock();
+      game->reset();
+      mutex.unlock();
+    }
+    if (start_block) {
+      ImGui::PopStyleVar();
+      ImGui::EndDisabled();
+    }
+
+    ImGui::TableNextColumn();
+    ImGui::SliderFloat("Playback Speed", &play_speed, 1, std::round(ImGui::GetIO().Framerate));
+
+    ImGui::EndTable();
+  }
+
+
+  if (play) {
+    ++play_tick;
+    if (play_tick > (unsigned int)(ImGui::GetIO().Framerate / play_speed)) {
+      game->human_input_received(loaded_moves[current_move]);
+      ++current_move;
+      play_tick = 0;
+    }
+  }
+
+  // Stop the replay
+  if (replaying && current_move >= loaded_moves.size()) {
+    replaying = false;
+    current_move = 1;
+    play = false;
+    play_tick = 0;
+  }
+
   if (ImGui::CollapsingHeader("Games")) {
     if (loaded_games.size() > 0) {
-      static ImGuiTableFlags flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable;
-      if (ImGui::BeginTable("games", 7, flags)) {
+      static ImGuiTableFlags flags = ImGuiWindowFlags_AlwaysAutoResize |
+                                     ImGuiTableFlags_Resizable |
+                                     ImGuiTableFlags_Reorderable |
+                                     ImGuiTableFlags_ScrollY;
+      if (ImGui::BeginTable("games", 9, flags)) {
         ImGui::TableSetupColumn("Game", ImGuiTableColumnFlags_WidthFixed, 40.0f);
         ImGui::TableSetupColumn("Id", ImGuiTableColumnFlags_WidthFixed, 40.0f);
         ImGui::TableSetupColumn("Rounds");
         ImGui::TableSetupColumn("Moves Played");
         ImGui::TableSetupColumn("Run Time [ms]");
         ImGui::TableSetupColumn("Winner");
+        ImGui::TableSetupColumn("Players");
+        ImGui::TableSetupColumn("Seed");
         ImGui::TableSetupColumn("Load");
         ImGui::TableHeadersRow();
 
@@ -62,12 +199,16 @@ void WindowReplay::show() {
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].moves_played);
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].run_time);
           ImGui::TableNextColumn(); ImGui::Text("%s", color_names[color_index(loaded_games[game_i].winner)].c_str());
+          ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].num_players);
+          ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].seed);
 
           ImGui::TableNextColumn();
           char button_label[16];
           sprintf(button_label, "Load##G%i", game_i);
           if (ImGui::SmallButton(button_label)) {
             transfer(input_folder, game_i);
+            current_game = game_i;
+            current_move = 1;
           }
 
           ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
@@ -75,13 +216,20 @@ void WindowReplay::show() {
         ImGui::EndTable();
       }
     }
+    else {
+      load_games(input_folder);
+    }
   }
 
   if (ImGui::CollapsingHeader("Moves")) {
     if (loaded_moves.size() > 0) {
-      static ImGuiTableFlags flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable;
-      if (ImGui::BeginTable("moves", 9, flags)) {
+      static ImGuiTableFlags flags = ImGuiWindowFlags_AlwaysAutoResize |
+                                     ImGuiTableFlags_Resizable |
+                                     ImGuiTableFlags_Reorderable |
+                                     ImGuiTableFlags_ScrollY;
+      if (ImGui::BeginTable("moves", 10, flags)) {
         ImGui::TableSetupColumn("Move", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+        ImGui::TableSetupColumn("Player", ImGuiTableColumnFlags_WidthFixed, 10.0f);
         ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthFixed, 200.0f);
         ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 30.0f);
         ImGui::TableSetupColumn("Index");
@@ -93,12 +241,16 @@ void WindowReplay::show() {
         ImGui::TableHeadersRow();
 
         ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
+        int current_player = -1;
+        bool first_pass = false;
+        bool backwards = false;
         for (int move_i = 0; move_i < loaded_moves.size(); ++move_i) {
-          if (loaded_moves[move_i].type == MoveType::Replay) {
+          if (move_i == current_move - 1) {
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 128)); // Red color with 50% opacity
           }
 
           ImGui::TableNextColumn(); ImGui::Text("%i", move_i);
+          ImGui::TableNextColumn(); ImGui::Text("%s", color_names[current_player].c_str());
           ImGui::TableNextColumn(); ImGui::Text("%s", move2string(loaded_moves[move_i]).c_str());
           ImGui::TableNextColumn(); ImGui::Text("%i", move_index(loaded_moves[move_i].type));
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_moves[move_i].index);
@@ -107,6 +259,33 @@ void WindowReplay::show() {
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_moves[move_i].tx_amount);
           ImGui::TableNextColumn(); ImGui::Text("%s", card_names[card_index(loaded_moves[move_i].rx_card)].c_str());
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_moves[move_i].rx_amount);
+
+          if (loaded_moves[move_i].type == MoveType::endTurn) {
+            if (current_player < loaded_games[current_game].num_players - 1) {
+              ++current_player;
+            }
+            else {
+              current_player = 0;
+            }
+            first_pass = true;
+          }
+          else if (move_i < (4 * loaded_games[current_game].num_players - 1)) {
+            if (first_pass) {
+              first_pass = false;
+            }
+            else {
+              first_pass = true;
+              if (backwards) {
+                --current_player;
+              }
+              else if (current_player == loaded_games[current_game].num_players - 1) {
+                backwards = true;
+              }
+              else {
+                ++current_player;
+              }
+            }
+          }
 
           ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
         }
@@ -122,7 +301,8 @@ void WindowReplay::load_games(const std::string& folder) {
   FILE* file_game = std::fopen(path_game.c_str(), "rb");
 
   if (!file_game) {
-    throw std::invalid_argument("Could not open file");
+    return;
+    //throw std::invalid_argument("Could not open file");
   }
 
   // Find the size of the file

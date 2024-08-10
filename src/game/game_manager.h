@@ -1,5 +1,5 @@
-#ifndef IMGUIAPP_GAME_MANAGER_H
-#define IMGUIAPP_GAME_MANAGER_H
+#ifndef FASTCATAN_GAME_MANAGER_H
+#define FASTCATAN_GAME_MANAGER_H
 
 #include "game/game.h"
 #include "game/components.h"
@@ -26,11 +26,11 @@ class GameManager {
     void add_game_to_log();
     void write_log_to_disk() const;
 
-    Game game = Game();
+    Game game = Game(true);
     Logger log{};
 
   private:
 
 };
 
-#endif //IMGUIAPP_GAME_MANAGER_H
+#endif //FASTCATAN_GAME_MANAGER_H

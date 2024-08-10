@@ -87,8 +87,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
       moves[player_id].type = MoveType::endTurn;
 
       player_mutex.lock();
-      game->gui_moves[player_id] = moves[player_id];
-      game->human_input_received();
+      game->human_input_received(moves[player_id]);
       player_mutex.unlock();
 
       CheckAvailableTypes(game, player_id);
@@ -158,8 +157,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
                     moves[player_id].type = index_move(current_structure[player_id]);
                     moves[player_id].index = game->players[player_id]->available_moves[move_i].index;
 
-                    game->gui_moves[player_id] = moves[player_id];
-                    game->human_input_received();
+                    game->human_input_received(moves[player_id]);
                     player_mutex.unlock();
 
                     CheckAvailableTypes(game, player_id);

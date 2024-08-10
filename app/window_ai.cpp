@@ -35,9 +35,15 @@ bool WindowAI::show() {
         game_managers[game_i].keep_running = true;
         game_managers[game_i].id = game_i;
 
+        PlayerType player_type[4] = {PlayerType::randomPlayer, PlayerType::randomPlayer,
+                                     PlayerType::randomPlayer, PlayerType::randomPlayer};
+        game_managers[game_i].game.add_players(player_type);
+
+        std::cout << "hi " << game_i << std::endl;
         game_managers[game_i].log.type = static_cast<LogType>(log_type);
         game_managers[game_i].start_log(game_managers[game_i].log.type,
                                         std::string(folder) + "/GameLog_Thread_" + std::to_string(game_i + 1), folder);
+        std::cout << "hello " << game_i << std::endl;
 
         threads[game_i] = std::thread(&GameManager::run_multiple_games, &game_managers[game_i]);
         threads[game_i].detach();
@@ -57,6 +63,7 @@ bool WindowAI::show() {
     if (ImGui::Button("Stop Training")) {
       for (int game_i = 0; game_i < num_threads; game_i++) {
         game_managers[game_i].keep_running = false;
+        game_managers[game_i].close_log();
       }
       do_training = false;
     }

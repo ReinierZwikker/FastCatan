@@ -22,6 +22,22 @@
 #include <mutex>
 
 
+// Load the icon and set it for the window
+void SetWindowIcon(HWND hwnd) {
+  HICON hIcon = (HICON)LoadImage(NULL, "logo.ico", IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+
+  if (hIcon) {
+    // Set the big icon (taskbar, window)
+    SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+    // Set the small icon (title bar)
+    SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+  } else {
+    MessageBox(hwnd, "Failed to load icon!", "Error", MB_OK | MB_ICONERROR);
+  }
+}
+
+
 // Support function for multi-viewports
 // Unlike most other backend combination, we need specific hooks to combine Win32+OpenGL.
 // We could in theory decide to support Win32-specific code in OpenGL backend via e.g. an hypothetical ImGui_ImplOpenGL3_InitForRawWin32().
@@ -130,6 +146,8 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
     platform_io.Platform_RenderWindow = Hook_Platform_RenderWindow;
   }
 
+  SetWindowIcon(hwnd);
+
   // Initialize the game and board on screen
   game_pointer = game;
   game->gui_controlled = true;
@@ -211,7 +229,7 @@ void App::Refresh() {
   // Replay Menu
   if (show_replay_window) {
     ImGui::Begin("Replay Menu", &show_replay_window);
-    window_replay.show();
+    window_replay.show(game_pointer);
 
     ImGui::End();
   }
@@ -275,10 +293,30 @@ App::~App(){
   ImGui_ImplWin32_Shutdown();
   ImGui::DestroyContext();
 
-  CleanupDeviceWGL(hwnd, &g_MainWindow);
-  wglDeleteContext(g_hRC);
-  ::DestroyWindow(hwnd);
-  ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
+  // Cleanup OpenGL resources
+  if (g_hRC) {
+    wglMakeCurrent(nullptr, nullptr);  // Unbind the OpenGL rendering context
+    wglDeleteContext(g_hRC);           // Delete the OpenGL rendering context
+    g_hRC = nullptr;
+  }
+
+  // Cleanup Device Context
+  if (g_MainWindow.hDC) {
+    ::ReleaseDC(hwnd, g_MainWindow.hDC);
+    g_MainWindow.hDC = nullptr;
+  }
+
+  // Destroy the window
+  if (hwnd) {
+    ::DestroyWindow(hwnd);
+    hwnd = nullptr;
+  }
+
+  // Unregister the window class
+  if (wc.hInstance) {
+    ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
+    wc.hInstance = nullptr;
+  }
 }
 
 // Helper functions

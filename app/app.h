@@ -67,7 +67,7 @@ class App {
     // Initialize parameters for later use
     MSG msg{};
     ImGuiIO& io;
-    HWND hwnd;
+    HWND hwnd{};
     WNDCLASSEXW wc{};
 
     // State

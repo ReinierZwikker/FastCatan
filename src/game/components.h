@@ -380,7 +380,9 @@ inline std::string move2string(Move move) {
 enum PlayerType {
     consolePlayer,
     guiPlayer,
-    NNPlayer,
+    randomPlayer,
+    zwikPlayer,
+    beanPlayer,
     NoPlayer
 };
 
@@ -441,6 +443,8 @@ struct GameSummary {
   uint16_t moves_played;
   uint8_t run_time;  // ms
   Color winner;
+  uint8_t num_players;
+  uint8_t seed;
 };
 
 struct Logger {

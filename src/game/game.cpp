@@ -4,15 +4,27 @@
 #include <pthread.h>
 
 #include "game.h"
+#include "game/AIPlayer/random_player.h"
 
 
-Game::Game(int num_players) : gen(42), dice(1, 6), card(0, 4) {
+Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed), dice(1, 6), card(0, 4) {
   if (num_players < 0 or num_players > 4) {
     throw std::invalid_argument("Maximum amount of players is four!");
   }
 
   Game::num_players = num_players;
-  add_players();
+  PlayerType player_type[4];
+  if (gui) {
+    for (int player_i = 0; player_i < num_players; ++player_i) {
+      player_type[player_i] = PlayerType::guiPlayer;
+    }
+  }
+  else {
+    for (int player_i = 0; player_i < num_players; ++player_i) {
+      player_type[player_i] = PlayerType::consolePlayer;
+    }
+  }
+  add_players(player_type);
 
   // Initialize development cards
   int current_dev_card = 0;
@@ -38,12 +50,45 @@ Game::~Game() {
   }
 }
 
-void Game::add_players() {
+void Game::add_players(PlayerType player_type[4]) {
+  for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    if (players[player_i]) {
+      delete(players[player_i]->agent);
+      delete(players[player_i]);
+    }
+  }
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = new Player(&board, index_color(player_i));
-//    auto *new_agent = new GuiPlayer(players[player_i]);
-    auto *new_agent = new RandomPlayer(players[player_i]);
-    players[player_i]->agent = new_agent;
+
+    switch (player_type[player_i]) {
+      case PlayerType::consolePlayer: {
+        auto *new_agent = new ConsolePlayer(players[player_i]);
+        players[player_i]->agent = new_agent;
+        break;
+      }
+      case guiPlayer: {
+        auto *new_agent = new GuiPlayer(players[player_i]);
+        players[player_i]->agent = new_agent;
+        break;
+      }
+      case randomPlayer: {
+        auto *new_agent = new RandomPlayer(players[player_i]);
+        players[player_i]->agent = new_agent;
+        break;
+      }
+      case zwikPlayer: {
+        throw std::invalid_argument("ZwikPlayer not available");
+        break;
+      }
+      case beanPlayer: {
+        throw std::invalid_argument("BeanPlayer not available");
+        break;
+      }
+      case NoPlayer: {
+        throw std::invalid_argument("A player must be selected");
+        break;
+      }
+    }
     players[player_i]->activated = true;
   }
 }
@@ -79,7 +124,8 @@ void Game::unavailable_move(Move move, std::string info) {
   printf("\nMove Warning!\n");
 
   if (gui_controlled) {
-    printf("Move [%i] not available\nIndex: %i\nPlayer: %i\n", chosen_move.type, chosen_move.index, current_player_id + 1);
+    printf("Move [%s] not available\nIndex: %i\nPlayer: %s\n", move2string(chosen_move).c_str(),
+           chosen_move.index, color_names[current_player_id].c_str());
     printf("Information: %s\n", info.c_str());
     if (move.type == MoveType::Exchange) {
       printf("Exchange %i %s for %i %s\n", chosen_move.tx_amount, card_names[card_index(chosen_move.tx_card)].c_str(),
@@ -155,8 +201,8 @@ void Game::start_game() {
   game_state = GameStates::SetupRoundFinished;
 }
 
-void Game::human_input_received() {
-  current_player->agent->unpause(gui_moves[current_player_id]);
+void Game::human_input_received(Move move) {
+  current_player->agent->unpause(move);
 }
 
 void Game::step_round() {
@@ -353,14 +399,15 @@ void Game::reset() {
   current_round = 0;
   board.Reset();
 
-  for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    delete(players[player_i]->agent);
-    delete(players[player_i]);
-  }
   current_player = nullptr;
   longest_road_player = nullptr;
   most_knights_player = nullptr;
-  add_players();
+
+  PlayerType player_type[4] = {NoPlayer, NoPlayer, NoPlayer, NoPlayer};
+  for (int player_i = 0; player_i < num_players; ++player_i) {
+    player_type[player_i] = players[player_i]->agent->get_player_type();
+  }
+  add_players(player_type);
 
   shuffle_development_cards();
   current_development_card = 0;
@@ -372,7 +419,7 @@ void Game::reset() {
 }
 
 void Game::set_seed(unsigned int input_seed) {
-  seed = input_seed;
+  gen.seed(input_seed);
   board.seed = input_seed;
 }
 
@@ -460,6 +507,15 @@ void Game::move_robber(int tile_index) {
 }
 
 void Game::shuffle_development_cards() {
+  int current_dev_card = 0;
+  for (int dev_card_i = 0; dev_card_i < 5; ++dev_card_i) {
+    for (int i = 0; i < max_development_cards[dev_card_i]; ++i) {
+      development_cards[current_dev_card] = index_dev_card(dev_card_i);
+
+      ++current_dev_card;
+    }
+  }
+
   auto rng = std::default_random_engine {seed};
   std::shuffle(development_cards, development_cards + amount_of_development_cards, rng);
 }
