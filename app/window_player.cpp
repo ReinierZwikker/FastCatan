@@ -15,18 +15,18 @@ void CheckAvailableTypes(Game* game, int player_id) {
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
 
     player_mutex.lock();
-    MoveType move_type = game->players[player_id]->available_moves[move_i].move_type;
+    MoveType move_type = game->players[player_id]->available_moves[move_i].type;
     player_mutex.unlock();
 
-    if (move_type == NoMove) {
+    if (move_type == MoveType::NoMove) {
       break;
     }
     switch (move_type) {
-      case buildStreet:
+      case MoveType::buildStreet:
         street = true;
-      case buildVillage:
+      case MoveType::buildVillage:
         village = true;
-      case buildCity:
+      case MoveType::buildCity:
         city = true;
     }
 
@@ -84,7 +84,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     ImGui::TableNextColumn(); ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("End Turn").x);
     if (ImGui::Button("End Turn")) {
       moves[player_id] = Move();
-      moves[player_id].move_type = endTurn;
+      moves[player_id].type = MoveType::endTurn;
 
       player_mutex.lock();
       game->gui_moves[player_id] = moves[player_id];
@@ -138,11 +138,11 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
               ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
               for (int move_i = 0; move_i < max_available_moves; ++move_i) {
                 player_mutex.lock();
-                MoveType move_type = game->players[player_id]->available_moves[move_i].move_type;
+                MoveType move_type = game->players[player_id]->available_moves[move_i].type;
                 int move_index_id = game->players[player_id]->available_moves[move_i].index;
                 player_mutex.unlock();
 
-                if (move_type == NoMove && !show_all_moves) {
+                if (move_type == MoveType::NoMove && !show_all_moves) {
                   break;
                 }
                 if (move_type == index_move(current_structure[player_id])) {
@@ -155,7 +155,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
                   if (ImGui::SmallButton(button_label)) {
 
                     player_mutex.lock();
-                    moves[player_id].move_type = index_move(current_structure[player_id]);
+                    moves[player_id].type = index_move(current_structure[player_id]);
                     moves[player_id].index = game->players[player_id]->available_moves[move_i].index;
 
                     game->gui_moves[player_id] = moves[player_id];
@@ -268,10 +268,10 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
       ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
       for (int move_i = 0; move_i < max_available_moves; move_i++) {
         player_mutex.lock();
-        MoveType move_type = game->players[player_id]->available_moves[move_i].move_type;
+        MoveType move_type = game->players[player_id]->available_moves[move_i].type;
         player_mutex.unlock();
 
-        if (move_type == NoMove && !show_all_moves) {
+        if (move_type == MoveType::NoMove && !show_all_moves) {
           break;
         }
 

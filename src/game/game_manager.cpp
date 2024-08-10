@@ -11,57 +11,87 @@ GameManager::~GameManager() {
 
 void GameManager::start_log(LogType log_type, const std::string& filename,
                             const std::filesystem::path& dirPath = "logs") {
-  if (log.file == nullptr) {
+  if (log.game_summaries == nullptr && log.move_file == nullptr) {
     if (!std::filesystem::exists(dirPath)) {
       std::filesystem::create_directory(dirPath);
     }
 
     log = Logger();
-    log.type = log_type;
-    log.file = std::fopen(filename.c_str(), "wb");
+    if (log_type == GameLog || log_type == BothLogs) {
+      // Assign heap memory to store all possible moves in a game
+      log.game_summaries = new GameSummary[10];
 
+      std::string game_summary_filename = filename + "_game_summaries.dat";
+      log.game_summary_file = std::fopen(game_summary_filename.c_str(), "wb");
+    }
+    if (log_type == MoveLog || log_type == BothLogs) {
+      // Assign heap memory to store all possible moves in a game
+      log.moves = new Move[(moves_per_turn + 5) * max_rounds];
+
+      std::string move_filename = filename + "_moves.dat";
+      log.move_file = std::fopen(move_filename.c_str(), "wb");
+    }
+    log.type = log_type;
   }
 }
 
 void GameManager::close_log() const {
-  if (log.file) {
-    std::fclose(log.file);
+  if (log.game_summary_file) {
+    std::fclose(log.game_summary_file);
+    delete log.game_summaries;
+  }
+  if (log.move_file) {
+    std::fclose(log.move_file);
+    delete log.moves;
   }
 }
 
 void GameManager::add_game_to_log() {
-  ++log.writes;
-  if (log.file && log.type == GameLog) {
-    log.data += "\nGame: " + std::to_string(games_played) + "\n";
-    log.data += "\tRounds:  " + std::to_string(game.current_round) + "\n";
-    log.data += "\tWinner:  " + color_names[game.game_winner] + "\n";
-    log.data += "\tRunTime: " + std::to_string((int)(run_speed * 1000)) + " ms\n";
-  }
-
-  if (log.writes > 500) {
-    write_log_to_disk();
-    log.writes = 0;
-    log.data = "";
+  if (log.game_summaries && (log.type == GameLog || log.type == BothLogs)) {
+    log.game_summaries->id = games_played;
+    log.game_summaries->rounds = game.current_round;
+    log.game_summaries->moves_played = log.writes;
+    log.game_summaries->run_time = (uint8_t)(run_speed * 1000);
+    log.game_summaries->winner = game.game_winner;
   }
 }
 
 void GameManager::write_log_to_disk() const {
-  if (log.file) {
-    const char* data = log.data.c_str();
-    std::fprintf(log.file, "%s", data);
+  if (log.game_summaries) {
+    std::fwrite(log.game_summaries, sizeof(GameSummary), 1, log.game_summary_file);
+  }
+  if (log.move_file) {
+    // TODO : actually use the buffer
+    for (int i = 0; i < log.writes; ++i) {
+      std::fwrite(&log.moves[i], sizeof(Move), 1, log.move_file);
+    }
   }
 }
 
 void GameManager::run_multiple_games() {
-  start_log(GameLog, "logs/GameLog_Thread_" + std::to_string(id));
+
+  game.log = &log;
 
   while(keep_running) {
     clock_t begin_clock = clock();
 
+    if (log.type == MoveLog || log.type == BothLogs) {
+      Move move;
+      move.type = MoveType::Replay;
+      move.index = games_played;
+      log.moves[0] = move;
+      ++log.writes;
+    }
+
     game.run_game();
-    if (log.type == GameLog) {
+
+    if (log.type == GameLog || log.type == BothLogs) {
       add_game_to_log();
     }
+
+    write_log_to_disk();
+    log.writes = 0;
+
     game.reset();
     ++games_played;
 

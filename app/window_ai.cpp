@@ -36,7 +36,8 @@ bool WindowAI::show() {
         game_managers[game_i].id = game_i;
 
         game_managers[game_i].log.type = static_cast<LogType>(log_type);
-        game_managers[game_i].start_log(GameLog, std::string(folder) + "/GameLog_Thread_" + std::to_string(game_i), folder);
+        game_managers[game_i].start_log(game_managers[game_i].log.type,
+                                        std::string(folder) + "/GameLog_Thread_" + std::to_string(game_i + 1), folder);
 
         threads[game_i] = std::thread(&GameManager::run_multiple_games, &game_managers[game_i]);
         threads[game_i].detach();
@@ -65,7 +66,7 @@ bool WindowAI::show() {
     }
 
     ImGui::TableNextColumn();
-    ImGui::Combo("Log Type", &log_type, "No Logging\0Move Log\0Game Log\0\0");
+    ImGui::Combo("Log Type", &log_type, "No Logging\0Move Log\0Game Log\0Both\0\0");
 
     ImGui::TableNextColumn();
     ImGui::InputText("Folder", folder, 50);

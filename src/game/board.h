@@ -17,6 +17,7 @@ public:
   Street *streets[street_rows]{};
 
   Tile *current_robber_tile;
+  unsigned int seed = 42;
 
   void Randomize();
   void PrintBoard();

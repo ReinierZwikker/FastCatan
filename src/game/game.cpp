@@ -6,7 +6,7 @@
 #include "game.h"
 
 
-Game::Game(int num_players) {
+Game::Game(int num_players) : gen(42), dice(1, 6), card(0, 4) {
   if (num_players < 0 or num_players > 4) {
     throw std::invalid_argument("Maximum amount of players is four!");
   }
@@ -50,15 +50,15 @@ void Game::add_players() {
 
 bool move_in_available_moves(Move move, Move *available_moves, bool print = false) {
   if (print) {
-    printf("Checking Move [%i]\n", move.move_type);
+    printf("Checking Move [%i]\n", move.type);
   }
 
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
     if (print) {
-      printf("Move [%i]\n", available_moves[move_i].move_type);
+      printf("Move [%i]\n", available_moves[move_i].type);
     }
 
-    if (available_moves[move_i].move_type == NoMove) {
+    if (available_moves[move_i].type == MoveType::NoMove) {
       if (print) {
         printf("No Move\n");
       }
@@ -79,11 +79,11 @@ void Game::unavailable_move(Move move, std::string info) {
   printf("\nMove Warning!\n");
 
   if (gui_controlled) {
-    printf("Move [%i] not available\nIndex: %i\nPlayer: %i\n", chosen_move.move_type, chosen_move.index, current_player_id + 1);
+    printf("Move [%i] not available\nIndex: %i\nPlayer: %i\n", chosen_move.type, chosen_move.index, current_player_id + 1);
     printf("Information: %s\n", info.c_str());
-    if (move.move_type == Exchange) {
-      printf("Exchange %i %s for %i %s\n", chosen_move.tx_amount, card_names[chosen_move.tx_card].c_str(),
-             chosen_move.rx_amount, card_names[chosen_move.rx_card].c_str());
+    if (move.type == MoveType::Exchange) {
+      printf("Exchange %i %s for %i %s\n", chosen_move.tx_amount, card_names[card_index(chosen_move.tx_card)].c_str(),
+             chosen_move.rx_amount, card_names[card_index(chosen_move.rx_card)].c_str());
     }
 
     std::unique_lock<std::mutex> lock(move_lock);
@@ -106,6 +106,7 @@ void Game::start_game() {
     current_player->set_cards(1, 1, 0, 1, 1);
     current_player->update_available_moves(openingTurnVillage, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
+    if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "first village");
     }
@@ -115,6 +116,7 @@ void Game::start_game() {
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnStreet, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
+    if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "first street");
     }
@@ -130,6 +132,7 @@ void Game::start_game() {
     current_player->set_cards(1, 1, 0, 1, 1);
     current_player->update_available_moves(openingTurnVillage, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
+    if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "second village");
     }
@@ -139,6 +142,7 @@ void Game::start_game() {
     current_player->set_cards(1, 1, 0, 0, 0);
     current_player->update_available_moves(openingTurnStreet, players, current_development_card);
     chosen_move = current_player->agent->get_move(&board, current_player->cards);
+    if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
     if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
       unavailable_move(chosen_move, "second street");
     }
@@ -168,8 +172,6 @@ void Game::step_round() {
         for (int player_j = 0; player_j < Game::num_players; player_j++) {
           if (players[player_j]->get_total_amount_of_cards() > 7) {
             // TODO Allow player to choose which cards get discarded!
-            std::mt19937 gen(randomDevice());
-            std::uniform_int_distribution<> card(0, 5);
             for (int card_i = 0; card_i < players[player_j]->get_total_amount_of_cards() / 2; ++card_i) {
               bool chosen = false;
               while (!chosen) {
@@ -184,12 +186,14 @@ void Game::step_round() {
         }
         current_player->update_available_moves(robberTurn, players, current_development_card);
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
+        if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
         move_robber(chosen_move.index);
       } else { give_cards(dice_roll); }
 
       for (int move_i = 0; move_i < moves_per_turn; ++move_i) {
         current_player->update_available_moves(normalTurn, players, current_development_card);
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
+        if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
 
         if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
           unavailable_move(chosen_move, "normal turn");
@@ -197,19 +201,19 @@ void Game::step_round() {
 
         // perform chosen move
         Move move;
-        switch (chosen_move.move_type) {
-          case buildStreet:
+        switch (chosen_move.type) {
+          case MoveType::buildStreet:
             current_player->place_street(chosen_move.index);
             check_longest_road();
             break;
-          case buildVillage:
+          case MoveType::buildVillage:
             current_player->place_village(chosen_move.index);
             check_longest_road_interrupt();
             break;
-          case buildCity:
+          case MoveType::buildCity:
             current_player->place_city(chosen_move.index);
             break;
-          case buyDevelopment:
+          case MoveType::buyDevelopment:
             // Get the next development card of the deck
             if (current_development_card < amount_of_development_cards) {
               current_player->buy_development(development_cards[current_development_card]);
@@ -219,13 +223,14 @@ void Game::step_round() {
               throw std::invalid_argument("Development Cards out of range");
             }
             break;
-          case playDevelopment:
+          case MoveType::playDevelopment:
             switch(current_player->development_cards[chosen_move.index].type) {
               case Knight:
                 check_knights_played();
 
                 current_player->update_available_moves(robberTurn, players, current_development_card);
                 move = current_player->agent->get_move(&board, current_player->cards);
+                if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
 
                 if (!move_in_available_moves(move, current_player->available_moves)) {
                   unavailable_move(move, "dev Knight turn");
@@ -239,6 +244,7 @@ void Game::step_round() {
                 // Chose a card to steal
                 current_player->update_available_moves(devTurnYearOfPlenty, players, current_development_card);
                 move = current_player->agent->get_move(&board, current_player->cards);
+                if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
 
                 if (!move_in_available_moves(move, current_player->available_moves)) {
                   unavailable_move(move, "dev Year of Plenty turn");
@@ -257,6 +263,7 @@ void Game::step_round() {
                 for (int card_i = 0; card_i < 2; ++card_i) {
                   current_player->update_available_moves(devTurnYearOfPlenty, players, current_development_card);
                   move = current_player->agent->get_move(&board, current_player->cards);
+                  if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
 
                   if (!move_in_available_moves(move, current_player->available_moves)) {
                     unavailable_move(move, "dev Year of Plenty turn");
@@ -269,12 +276,13 @@ void Game::step_round() {
               case RoadBuilding:
                 // Let the player place two streets
                 for (int street_i = 0; street_i < 2; ++street_i) {
-                  current_player->add_cards(Brick, 1);
-                  current_player->add_cards(Lumber, 1);
+                  current_player->add_cards(CardType::Brick, 1);
+                  current_player->add_cards(CardType::Lumber, 1);
                   current_player->update_available_moves(devTurnStreet, players, current_development_card);
                   move = current_player->agent->get_move(&board, current_player->cards);
+                  if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
 
-                  if (move.move_type != NoMove) {
+                  if (move.type != MoveType::NoMove) {
                     if (!move_in_available_moves(move, current_player->available_moves)) {
                       unavailable_move(move, "dev Road Building turn");
                     }
@@ -289,14 +297,14 @@ void Game::step_round() {
             current_player->play_development(chosen_move.index);
 
             break;
-          case Trade:
+          case MoveType::Trade:
             // TODO Implement trading
             break;
-          case Exchange:
+          case MoveType::Exchange:
             current_player->remove_cards(chosen_move.tx_card, 4);
             current_player->add_cards(chosen_move.rx_card, 1);
             break;
-          case moveRobber:
+          case MoveType::moveRobber:
             board.current_robber_tile->robber = false;
             board.current_robber_tile = &board.tile_array[chosen_move.index];
             board.current_robber_tile->robber = true;
@@ -304,10 +312,10 @@ void Game::step_round() {
             // Only possible if development cards are implemented
             // TODO Implement card stealing?
             break;
-          case NoMove:
+          case MoveType::NoMove:
             throw std::invalid_argument("No Move is never a valid move!");
             break;
-          case endTurn:
+          case MoveType::endTurn:
             move_i = moves_per_turn;
             break;
         }
@@ -316,6 +324,7 @@ void Game::step_round() {
         if (players[player_i]->check_victory_points() >= 10) {
           game_state = GameFinished;
           game_winner = index_color(player_i);
+          break;
         }
       }
 
@@ -340,7 +349,7 @@ void Game::run_game() {
 }
 
 void Game::reset() {
-  game_winner = NoColor;
+  game_winner = Color::NoColor;
   current_round = 0;
   board.Reset();
 
@@ -356,12 +365,18 @@ void Game::reset() {
   shuffle_development_cards();
   current_development_card = 0;
 
+  move_id = 0;
+
+  gen.seed(seed); // Reseed
   game_state = ReadyToStart;
 }
 
+void Game::set_seed(unsigned int input_seed) {
+  seed = input_seed;
+  board.seed = input_seed;
+}
+
 int Game::roll_dice() {
-  std::mt19937 gen(randomDevice());
-  std::uniform_int_distribution<> dice(1, 6);
   die_1 = dice(gen);
   die_2 = dice(gen);
 
@@ -445,7 +460,8 @@ void Game::move_robber(int tile_index) {
 }
 
 void Game::shuffle_development_cards() {
-  std::shuffle(development_cards, development_cards + amount_of_development_cards, randomDevice);
+  auto rng = std::default_random_engine {seed};
+  std::shuffle(development_cards, development_cards + amount_of_development_cards, rng);
 }
 
 /*
@@ -456,7 +472,7 @@ void Game::give_cards(int rolled_number) {
   for (Tile tile : board.tile_array) {
     if ((tile.number_token == rolled_number && !tile.robber) || rolled_number == -1) {
       for (Corner *corner : tile.corners) {
-        if (corner->color != NoColor) {
+        if (corner->color != Color::NoColor) {
           if (corner->occupancy == Village) {
             players[color_index(corner->color)]->add_cards(tile2card(tile.type), 1);
             // std::cout << "Giving one " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
@@ -469,3 +485,12 @@ void Game::give_cards(int rolled_number) {
     }
   }
 }
+
+void Game::add_move_to_log(Move move) {
+
+  if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
+    log->moves[log->writes] = move;
+    ++log->writes;
+  }
+}
+

@@ -32,6 +32,7 @@ set(SOURCES
         app/window_game.cpp
         app/window_player.cpp
         app/window_ai.cpp
+        app/window_replay.cpp
         app/3rd_party/imgui/imgui.cpp
         app/3rd_party/imgui/imgui_demo.cpp
         app/3rd_party/imgui/imgui_draw.cpp
