@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <filesystem>
+#include <iostream>
 
 class GameManager {
   public:

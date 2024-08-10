@@ -34,7 +34,7 @@ void WindowGame(Game* game) {
   }
   else {
     longest_route = 0;
-    longest_route_color = NoColor;
+    longest_route_color = Color::NoColor;
   }
   mutex.unlock();
 
@@ -45,7 +45,7 @@ void WindowGame(Game* game) {
   }
   else {
     most_knights = 0;
-    most_knights_color = NoColor;
+    most_knights_color = Color::NoColor;
   }
   mutex.unlock();
 
@@ -67,7 +67,7 @@ void WindowGame(Game* game) {
     ImGui::TableNextColumn(); ImGui::Text("Dice Roll:");
     ImGui::TableNextColumn(); ImGui::Text("%i + %i = %i", die_1, die_2, die_1 + die_2);
     ImGui::TableNextColumn(); ImGui::Text("Winning Player:");
-    if (game_winner == NoColor) {
+    if (game_winner == Color::NoColor) {
       ImGui::TableNextColumn(); ImGui::Text("Game in progress...");
     } else {
       ImGui::TableNextColumn(); ImGui::Text("%i - %s", color_index(game_winner), color_name(game_winner).c_str());
@@ -81,9 +81,9 @@ void WindowGame(Game* game) {
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
     ImGui::TableNextColumn(); ImGui::Text("Longest Route:");
-    ImGui::TableNextColumn(); ImGui::Text("%s - %i", color_names[longest_route_color].c_str(), longest_route);
+    ImGui::TableNextColumn(); ImGui::Text("%s - %i", color_names[color_index(longest_route_color)].c_str(), longest_route);
     ImGui::TableNextColumn(); ImGui::Text("Most Knights:");
-    ImGui::TableNextColumn(); ImGui::Text("%s - %i", color_names[most_knights_color].c_str(), most_knights);
+    ImGui::TableNextColumn(); ImGui::Text("%s - %i", color_names[color_index(most_knights_color)].c_str(), most_knights);
     ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
 
     ImGui::EndTable();

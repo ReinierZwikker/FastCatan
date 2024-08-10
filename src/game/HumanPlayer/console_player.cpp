@@ -27,7 +27,7 @@ Move ConsolePlayer::get_move(Board *board, int cards[5]) {
   int move_i;
 
   for (move_i = 0; move_i < max_available_moves; ++move_i) {
-    if (player->available_moves[move_i].move_type == NoMove) {
+    if (player->available_moves[move_i].type == MoveType::NoMove) {
       break;
     }
     player_print("Move " + std::to_string(move_i + 1) + ": " + move2string(player->available_moves[move_i]) + "\n");

@@ -2,6 +2,7 @@
 #define FASTCATAN_COMPONENTS_H
 
 #include <string>
+#include <cstdint>
 
 struct Corner;
 struct Street;
@@ -40,28 +41,27 @@ static const int max_harbors[9] = {4, 1, 1, 1, 1, 1};
 static const int max_available_moves = 200;
 static const int moves_per_turn = 25;
 static const int max_rounds = 500;
-static const int max_moves_per_game = moves_per_turn + max_rounds +
-                                      max_development_cards[2] +
-                                      max_development_cards[3] * 2 +
-                                      max_development_cards[4] * 2;
 
 /******************
  *     COLORS     *
  ******************/
 
-enum Color {
+#pragma pack(push, 1)
+enum class Color : uint8_t {
     Green,
     Red,
     White,
     Blue,
     NoColor
 };
+#pragma pack(pop)
 
 static const std::string color_names[] = {
     "Green",
     "Red",
     "White",
-    "Blue"
+    "Blue",
+    "No Color"
 };
 
 static const std::string color_offsets[] = {
@@ -81,7 +81,8 @@ inline std::string color_offset(Color color) { return color_offsets[color_index(
  *     CARDS      *
  ******************/
 
-enum CardType {
+#pragma pack(push, 1)
+enum class CardType : uint8_t {
     Brick,
     Lumber,
     Ore,
@@ -89,13 +90,15 @@ enum CardType {
     Wool,
     NoCard
 };
+#pragma pack(pop)
 
 static const std::string card_names[] = {
     "Brick",
     "Lumber",
     "Ore",
     "Grain",
-    "Wool"
+    "Wool",
+    "No Card"
 };
 
 static const char* card_names_char[] = {
@@ -103,7 +106,8 @@ static const char* card_names_char[] = {
     "Lumber",
     "Ore",
     "Grain",
-    "Wool"
+    "Wool",
+    "No Card"
 };
 
 inline CardType index_card(int card_index) { return (CardType) card_index; }
@@ -266,7 +270,8 @@ struct Tile {
  *     MOVES      *
  ******************/
 
-enum MoveType {
+#pragma pack(push, 1)
+enum class MoveType : uint8_t {
   buildStreet,     // Specify: Street Index
   buildVillage,    // Specify: Corner Index
   buildCity,       // Specify: Corner Index
@@ -277,8 +282,10 @@ enum MoveType {
   moveRobber,      // Specify: Tile Index
   getCardBank,     // Specify: Card
   endTurn,
-  NoMove
+  NoMove,
+  Replay
 };
+#pragma pack(pop)
 
 inline MoveType index_move(int move_index) { return (MoveType) move_index; }
 inline int move_index(MoveType move) { return (int) move; }
@@ -295,67 +302,73 @@ enum TurnType {
   noTurn
 };
 
+#pragma pack(push, 1)
 struct Move {
   inline Move() {
-    move_type = NoMove;
-    index = -1;
-    other_player = NoColor;
-    tx_card = NoCard;
-    rx_card = NoCard;
-    tx_amount = -1;
-    rx_amount = -1;
+    type = MoveType::NoMove;
+    index = 0;
+    other_player = Color::NoColor;
+    tx_card = CardType::NoCard;
+    rx_card = CardType::NoCard;
+    tx_amount = 0;
+    rx_amount = 0;
   }
   // Move template, only set applicable fields when communicating moves
-  MoveType move_type;
-  int index;
-  Color other_player;
-  CardType tx_card;
-  CardType rx_card;
-  int tx_amount;
-  int rx_amount;
+  MoveType type = MoveType::NoMove;
+  uint16_t index = 0;
+  Color other_player = Color::NoColor;
+  CardType tx_card = CardType::NoCard;
+  CardType rx_card = CardType::NoCard;
+  uint8_t tx_amount = 0;
+  uint8_t rx_amount = 0;
 };
+#pragma pack(pop)
 
 
 inline bool operator==(const Move& move_lhs, const Move& move_rhs) {
-  if (move_lhs.move_type    == move_rhs.move_type    &&
-      move_lhs.index        == move_rhs.index        &&
+  if (move_lhs.type == move_rhs.type &&
+      move_lhs.index        == move_rhs.index &&
       move_lhs.other_player == move_rhs.other_player &&
-      move_lhs.tx_card      == move_rhs.tx_card      &&
-      move_lhs.rx_card      == move_rhs.rx_card      &&
-      move_lhs.tx_amount    == move_rhs.tx_amount    &&
+      move_lhs.tx_card      == move_rhs.tx_card &&
+      move_lhs.rx_card      == move_rhs.rx_card &&
+      move_lhs.tx_amount    == move_rhs.tx_amount &&
       move_lhs.rx_amount    == move_rhs.rx_amount)
   { return true; } else { return false; }
 }
 
 inline std::string move2string(Move move) {
-  switch (move.move_type) {
-    case buildStreet:
+  switch (move.type) {
+    case MoveType::buildStreet:
       return "Building Street at street " + std::to_string(move.index);
-    case buildVillage:
+    case MoveType::buildVillage:
       return "Building Village at corner " + std::to_string(move.index);
-    case buildCity:
+    case MoveType::buildCity:
       return "Building City at corner " + std::to_string(move.index);
-    case buyDevelopment:
+    case MoveType::buyDevelopment:
       return "Buying one Development Card";
-    case playDevelopment:
+    case MoveType::playDevelopment:
       return "Playing the " + dev_card_names[move.index] + " Development Card";
-    case Trade:
+    case MoveType::Trade:
       return "Trading "
         + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
         + " for "
         + std::to_string(move.rx_amount) + " " + card_name(move.rx_card);
-    case Exchange:
+    case MoveType::Exchange:
       return "Exchanging "
              + std::to_string(move.tx_amount) + " " + card_name(move.tx_card)
              + " for "
              + std::to_string(move.rx_amount) + " " + card_name(move.rx_card)
              + " with the bank";
-    case moveRobber:
+    case MoveType::moveRobber:
       return "Moving Robber to tile " + std::to_string(move.index);
-    case endTurn:
+    case MoveType::endTurn:
       return "Ending my turn!";
-    case NoMove:
+    case MoveType::NoMove:
       return "Invalid Move";
+    case MoveType::getCardBank:
+      return "Getting card from the bank";
+    case MoveType::Replay:
+      return "Replaying";
   }
   return "Invalid Move";
 }
@@ -418,15 +431,27 @@ static const char* game_states[] = {
 enum LogType {
   EmptyLog,
   MoveLog,
-  GameLog
+  GameLog,
+  BothLogs
+};
+
+struct GameSummary {
+  unsigned int id;
+  uint16_t rounds;
+  uint16_t moves_played;
+  uint8_t run_time;  // ms
+  Color winner;
 };
 
 struct Logger {
   LogType type = EmptyLog;
-  FILE* file = nullptr;
+  FILE* game_summary_file = nullptr;
+  FILE* move_file = nullptr;
 
-  std::string data = "Logger Data\n";
+  GameSummary* game_summaries;
+  Move* moves;
   unsigned int writes = 0;
+  unsigned int games_played = 0;
 };
 
 #endif //FASTCATAN_COMPONENTS_H

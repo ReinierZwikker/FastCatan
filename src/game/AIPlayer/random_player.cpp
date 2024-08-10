@@ -3,7 +3,7 @@
 
 #include "random_player.h"
 
-RandomPlayer::RandomPlayer(Player *connected_player) {
+RandomPlayer::RandomPlayer(Player *connected_player) : gen(42) {
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
   // player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
@@ -25,7 +25,7 @@ Move RandomPlayer::get_move(Board *board, int cards[5]) {
   int move_i;
 
   for (move_i = 0; move_i < max_available_moves; ++move_i) {
-    if (player->available_moves[move_i].move_type == NoMove) {
+    if (player->available_moves[move_i].type == MoveType::NoMove) {
       break;
     }
 //    player_print("Move " + std::to_string(move_i + 1) + ": " + move2string(player->available_moves[move_i]) + "\n");
@@ -37,9 +37,7 @@ Move RandomPlayer::get_move(Board *board, int cards[5]) {
   if (move_i <= 1) {
     selected_move_i = 0;
   } else {
-    std::mt19937 gen(randomDevice());
     std::uniform_int_distribution<> random_move(0, move_i-1);
-
     selected_move_i = random_move(gen);
 
   }

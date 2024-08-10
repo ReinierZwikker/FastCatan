@@ -34,7 +34,7 @@ public:
 
   Move *available_moves;
 
-  Color player_color = NoColor;
+  Color player_color = Color::NoColor;
 
   //                      {Streets, Villages, Cities}
   int resources_left[3] = {     15,        5,      4};

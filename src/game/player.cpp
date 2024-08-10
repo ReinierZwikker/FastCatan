@@ -20,7 +20,7 @@ Player::~Player() {
 
 bool corner_occupied(Corner *corner, Color color) {
   // NoColor returns for all colors, otherwise only specific color
-  if (color == NoColor) {
+  if (color == Color::NoColor) {
     return corner->occupancy == Village || corner->occupancy == City;
   } else {
     return (corner->occupancy == Village || corner->occupancy == City) && corner->color == color;
@@ -58,20 +58,20 @@ bool street_available(Street *street, Color color, bool opening_turn) {
   }
 
 
-  return street->color == NoColor
+  return street->color == Color::NoColor
       && adjacent
       && village_available;
 }
 
 bool corner_village_available(Corner *corner, Color color, bool opening_turn) {
-  if (corner_occupied(corner, NoColor)) {
+  if (corner_occupied(corner, Color::NoColor)) {
     return false;
   }
 
   for (auto &adjacent_street : corner->streets) {
     if (adjacent_street != nullptr) {
       for (auto adjacent_corner: adjacent_street->corners) {
-        if (corner_occupied(adjacent_corner, NoColor)) {
+        if (corner_occupied(adjacent_corner, Color::NoColor)) {
           return false;
         }
       }
@@ -99,29 +99,29 @@ bool corner_city_available(Corner *corner, Color color) {
 
 
 bool Player::resources_for_street() {
-  return cards[card_index(Brick)] >= 1
-         && cards[card_index(Lumber)] >= 1
+  return cards[card_index(CardType::Brick)] >= 1
+         && cards[card_index(CardType::Lumber)] >= 1
          && resources_left[0] >= 1;
 }
 
 bool Player::resources_for_village() {
-  return cards[card_index(Brick)] >= 1
-         && cards[card_index(Lumber)] >= 1
-         && cards[card_index(Grain)] >= 1
-         && cards[card_index(Wool)] >= 1
+  return cards[card_index(CardType::Brick)] >= 1
+         && cards[card_index(CardType::Lumber)] >= 1
+         && cards[card_index(CardType::Grain)] >= 1
+         && cards[card_index(CardType::Wool)] >= 1
          && resources_left[1] >= 1;
 }
 
 bool Player::resources_for_city() {
-  return cards[card_index(Ore)] >= 3
-         && cards[card_index(Grain)] >= 2
+  return cards[card_index(CardType::Ore)] >= 3
+         && cards[card_index(CardType::Grain)] >= 2
          && resources_left[2] >= 1;
 }
 
 bool Player::resources_for_development() {
-  return cards[card_index(Ore)] >= 1
-         && cards[card_index(Grain)] >= 1
-         && cards[card_index(Wool)] >= 1;
+  return cards[card_index(CardType::Ore)] >= 1
+         && cards[card_index(CardType::Grain)] >= 1
+         && cards[card_index(CardType::Wool)] >= 1;
 }
 
 std::set<int> Player::traverse_route(int street_id, std::set<int> previous_streets, std::set<int>* other_route,
@@ -131,7 +131,7 @@ std::set<int> Player::traverse_route(int street_id, std::set<int> previous_stree
 
   for (Corner* corner : board->street_array[street_id].corners) {
     // Check if not moving back through the same corner and that the corner is not occupied by another player
-    if ((corner->color == color || corner->color == NoColor) && corner->id != previous_corner) {
+    if ((corner->color == color || corner->color == Color::NoColor) && corner->id != previous_corner) {
       for (Street* street : corner->streets) {
         // Check if the street is defined, is from the current player and if it is not already counted
         if (street != nullptr && street->color == color &&
@@ -156,7 +156,7 @@ void Player::check_longest_route(int street_id, Color color) {
   std::set<int> route = {street_id};
 
   for (Corner* corner : board->street_array[street_id].corners) {
-    if (corner->color == color || corner->color == NoColor) {
+    if (corner->color == color || corner->color == Color::NoColor) {
       std::set<int> local_route {street_id};
       for (Street* street : corner->streets) {
         if (street != nullptr && street->color == color && street->id != street_id) {
@@ -188,8 +188,8 @@ int Player::place_street(int street_id) {
    && resources_for_street()) {
     board->street_array[street_id].color = player_color;
     resources_left[0]--; // Remove one street from pool
-    remove_cards(Brick, 1);
-    remove_cards(Lumber, 1);
+    remove_cards(CardType::Brick, 1);
+    remove_cards(CardType::Lumber, 1);
     return 0;
   } else {
     return 1;
@@ -202,10 +202,10 @@ int Player::place_village(int corner_id) {
     board->corner_array[corner_id].occupancy = Village;
     board->corner_array[corner_id].color = player_color;
     resources_left[1]--; // Remove one village from pool
-    remove_cards(Brick, 1);
-    remove_cards(Lumber, 1);
-    remove_cards(Grain, 1);
-    remove_cards(Wool, 1);
+    remove_cards(CardType::Brick, 1);
+    remove_cards(CardType::Lumber, 1);
+    remove_cards(CardType::Grain, 1);
+    remove_cards(CardType::Wool, 1);
     return 0;
   } else {
     return 1;
@@ -213,7 +213,7 @@ int Player::place_village(int corner_id) {
 
   // Check all adjacent roads for longest route, to see if the village interrupted the longest road.
   for (auto & street : board->corner_array[corner_id].streets) {
-    if (street->color != NoColor) {
+    if (street->color != Color::NoColor) {
       int street_id = street->id;
       check_longest_route(street_id, street->color);
     }
@@ -228,8 +228,8 @@ int Player::place_city(int corner_id) {
     board->corner_array[corner_id].color = player_color;
     resources_left[2]--; // Remove one city from pool
     resources_left[1]++; // Return one village to pool
-    remove_cards(Ore, 3);
-    remove_cards(Grain, 2);
+    remove_cards(CardType::Ore, 3);
+    remove_cards(CardType::Grain, 2);
     return 0;
   } else {
     return 1;
@@ -257,7 +257,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
-        current_move->move_type = buildStreet;
+        current_move->type = MoveType::buildStreet;
         current_move->index = street_i;
 
         ++current_move_id;
@@ -273,7 +273,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
-        current_move->move_type = buildVillage;
+        current_move->type = MoveType::buildVillage;
         current_move->index = corner_i;
 
         ++current_move_id;
@@ -289,7 +289,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
-        current_move->move_type = buildCity;
+        current_move->type = MoveType::buildCity;
         current_move->index = corner_i;
 
         ++current_move_id;
@@ -303,7 +303,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
       current_move = add_new_move(current_move_id);
       if (current_move == nullptr) { return available_moves; }
 
-      current_move->move_type = buyDevelopment;
+      current_move->type = MoveType::buyDevelopment;
 
       ++current_move_id;
     }
@@ -313,7 +313,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
-        current_move->move_type = playDevelopment;
+        current_move->type = MoveType::playDevelopment;
         current_move->index = i;
 
         ++current_move_id;
@@ -334,7 +334,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
             current_move = add_new_move(current_move_id);
             if (current_move == nullptr) { return available_moves; }
 
-            current_move->move_type = Exchange;
+            current_move->type = MoveType::Exchange;
             current_move->tx_card = index_card(card_i);
             current_move->tx_amount = 4;
             current_move->rx_card = index_card(card_j);
@@ -355,7 +355,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
-        current_move->move_type = moveRobber;
+        current_move->type = MoveType::moveRobber;
         current_move->index = tile_i;
 
         ++current_move_id;
@@ -369,7 +369,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
       current_move = add_new_move(current_move_id);
       if (current_move == nullptr) { return available_moves; }
 
-      current_move->move_type = getCardBank;
+      current_move->type = MoveType::getCardBank;
       current_move->index = card_type_i;
 
       ++current_move_id;
@@ -382,7 +382,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
     current_move = add_new_move(current_move_id);
     if (current_move == nullptr) { return available_moves; }
 
-    current_move->move_type = endTurn;
+    current_move->type = MoveType::endTurn;
 
     ++current_move_id;
   }
@@ -393,7 +393,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
     return available_moves;
   }
   available_moves[current_move_id] = Move();
-  available_moves[current_move_id].move_type = NoMove;
+  available_moves[current_move_id].type = MoveType::NoMove;
   return available_moves;
 }
 
@@ -406,13 +406,13 @@ void Player::set_cards(int brick, int lumber, int ore, int grain, int wool) {
 }
 
 void Player::add_cards(CardType card_type, int amount) {
-  if (card_type != NoCard) {
+  if (card_type != CardType::NoCard) {
     cards[card_index(card_type)] += amount;
   }
 }
 
 void Player::remove_cards(CardType card_type, int amount) {
-  if (card_type != NoCard) {
+  if (card_type != CardType::NoCard) {
     cards[card_index(card_type)] -= amount;
   }
 }
@@ -427,9 +427,9 @@ void Player::buy_development(DevelopmentType development_type) {
     ++victory_cards;
   }
 
-  remove_cards(Grain, 1);
-  remove_cards(Wool, 1);
-  remove_cards(Ore, 1);
+  remove_cards(CardType::Grain, 1);
+  remove_cards(CardType::Wool, 1);
+  remove_cards(CardType::Ore, 1);
 }
 
 void Player::play_development(int development_index) {

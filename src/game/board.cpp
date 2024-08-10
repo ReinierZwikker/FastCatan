@@ -239,8 +239,7 @@ void Board::InitializeTilesAndTokens() {
  * Randomly shuffles the tile_array and tokens using the default random engine.
  */
 void Board::ShuffleTilesAndTokens() {
-  auto random_seed = std::random_device {};
-  auto rng = std::default_random_engine {random_seed()};
+  auto rng = std::default_random_engine {seed};
   std::shuffle(available_tiles, available_tiles + amount_of_tiles, rng);
   std::shuffle(number_tokens, number_tokens + amount_of_tokens, rng);
 }

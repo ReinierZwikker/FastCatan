@@ -175,6 +175,7 @@ void App::Refresh() {
     if (ImGui::BeginMenu("AI"))
     {
       ImGui::MenuItem("AI Menu", NULL, &show_ai_window);
+      ImGui::MenuItem("Replay Menu", NULL, &show_replay_window);
       ImGui::EndMenu();
     }
 
@@ -203,6 +204,14 @@ void App::Refresh() {
   if (show_ai_window) {
     ImGui::Begin("AI Menu", &show_ai_window);
     training_in_progress = window_ai.show();
+
+    ImGui::End();
+  }
+
+  // Replay Menu
+  if (show_replay_window) {
+    ImGui::Begin("Replay Menu", &show_replay_window);
+    window_replay.show();
 
     ImGui::End();
   }

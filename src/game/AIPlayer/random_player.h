@@ -30,6 +30,8 @@ private:
   const PlayerType player_type = NNPlayer;
   const PlayerState player_state = Waiting;
   std::string console_tag;
+
+  std::mt19937 gen;
 };
 
 
