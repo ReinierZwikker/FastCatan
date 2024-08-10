@@ -23,8 +23,8 @@ Game::Game(int num_players) {
 
 Game::~Game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    free(players[player_i]->agent);
-    free(players[player_i]);
+    delete(players[player_i]->agent);
+    delete(players[player_i]);
   }
 }
 
@@ -203,7 +203,7 @@ int Game::roll_dice() {
   die_1 = dice(gen);
   die_2 = dice(gen);
 
-  printf("Rolled dice: %d + %d = %d\n", die_1, die_2, die_1 + die_2);
+//  printf("Rolled dice: %d + %d = %d\n", die_1, die_2, die_1 + die_2);
 
   return die_1 + die_2;
 }
@@ -220,10 +220,10 @@ void Game::give_cards(int rolled_number) {
         if (corner->color != NoColor) {
           if (corner->occupancy == Village) {
             players[color_index(corner->color)]->add_cards(tile2card(tile.type), 1);
-            std::cout << "Giving one " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
+//            std::cout << "Giving one " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
           } else if (corner->occupancy == City) {
             players[color_index(corner->color)]->add_cards(tile2card(tile.type), 2);
-            std::cout << "Giving two " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
+//            std::cout << "Giving two " + card_name(tile2card(tile.type)) + " to player " + color_name(corner->color) + "." << std::endl;
           }
         }
       }

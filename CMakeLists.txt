@@ -34,6 +34,8 @@ set(SOURCES
         app/3rd_party/imgui/imgui_widgets.cpp
         app/3rd_party/imgui/backends/imgui_impl_win32.cpp
         app/3rd_party/imgui/backends/imgui_impl_opengl3.cpp
+        src/game/AIPlayer/NeuralWeb.cpp
+        src/game/AIPlayer/NeuralWeb.h
 )
 
 set(TEST_SOURCES
