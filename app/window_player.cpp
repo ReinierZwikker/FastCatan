@@ -1,5 +1,8 @@
 #include "window_player.h"
 #include "iostream"
+#include <mutex>
+
+std::mutex player_mutex;
 
 bool show_all_moves;
 bool disable_end_turn[4] = {true, true, true, true};
@@ -10,15 +13,20 @@ Move moves[4] = {Move(), Move(), Move(), Move()};
 void CheckAvailableTypes(Game* game, int player_id) {
   bool street, village, city = false;
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
-    if (game->players[player_id]->available_moves[move_i].move_type == NoMove) {
+
+    player_mutex.lock();
+    MoveType move_type = game->players[player_id]->available_moves[move_i].type;
+    player_mutex.unlock();
+
+    if (move_type == MoveType::NoMove) {
       break;
     }
-    switch (game->players[player_id]->available_moves[move_i].move_type) {
-      case buildStreet:
+    switch (move_type) {
+      case MoveType::buildStreet:
         street = true;
-      case buildVillage:
+      case MoveType::buildVillage:
         village = true;
-      case buildCity:
+      case MoveType::buildCity:
         city = true;
     }
 
@@ -49,10 +57,14 @@ void CheckAvailableTypes(Game* game, int player_id) {
 
 
 void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
+  player_mutex.lock();
   PlayerState player_state = game->players[player_id]->agent->get_player_state();
+  GameStates game_state = game->game_state;
+  player_mutex.unlock();
+
   if (player_state == Playing) {
     CheckAvailableTypes(game, player_id);
-    if (game->game_state == PlayingRound) {
+    if (game_state == PlayingRound) {
       disable_end_turn[player_id] = false;
     }
   }
@@ -72,9 +84,13 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     ImGui::TableNextColumn(); ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("End Turn").x);
     if (ImGui::Button("End Turn")) {
       moves[player_id] = Move();
-      moves[player_id].move_type = endTurn;
+      moves[player_id].type = MoveType::endTurn;
+
+      player_mutex.lock();
       game->gui_moves[player_id] = moves[player_id];
       game->human_input_received();
+      player_mutex.unlock();
+
       CheckAvailableTypes(game, player_id);
     }
     if (disable_end_turn[player_id]) {
@@ -82,11 +98,23 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
       ImGui::EndDisabled();
     }
 
+    ImGui::TableNextColumn(); ImGui::Text("Longest Route");
+    player_mutex.lock();
+    ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->longest_route);
+    player_mutex.unlock();
+    ImGui::TableNextColumn(); ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("End Turn").x);
+    player_mutex.lock();
+    ImGui::Text("%i VP", game->players[player_id]->victory_points);
+    player_mutex.unlock();
+
     ImGui::EndTable();
   }
 
+  player_mutex.lock();
+  PlayerType player_type = game->players[player_id]->agent->get_player_type();
+  player_mutex.unlock();
 
-  if (game->players[player_id]->agent->get_player_type() == PlayerType::guiPlayer) {
+  if (player_type == PlayerType::guiPlayer) {
     ImGui::Combo("Move", &current_move[player_id], "Build\0Trade\0\0");
 
     switch (current_move[player_id]) {
@@ -97,7 +125,11 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
         if (current_structure[player_id] != 3) {
           ImGui::Combo("Structure", &current_structure[player_id], "Street\0Village\0City\0\0");
 
-          if (player_id == game->current_player_id) {
+          player_mutex.lock();
+          int current_player_id = game->current_player_id;
+          player_mutex.unlock();
+
+          if (player_id == current_player_id) {
             if (ImGui::BeginTable("table_advanced", 2)) {
               ImGui::TableSetupColumn("Corner", ImGuiTableColumnFlags_WidthFixed, 50.0f);
               ImGui::TableSetupColumn("Action");
@@ -105,28 +137,37 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
 
               ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
               for (int move_i = 0; move_i < max_available_moves; ++move_i) {
-                if (game->players[player_id]->available_moves[move_i].move_type == NoMove && !show_all_moves) {
+                player_mutex.lock();
+                MoveType move_type = game->players[player_id]->available_moves[move_i].type;
+                int move_index_id = game->players[player_id]->available_moves[move_i].index;
+                player_mutex.unlock();
+
+                if (move_type == MoveType::NoMove && !show_all_moves) {
                   break;
                 }
-                if (game->players[player_id]->available_moves[move_i].move_type == index_move(current_structure[player_id])) {
-                  ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->available_moves[move_i].index);
+                if (move_type == index_move(current_structure[player_id])) {
+                  ImGui::TableNextColumn(); ImGui::Text("%i", move_index_id);
                   ImGui::TableNextColumn();
 
                   // Build Button
                   char button_label[8];
                   sprintf(button_label, "Build##%i", move_i);
                   if (ImGui::SmallButton(button_label)) {
-                    moves[player_id].move_type = index_move(current_structure[player_id]);
+
+                    player_mutex.lock();
+                    moves[player_id].type = index_move(current_structure[player_id]);
                     moves[player_id].index = game->players[player_id]->available_moves[move_i].index;
 
                     game->gui_moves[player_id] = moves[player_id];
                     game->human_input_received();
+                    player_mutex.unlock();
+
                     CheckAvailableTypes(game, player_id);
                   }
                   ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
                 }
                 if (ImGui::IsItemHovered()) {
-                  hovered_row = game->players[player_id]->available_moves[move_i].index;
+                  hovered_row = move_index_id;
                 }
               }
               ImGui::EndTable();
@@ -163,9 +204,32 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
       ImGui::TableNextColumn(); ImGui::Text("Amount");
       ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
       for (int card_type_i = 0; card_type_i < 5; card_type_i++) {
+        player_mutex.lock();
+        int player_card = game->players[player_id]->cards[card_type_i];
+        player_mutex.unlock();
+
         ImGui::TableNextColumn(); ImGui::Text(card_names_char[card_type_i]);
-        ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->cards[card_type_i]);
+        ImGui::TableNextColumn(); ImGui::Text("%i", player_card);
       }
+
+      ImGui::EndTable();
+    }
+  }
+
+  if (ImGui::CollapsingHeader("Development Cards")) {
+    if (ImGui::BeginTable("split", 1)) {
+      ImGui::TableNextColumn(); ImGui::Text("Played: ");
+      player_mutex.lock();
+      ImGui::TableNextColumn(); ImGui::Text("Knights: %i", game->players[player_id]->played_knight_cards);
+      player_mutex.unlock();
+
+
+      ImGui::TableNextColumn(); ImGui::Text("Available: ");
+      player_mutex.lock();
+      for (DevelopmentCard const& dev_card : game->players[player_id]->development_cards) {
+        ImGui::TableNextColumn(); ImGui::Text("%s", dev_card_names_char[dev_card.type]);
+      }
+      player_mutex.unlock();
 
       ImGui::EndTable();
     }
@@ -173,15 +237,21 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
 
   if (ImGui::CollapsingHeader("Resources")) {
     if (ImGui::BeginTable("split", 2)) {
+      player_mutex.lock();
+      int resources_left_0 = game->players[player_id]->resources_left[0];
+      int resources_left_1 = game->players[player_id]->resources_left[1];
+      int resources_left_2 = game->players[player_id]->resources_left[2];
+      player_mutex.unlock();
+
       ImGui::TableNextColumn(); ImGui::Text("Resource");
       ImGui::TableNextColumn(); ImGui::Text("Amount");
       ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
       ImGui::TableNextColumn(); ImGui::Text("Streets");
-      ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->resources_left[0]);
+      ImGui::TableNextColumn(); ImGui::Text("%i", resources_left_0);
       ImGui::TableNextColumn(); ImGui::Text("Villages");
-      ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->resources_left[1]);
+      ImGui::TableNextColumn(); ImGui::Text("%i", resources_left_1);
       ImGui::TableNextColumn(); ImGui::Text("Cities");
-      ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->resources_left[2]);
+      ImGui::TableNextColumn(); ImGui::Text("%i", resources_left_2);
 
       ImGui::EndTable();
     }
@@ -197,11 +267,20 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
 
       ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
       for (int move_i = 0; move_i < max_available_moves; move_i++) {
-        if (game->players[player_id]->available_moves[move_i].move_type == NoMove && !show_all_moves) {
+        player_mutex.lock();
+        MoveType move_type = game->players[player_id]->available_moves[move_i].type;
+        player_mutex.unlock();
+
+        if (move_type == MoveType::NoMove && !show_all_moves) {
           break;
         }
+
+        player_mutex.lock();
+        Move move = game->players[player_id]->available_moves[move_i];
+        player_mutex.unlock();
+
         ImGui::TableNextColumn(); ImGui::Text("%i", move_i + 1);
-        ImGui::TableNextColumn(); ImGui::Text(move2string(game->players[player_id]->available_moves[move_i]).c_str());
+        ImGui::TableNextColumn(); ImGui::Text(move2string(move).c_str());
         ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
       }
 

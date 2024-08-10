@@ -1,6 +1,8 @@
 #ifndef FASTCATAN_PLAYER_H
 #define FASTCATAN_PLAYER_H
 
+#include <set>
+#include <vector>
 #include "components.h"
 #include "board.h"
 
@@ -19,7 +21,6 @@ public:
 
   bool activated = false;
 
-
   /*  === Link to player agent ===
    * Agent should implement the following function:
    * get_move(board, cards, available_moves)
@@ -33,15 +34,26 @@ public:
 
   Move *available_moves;
 
-  Color player_color = NoColor;
+  Color player_color = Color::NoColor;
 
   //                      {Streets, Villages, Cities}
   int resources_left[3] = {     15,        5,      4};
-
   int cards[5]{};
 
-  int victory_points = 0;
+  // Development Cards
+  std::vector<DevelopmentCard> development_cards{};
+  bool played_development_card = false;
+  int victory_cards = 0;
 
+  // Knights
+  int played_knight_cards = 0;
+  bool knight_leader = false;
+
+  // Longest trade route
+  int longest_route = 0;  // The longest route this player has
+  bool road_leader = false;  // If this player gets the victory points for longest route
+
+  int victory_points = 0;
 
   virtual ~Player();
 
@@ -50,16 +62,24 @@ public:
   bool resources_for_city();
   bool resources_for_development();
 
+  std::set<int> traverse_route(int street_id, std::set<int> previous_streets, std::set<int>* other_route,
+                               int previous_corner, Color color);
+  void check_longest_route(int street_id, Color color);
+
   // TODO evaluate if we want to keep this here
   int place_street(int street_id);
   int place_village(int corner_id);
   int place_city(int corner_id);
 
-  Move *update_available_moves(TurnType turn_type, Player *players[4]);
+  Move *update_available_moves(TurnType turn_type, Player *players[4], int current_development_card);
 
   void set_cards(int brick, int lumber, int ore, int grain, int wool);
   void add_cards(CardType card_type, int amount);
   void remove_cards(CardType card_type, int amount);
+
+  void buy_development(DevelopmentType development_card);
+  void play_development(int development_index);
+  void activate_development_cards();
 
   int get_total_amount_of_cards();
 

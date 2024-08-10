@@ -9,6 +9,10 @@
 #include <condition_variable>
 
 #include <string>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <thread>
 
 class GuiPlayer : public PlayerAgent {
 public:
@@ -33,6 +37,9 @@ private:
   Move selected_move;
   Player *player;
   const PlayerType player_type = guiPlayer;
+
+  static Move load_turn(int move_id);
+
 };
 
 

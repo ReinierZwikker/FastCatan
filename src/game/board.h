@@ -17,14 +17,14 @@ public:
   Street *streets[street_rows]{};
 
   Tile *current_robber_tile;
+  unsigned int seed = 42;
 
   void Randomize();
   void PrintBoard();
   bool CheckNumberTokens();
+  void Reset();
 
   int tile_diff[tile_rows]{};
-  int row_decrease[tile_rows] = {0};
-  int previous_rows[tile_rows + 1] = {0};
 
 private:
   void LinkParts();
@@ -43,8 +43,6 @@ private:
    * The 18 number tokens are marked with the numerals "2" through "12".
    * There is only one "2" and one "12". There is no "7".*/
   int number_tokens[amount_of_tokens]{};
-
-  bool show_number_token_debug = false;
 
   // Hardcoded for now:
   Harbor harbor_1 = Harbor(0, 0, 1, HarborType::Harbor_Generic);
