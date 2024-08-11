@@ -19,7 +19,7 @@ class WindowReplay {
     WindowReplay();
     ~WindowReplay();
 
-    void show(Game*, ViewPort*);
+    bool show(Game*, ViewPort*);
 
   private:
 

@@ -23,7 +23,7 @@ WindowReplay::~WindowReplay() {
 
 }
 
-void WindowReplay::show(Game* game, ViewPort* viewport) {
+bool WindowReplay::show(Game* game, ViewPort* viewport) {
 
   if (replaying) {
     mutex.lock();
@@ -335,7 +335,7 @@ void WindowReplay::show(Game* game, ViewPort* viewport) {
       }
     }
   }
-
+  return replaying;
 }
 
 void WindowReplay::load_games(const std::string& folder) {
