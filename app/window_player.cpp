@@ -72,9 +72,21 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     disable_end_turn[player_id] = true;
   }
 
-  if (ImGui::BeginTable("split", 3)) {
+  if (ImGui::BeginTable("split", 4)) {
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Fixed width for Button1
+    ImGui::TableSetupColumn("StatusInt", ImGuiTableColumnFlags_WidthStretch, 50.0f); // Fixed width for Button2
+    ImGui::TableSetupColumn("PlayerType", ImGuiTableColumnFlags_WidthFixed, 100.0f); // Fixed width for Button3
+    ImGui::TableSetupColumn("EndTurn", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Slider takes up remaining space
+
     ImGui::TableNextColumn(); ImGui::Text("Status");
     ImGui::TableNextColumn(); ImGui::Text("%s", player_state_char[player_state]);
+
+    ImGui::TableNextColumn();
+    player_mutex.lock();
+    int player_type = game->players[player_id]->agent->get_player_type();
+    ImGui::Combo("##Player Type", &player_type, "Console  \0GUI      \0Random   \0Zwik     \0Bean     \0No Player\0\0");
+    game->add_player((PlayerType)player_type, player_id);
+    player_mutex.unlock();
 
     // End Turn Button
     if (disable_end_turn[player_id]) {
@@ -82,7 +94,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
     }
     ImGui::TableNextColumn(); ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("End Turn").x);
-    if (ImGui::Button("End Turn")) {
+    if (ImGui::Button("End Turn", ImVec2(-1.0f, 0.0f))) {
       moves[player_id] = Move();
       moves[player_id].type = MoveType::endTurn;
 

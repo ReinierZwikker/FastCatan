@@ -39,12 +39,11 @@ bool WindowAI::show() {
                                      PlayerType::randomPlayer, PlayerType::randomPlayer};
         game_managers[game_i].game.add_players(player_type);
 
-        std::cout << "hi " << game_i << std::endl;
         game_managers[game_i].log.type = static_cast<LogType>(log_type);
         game_managers[game_i].start_log(game_managers[game_i].log.type,
                                         std::string(folder) + "/GameLog_Thread_" + std::to_string(game_i + 1), folder);
-        std::cout << "hello " << game_i << std::endl;
 
+        game_managers[game_i].seed = seed;
         threads[game_i] = std::thread(&GameManager::run_multiple_games, &game_managers[game_i]);
         threads[game_i].detach();
       }

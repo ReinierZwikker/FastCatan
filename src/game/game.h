@@ -17,6 +17,8 @@
 struct Game {
   explicit Game(bool gui = false, int num_players = 4, unsigned int input_seed = 42);
   ~Game();
+
+  void add_player(PlayerType player_type, int player_id);
   void add_players(PlayerType player_type[4]);
 
   // Handle game state
@@ -61,7 +63,7 @@ struct Game {
   int roll_dice();
   int die_1 = 0;
   int die_2 = 0;
-  void set_seed(unsigned int input_seed);
+  void reseed(unsigned int input_seed);
   unsigned int seed = 42;
   std::mt19937 gen;
   std::uniform_int_distribution<> dice;

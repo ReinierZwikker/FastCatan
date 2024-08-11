@@ -1,6 +1,11 @@
 #ifndef FASTCATAN_BOARD_H
 #define FASTCATAN_BOARD_H
 
+#include <algorithm>
+#include <random>
+#include <stdexcept>
+#include <iostream>
+
 #include "components.h"
 
 struct Board {
@@ -16,8 +21,9 @@ public:
   Street street_array[amount_of_streets]{};
   Street *streets[street_rows]{};
 
-  Tile *current_robber_tile;
+  Tile *current_robber_tile = nullptr;
   unsigned int seed = 42;
+  std::mt19937 gen;
 
   void Randomize();
   void PrintBoard();
@@ -32,7 +38,8 @@ private:
   void InitializeTilesAndTokens();
 
   void ShuffleTilesAndTokens();
-  void AddTileTypeAndNumberTokensToTiles();
+  void AddTileTypeToTiles(const TileType*);
+  void AddNumberTokensToTiles(const int*);
 
   void AddHarbors();
 

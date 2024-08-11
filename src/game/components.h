@@ -296,6 +296,7 @@ enum TurnType {
   normalTurn,
   robberTurn,
   tradeTurn,
+  devTurnKnight,
   devTurnMonopoly,
   devTurnYearOfPlenty,
   devTurnStreet,
@@ -431,7 +432,7 @@ static const char* game_states[] = {
  ******************/
 
 enum LogType {
-  EmptyLog,
+  NoLog,
   MoveLog,
   GameLog,
   BothLogs
@@ -444,11 +445,11 @@ struct GameSummary {
   uint8_t run_time;  // ms
   Color winner;
   uint8_t num_players;
-  uint8_t seed;
+  unsigned int seed;
 };
 
 struct Logger {
-  LogType type = EmptyLog;
+  LogType type = NoLog;
   FILE* game_summary_file = nullptr;
   FILE* move_file = nullptr;
 

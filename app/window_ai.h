@@ -22,6 +22,8 @@ class WindowAI {
     bool do_training = false;
     bool training = false;
 
+    unsigned int seed = 0;
+
     const unsigned int processor_count = std::thread::hardware_concurrency();
     int num_threads = 30;
 

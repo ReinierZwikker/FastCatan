@@ -19,7 +19,7 @@ class WindowReplay {
     WindowReplay();
     ~WindowReplay();
 
-    void show(Game*);
+    void show(Game*, ViewPort*);
 
   private:
 
@@ -30,12 +30,15 @@ class WindowReplay {
     PlayerState player_state;
     std::mutex mutex;
 
+    const int processor_count = (int)std::thread::hardware_concurrency();
+
     bool play = false;
     unsigned int play_tick = 0;
     float play_speed = 1;
 
     bool invalid_input_folder = false;
     bool replaying = false;
+    bool failed_to_load_game = false;
     int current_game = 0;
     int current_move = 1;
     int thread_id = 1;

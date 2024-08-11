@@ -89,15 +89,14 @@ void WindowGame(Game* game) {
     ImGui::EndTable();
   }
 
-
-  if (ImGui::BeginTable("split", 4)) {
+  if (ImGui::BeginTable("round_options", 4)) {
     // Setup Round button
     ImGui::TableNextColumn();
     if (game_state != ReadyToStart) {
       ImGui::BeginDisabled(true);
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
     }
-    if (ImGui::Button("Setup Round")) {
+    if (ImGui::Button("Setup Round", ImVec2(-1.0f, 0.0f))) {
       start_thread = std::thread(&Game::start_game, game);
       start_thread.detach();
     }
@@ -112,7 +111,7 @@ void WindowGame(Game* game) {
       ImGui::BeginDisabled(true);
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
     }
-    if (ImGui::Button("Step Round")) {
+    if (ImGui::Button("Step Round", ImVec2(-1.0f, 0.0f))) {
       game->game_state = PlayingRound;
       step_round_thread = std::thread(&Game::step_round, game);
       step_round_thread.detach();
@@ -128,7 +127,7 @@ void WindowGame(Game* game) {
       ImGui::BeginDisabled(true);
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
     }
-    if (ImGui::Button("Run Full Game")) {
+    if (ImGui::Button("Run Full Game", ImVec2(-1.0f, 0.0f))) {
       game_thread = std::thread(&Game::run_game, game);
       game_thread.detach();
     }
@@ -139,7 +138,7 @@ void WindowGame(Game* game) {
 
     // Reset Game Button
     ImGui::TableNextColumn();
-    if (ImGui::Button("Reset")) {
+    if (ImGui::Button("Reset", ImVec2(-1.0f, 0.0f))) {
       game->reset();
     }
 
@@ -149,13 +148,16 @@ void WindowGame(Game* game) {
   if (ImGui::CollapsingHeader("Development Cards")) {
     if (ImGui::BeginTable("split", 1)) {
       mutex.lock();
-      ImGui::TableNextColumn(); ImGui::Text("Current: %i", game->current_development_card);
+      int current_development_card = game->current_development_card;
       mutex.unlock();
 
       ImGui::TableNextColumn(); ImGui::Text("Available: ");
       mutex.lock();
-      for (DevelopmentType const& dev_card : game->development_cards) {
-        ImGui::TableNextColumn(); ImGui::Text("%s", dev_card_names_char[dev_card]);
+      for (int dev_card_i = 0; dev_card_i < amount_of_development_cards; ++dev_card_i) {
+        if (dev_card_i == current_development_card) {
+          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 128)); // Red color with 50% opacity
+        }
+        ImGui::TableNextColumn(); ImGui::Text("%s", dev_card_names_char[game->development_cards[dev_card_i]]);
       }
       mutex.unlock();
 

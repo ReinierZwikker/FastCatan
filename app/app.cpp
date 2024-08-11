@@ -229,7 +229,7 @@ void App::Refresh() {
   // Replay Menu
   if (show_replay_window) {
     ImGui::Begin("Replay Menu", &show_replay_window);
-    window_replay.show(game_pointer);
+    window_replay.show(game_pointer, &viewport);
 
     ImGui::End();
   }

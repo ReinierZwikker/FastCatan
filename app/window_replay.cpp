@@ -23,7 +23,7 @@ WindowReplay::~WindowReplay() {
 
 }
 
-void WindowReplay::show(Game* game) {
+void WindowReplay::show(Game* game, ViewPort* viewport) {
 
   if (replaying) {
     mutex.lock();
@@ -38,68 +38,95 @@ void WindowReplay::show(Game* game) {
 
   ImGui::InputInt("Thread", &thread_id);
   if (thread_id < 1) {
-    thread_id = 0;
+    thread_id = 1;
   }
-  else if (thread_id > 12) {
-    thread_id = 12;
-  }
-
-  if (ImGui::Button("Load")) {
-    load_games(input_folder);
+  else if (thread_id > processor_count) {
+    thread_id = processor_count;
   }
 
-  bool start_block = false;
-  if (loaded_moves.size() == 0 || replaying) {
-    start_block = true;
-    ImGui::BeginDisabled(true);
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-  }
-  if (ImGui::Button("Replay")) {
-    mutex.lock();
-    game->num_players = loaded_games[current_game].num_players;
-    game->seed = loaded_games[current_game].seed;
-    PlayerType player_type[4];
-    for (int player_i = 0; player_i < game->num_players; ++player_i) {
-      player_type[player_i] = guiPlayer;
+  if (ImGui::BeginTable("file_management", 4, ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Load", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+    ImGui::TableSetupColumn("Replay", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+    ImGui::TableSetupColumn("NextMove", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+    ImGui::TableSetupColumn("Messages", ImGuiTableColumnFlags_WidthStretch);
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button("Load", ImVec2(-1.0f, 0.0f))) {
+      load_games(input_folder);
     }
-    game->add_players(player_type);
-    game->reset();
-    mutex.unlock();
 
-    game_thread = std::thread(&Game::run_game, game);
-    game_thread.detach();
+    ImGui::TableNextColumn();
+    bool start_block = false;
+    if (loaded_moves.empty()) {
+      start_block = true;
+      ImGui::BeginDisabled(true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+    if (ImGui::Button("Replay", ImVec2(-1.0f, 0.0f))) {
+      if (replaying) {
+        replaying = false;
+        play = false;
+        play_tick = 0;
+        current_move = 1;
+        mutex.lock();
+        game->reset();
+        mutex.unlock();
+      }
+      mutex.lock();
+      game->num_players = loaded_games[current_game].num_players;
+      game->reseed(loaded_games[current_game].seed);
+      PlayerType player_type[4];
+      for (int player_i = 0; player_i < game->num_players; ++player_i) {
+        player_type[player_i] = guiPlayer;
+      }
+      game->add_players(player_type);
+      game->reset();
+      mutex.unlock();
 
-    replaying = true;
-  }
-  if (start_block) {
-    ImGui::PopStyleVar();
-    ImGui::EndDisabled();
-  }
+      game_thread = std::thread(&Game::run_game, game);
+      game_thread.detach();
 
-  start_block = false;
-  if (!replaying || player_state != Playing) {
-    start_block = true;
-    ImGui::BeginDisabled(true);
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-  }
-  ImGui::TableNextColumn();
-  if (ImGui::Button("Next Move")) {
-    game->human_input_received(loaded_moves[current_move]);
-    ++current_move;
-  }
-  if (start_block) {
-    ImGui::PopStyleVar();
-    ImGui::EndDisabled();
-  }
-
-  if (ImGui::BeginTable("play_menu", 4, ImGuiTableFlags_SizingStretchProp)) {
-    ImGui::TableSetupColumn("Button1", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Fixed width for Button1
-    ImGui::TableSetupColumn("Button2", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Fixed width for Button2
-    ImGui::TableSetupColumn("Button3", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Fixed width for Button3
-    ImGui::TableSetupColumn("Slider", ImGuiTableColumnFlags_WidthStretch); // Slider takes up remaining space
+      replaying = true;
+    }
+    if (start_block) {
+      ImGui::PopStyleVar();
+      ImGui::EndDisabled();
+    }
 
     ImGui::TableNextColumn();
     start_block = false;
+    if (!replaying || player_state != Playing || play) {
+      start_block = true;
+      ImGui::BeginDisabled(true);
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    }
+    if (ImGui::Button("Next Move", ImVec2(-1.0f, 0.0f))) {
+      game->human_input_received(loaded_moves[current_move]);
+      ++current_move;
+    }
+    if (start_block) {
+      ImGui::PopStyleVar();
+      ImGui::EndDisabled();
+    }
+
+    ImGui::TableNextColumn();
+    if (failed_to_load_game) {
+      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+      ImGui::Text("Failed to load file!");
+      ImGui::PopStyleColor();
+    }
+
+    ImGui::EndTable();
+  }
+
+  if (ImGui::BeginTable("play_menu", 4, ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Button1", ImGuiTableColumnFlags_WidthFixed, 70.0f); // Fixed width for Button1
+    ImGui::TableSetupColumn("Button2", ImGuiTableColumnFlags_WidthFixed, 70.0f); // Fixed width for Button2
+    ImGui::TableSetupColumn("Button3", ImGuiTableColumnFlags_WidthFixed, 70.0f); // Fixed width for Button3
+    ImGui::TableSetupColumn("Slider", ImGuiTableColumnFlags_WidthStretch); // Slider takes up remaining space
+
+    ImGui::TableNextColumn();
+    bool start_block = false;
     if (!replaying || play) {
       start_block = true;
       ImGui::BeginDisabled(true);
@@ -161,12 +188,13 @@ void WindowReplay::show(Game* game) {
     if (play_tick > (unsigned int)(ImGui::GetIO().Framerate / play_speed)) {
       game->human_input_received(loaded_moves[current_move]);
       ++current_move;
+
       play_tick = 0;
     }
   }
 
   // Stop the replay
-  if (replaying && current_move >= loaded_moves.size()) {
+  if ((replaying && current_move >= loaded_moves.size())) {
     replaying = false;
     current_move = 1;
     play = false;
@@ -175,7 +203,7 @@ void WindowReplay::show(Game* game) {
 
   if (ImGui::CollapsingHeader("Games")) {
     if (loaded_games.size() > 0) {
-      static ImGuiTableFlags flags = ImGuiWindowFlags_AlwaysAutoResize |
+      static ImGuiTableFlags flags = ImGuiTableFlags_RowBg |
                                      ImGuiTableFlags_Resizable |
                                      ImGuiTableFlags_Reorderable |
                                      ImGuiTableFlags_ScrollY;
@@ -193,6 +221,10 @@ void WindowReplay::show(Game* game) {
 
         ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
         for (int game_i = 0; game_i < loaded_games.size(); ++game_i) {
+          if (game_i == current_game) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 128)); // Red color with 50% opacity
+          }
+
           ImGui::TableNextColumn(); ImGui::Text("%i", game_i);
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].id);
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].rounds);
@@ -200,7 +232,7 @@ void WindowReplay::show(Game* game) {
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].run_time);
           ImGui::TableNextColumn(); ImGui::Text("%s", color_names[color_index(loaded_games[game_i].winner)].c_str());
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].num_players);
-          ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games[game_i].seed);
+          ImGui::TableNextColumn(); ImGui::Text("%u", loaded_games[game_i].seed);
 
           ImGui::TableNextColumn();
           char button_label[16];
@@ -209,6 +241,12 @@ void WindowReplay::show(Game* game) {
             transfer(input_folder, game_i);
             current_game = game_i;
             current_move = 1;
+
+            mutex.lock();
+            game->reseed(loaded_games[current_game].seed);
+            game->reset();
+            viewport->NewMap(game);
+            mutex.unlock();
           }
 
           ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
@@ -223,7 +261,7 @@ void WindowReplay::show(Game* game) {
 
   if (ImGui::CollapsingHeader("Moves")) {
     if (loaded_moves.size() > 0) {
-      static ImGuiTableFlags flags = ImGuiWindowFlags_AlwaysAutoResize |
+      static ImGuiTableFlags flags = ImGuiTableFlags_RowBg |
                                      ImGuiTableFlags_Resizable |
                                      ImGuiTableFlags_Reorderable |
                                      ImGuiTableFlags_ScrollY;
@@ -247,6 +285,10 @@ void WindowReplay::show(Game* game) {
         for (int move_i = 0; move_i < loaded_moves.size(); ++move_i) {
           if (move_i == current_move - 1) {
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 128)); // Red color with 50% opacity
+            if (replaying && play) {
+              float scroll_max_y = ImGui::GetScrollMaxY();
+              ImGui::SetScrollY(((float)move_i / (float)loaded_moves.size()) * scroll_max_y);
+            }
           }
 
           ImGui::TableNextColumn(); ImGui::Text("%i", move_i);
@@ -301,8 +343,12 @@ void WindowReplay::load_games(const std::string& folder) {
   FILE* file_game = std::fopen(path_game.c_str(), "rb");
 
   if (!file_game) {
+    failed_to_load_game = true;
     return;
     //throw std::invalid_argument("Could not open file");
+  }
+  else {
+    failed_to_load_game = false;
   }
 
   // Find the size of the file

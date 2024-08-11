@@ -74,8 +74,10 @@ void GameManager::write_log_to_disk() const {
 void GameManager::run_multiple_games() {
 
   game.log = &log;
+
   while(keep_running) {
     clock_t begin_clock = clock();
+
     if (log.type == MoveLog || log.type == BothLogs) {
       Move move;
       move.type = MoveType::Replay;
@@ -83,12 +85,24 @@ void GameManager::run_multiple_games() {
       log.moves[0] = move;
       ++log.writes;
     }
+
     game.run_game();
+
     if (log.type == GameLog || log.type == BothLogs) {
       add_game_to_log();
     }
+
     write_log_to_disk();
     log.writes = 0;
+
+    if (log.type != NoLog) {
+      if (seed == 0) {
+        game.reseed(rd());
+      }
+      else {
+        game.reseed(seed);
+      }
+    }
 
     game.reset();
     ++games_played;

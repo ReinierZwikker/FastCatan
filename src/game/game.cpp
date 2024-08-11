@@ -50,6 +50,43 @@ Game::~Game() {
   }
 }
 
+void Game::add_player(PlayerType player_type, int player_id) {
+  if (players[player_id]->agent) {
+    delete(players[player_id]->agent);
+  }
+  switch (player_type) {
+    case PlayerType::consolePlayer: {
+      auto *new_agent = new ConsolePlayer(players[player_id]);
+      players[player_id]->agent = new_agent;
+      break;
+    }
+    case guiPlayer: {
+      auto *new_agent = new GuiPlayer(players[player_id]);
+      players[player_id]->agent = new_agent;
+      break;
+    }
+    case randomPlayer: {
+      auto *new_agent = new RandomPlayer(players[player_id]);
+      players[player_id]->agent = new_agent;
+      break;
+    }
+    case zwikPlayer: {
+      throw std::invalid_argument("ZwikPlayer not available");
+      break;
+    }
+    case beanPlayer: {
+      throw std::invalid_argument("BeanPlayer not available");
+      break;
+    }
+    case NoPlayer: {
+      throw std::invalid_argument("A player must be selected");
+      break;
+    }
+  }
+  players[player_id]->activated = true;
+
+}
+
 void Game::add_players(PlayerType player_type[4]) {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     if (players[player_i]) {
@@ -59,37 +96,7 @@ void Game::add_players(PlayerType player_type[4]) {
   }
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = new Player(&board, index_color(player_i));
-
-    switch (player_type[player_i]) {
-      case PlayerType::consolePlayer: {
-        auto *new_agent = new ConsolePlayer(players[player_i]);
-        players[player_i]->agent = new_agent;
-        break;
-      }
-      case guiPlayer: {
-        auto *new_agent = new GuiPlayer(players[player_i]);
-        players[player_i]->agent = new_agent;
-        break;
-      }
-      case randomPlayer: {
-        auto *new_agent = new RandomPlayer(players[player_i]);
-        players[player_i]->agent = new_agent;
-        break;
-      }
-      case zwikPlayer: {
-        throw std::invalid_argument("ZwikPlayer not available");
-        break;
-      }
-      case beanPlayer: {
-        throw std::invalid_argument("BeanPlayer not available");
-        break;
-      }
-      case NoPlayer: {
-        throw std::invalid_argument("A player must be selected");
-        break;
-      }
-    }
-    players[player_i]->activated = true;
+    add_player(player_type[player_i], player_i);
   }
 }
 
@@ -234,6 +241,10 @@ void Game::step_round() {
         chosen_move = current_player->agent->get_move(&board, current_player->cards);
         if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
         move_robber(chosen_move.index);
+        if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
+          unavailable_move(chosen_move, "robber turn");
+        }
+
       } else { give_cards(dice_roll); }
 
       for (int move_i = 0; move_i < moves_per_turn; ++move_i) {
@@ -270,13 +281,13 @@ void Game::step_round() {
             }
             break;
           case MoveType::playDevelopment:
-            switch(current_player->development_cards[chosen_move.index].type) {
+            switch(chosen_move.index) {
               case Knight:
                 check_knights_played();
 
-                current_player->update_available_moves(robberTurn, players, current_development_card);
+                current_player->update_available_moves(devTurnKnight, players, current_development_card);
                 move = current_player->agent->get_move(&board, current_player->cards);
-                if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+                if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(move); }
 
                 if (!move_in_available_moves(move, current_player->available_moves)) {
                   unavailable_move(move, "dev Knight turn");
@@ -288,12 +299,12 @@ void Game::step_round() {
 
               case Monopoly:
                 // Chose a card to steal
-                current_player->update_available_moves(devTurnYearOfPlenty, players, current_development_card);
+                current_player->update_available_moves(devTurnMonopoly, players, current_development_card);
                 move = current_player->agent->get_move(&board, current_player->cards);
-                if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+                if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(move); }
 
                 if (!move_in_available_moves(move, current_player->available_moves)) {
-                  unavailable_move(move, "dev Year of Plenty turn");
+                  unavailable_move(move, "dev Monopoly turn");
                 }
 
                 // Steal the chosen card type from the other players
@@ -309,7 +320,7 @@ void Game::step_round() {
                 for (int card_i = 0; card_i < 2; ++card_i) {
                   current_player->update_available_moves(devTurnYearOfPlenty, players, current_development_card);
                   move = current_player->agent->get_move(&board, current_player->cards);
-                  if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+                  if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(move); }
 
                   if (!move_in_available_moves(move, current_player->available_moves)) {
                     unavailable_move(move, "dev Year of Plenty turn");
@@ -326,7 +337,7 @@ void Game::step_round() {
                   current_player->add_cards(CardType::Lumber, 1);
                   current_player->update_available_moves(devTurnStreet, players, current_development_card);
                   move = current_player->agent->get_move(&board, current_player->cards);
-                  if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+                  if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(move); }
 
                   if (move.type != MoveType::NoMove) {
                     if (!move_in_available_moves(move, current_player->available_moves)) {
@@ -338,6 +349,10 @@ void Game::step_round() {
                 }
                 check_longest_road();
 
+                break;
+              case VictoryPoint:
+                break;
+              case None:
                 break;
             }
             current_player->play_development(chosen_move.index);
@@ -395,9 +410,12 @@ void Game::run_game() {
 }
 
 void Game::reset() {
+  gen.seed(seed); // Reseed
+
   game_winner = Color::NoColor;
   current_round = 0;
   board.Reset();
+  board.Randomize();
 
   current_player = nullptr;
   longest_road_player = nullptr;
@@ -413,21 +431,17 @@ void Game::reset() {
   current_development_card = 0;
 
   move_id = 0;
-
-  gen.seed(seed); // Reseed
   game_state = ReadyToStart;
 }
 
-void Game::set_seed(unsigned int input_seed) {
-  gen.seed(input_seed);
+void Game::reseed(unsigned int input_seed) {
+  seed = input_seed;
   board.seed = input_seed;
 }
 
 int Game::roll_dice() {
   die_1 = dice(gen);
   die_2 = dice(gen);
-
-  // printf("Rolled dice: %d + %d = %d\n", die_1, die_2, die_1 + die_2);
 
   return die_1 + die_2;
 }
@@ -516,8 +530,7 @@ void Game::shuffle_development_cards() {
     }
   }
 
-  auto rng = std::default_random_engine {seed};
-  std::shuffle(development_cards, development_cards + amount_of_development_cards, rng);
+  std::shuffle(development_cards, development_cards + amount_of_development_cards, gen);
 }
 
 /*
@@ -543,7 +556,6 @@ void Game::give_cards(int rolled_number) {
 }
 
 void Game::add_move_to_log(Move move) {
-
   if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
     log->moves[log->writes] = move;
     ++log->writes;

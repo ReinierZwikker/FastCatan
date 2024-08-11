@@ -307,14 +307,14 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
 
       ++current_move_id;
     }
-    for (int i = 0; i < development_cards.size(); ++i) {
-      if (!played_development_card && development_cards[i].type != VictoryPoint &&
-          !development_cards[i].bought_this_round) {
+    for (auto & development_card : development_cards) {
+      if (!played_development_card && development_card.type != VictoryPoint &&
+          !development_card.bought_this_round) {
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
 
         current_move->type = MoveType::playDevelopment;
-        current_move->index = i;
+        current_move->index = (int)development_card.type;
 
         ++current_move_id;
       }
@@ -349,7 +349,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
 
 
   // Robber
-  if (turn_type == robberTurn) {
+  if (turn_type == robberTurn || turn_type == devTurnKnight) {
     for (int tile_i = 0; tile_i < amount_of_tiles; ++tile_i) {
       if (!board->tile_array[tile_i].robber) {
         current_move = add_new_move(current_move_id);

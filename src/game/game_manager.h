@@ -19,6 +19,9 @@ class GameManager {
     std::atomic<int> games_played = 0;
     std::atomic<bool> keep_running = false;
 
+    std::random_device rd;
+    unsigned int seed;
+
     void run_multiple_games();
 
     void start_log(LogType log_type, const std::string& filename, const std::filesystem::path& dirPath);
