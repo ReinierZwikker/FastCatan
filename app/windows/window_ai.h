@@ -1,10 +1,10 @@
 #ifndef FASTCATAN_WINDOW_AI_H
 #define FASTCATAN_WINDOW_AI_H
 
-#include "../app/3rd_party/imgui/imgui.h"
-#include "../app/viewport.h"
-#include "../src/game/game_manager.h"
-#include "../src/game/components.h"
+#include "imgui.h"
+#include "viewport.h"
+#include "game/game_manager.h"
+#include "game/components.h"
 
 #include <thread>
 #include <iostream>

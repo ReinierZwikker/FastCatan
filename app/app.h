@@ -13,11 +13,11 @@
 
 // Include other GUI
 #include "viewport.h"
-#include "window_board.h"
-#include "window_game.h"
-#include "window_player.h"
-#include "window_ai.h"
-#include "window_replay.h"
+#include "windows/window_board.h"
+#include "windows/window_game.h"
+#include "windows/window_player.h"
+#include "windows/window_ai.h"
+#include "windows/window_replay.h"
 
 
 class App {

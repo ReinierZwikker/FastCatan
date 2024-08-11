@@ -7,44 +7,46 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Define source files
-set(SOURCES
-        main.cpp
-        app/resources.rc
-        src/game/board.cpp
-        src/game/board.h
-        src/game/components.h
-        src/game/game.cpp
-        src/game/game.h
-        src/game/game_manager.cpp
-        src/game/game_manager.h
-        src/game/player.cpp
-        src/game/player.h
-        src/game/HumanPlayer/console_player.cpp
-        src/game/HumanPlayer/console_player.h
-        src/game/HumanPlayer/gui_player.cpp
-        src/game/HumanPlayer/gui_player.h
-#        src/game/AIPlayer/ai_zwik_player.cpp
-#        src/game/AIPlayer/ai_zwik_player.h
-        src/game/AIPlayer/random_player.cpp
-        src/game/AIPlayer/random_player.h
-        app/app.cpp
-        app/viewport.cpp
-        app/window_board.cpp
-        app/window_game.cpp
-        app/window_player.cpp
-        app/window_ai.cpp
-        app/window_replay.cpp
-        app/3rd_party/imgui/imgui.cpp
-        app/3rd_party/imgui/imgui_demo.cpp
-        app/3rd_party/imgui/imgui_draw.cpp
-        app/3rd_party/imgui/imgui_tables.cpp
-        app/3rd_party/imgui/imgui_widgets.cpp
-        app/3rd_party/imgui/backends/imgui_impl_win32.cpp
-        app/3rd_party/imgui/backends/imgui_impl_opengl3.cpp
+set(MAIN_SOURCES
+    main.cpp
+)
+
+set(GAME_SOURCES
+    src/game/board.cpp
+    src/game/components.h
+    src/game/game.cpp
+    src/game/game_manager.cpp
+    src/game/player.cpp
+    src/game/HumanPlayer/console_player.cpp
+    src/game/HumanPlayer/gui_player.cpp
+    src/game/AIHelpers/ai_helper.cpp
+    #        src/game/AIPlayer/ai_zwik_player.cpp
+    src/game/AIHelpers/bean_helper.cpp
+    src/game/AIPlayer/ai_bean_player.cpp
+    src/game/AIPlayer/random_player.cpp
+)
+
+set(APP_SOURCES
+    app/app.cpp
+    app/viewport.cpp
+    app/windows/window.cpp
+    app/windows/window_board.cpp
+    app/windows/window_game.cpp
+    app/windows/window_player.cpp
+    app/windows/window_ai.cpp
+    app/windows/window_replay.cpp
+    app/3rd_party/imgui/imgui.cpp
+    app/3rd_party/imgui/imgui_demo.cpp
+    app/3rd_party/imgui/imgui_draw.cpp
+    app/3rd_party/imgui/imgui_tables.cpp
+    app/3rd_party/imgui/imgui_widgets.cpp
+    app/3rd_party/imgui/backends/imgui_impl_win32.cpp
+    app/3rd_party/imgui/backends/imgui_impl_opengl3.cpp
 )
 
 # Create executable
-add_executable(FastCatan ${SOURCES})
+add_executable(FastCatan)
+target_sources(FastCatan PRIVATE ${MAIN_SOURCES} ${APP_SOURCES} ${GAME_SOURCES})
 
 # Custom Icon
 set(IMAGE_SOURCE "${CMAKE_SOURCE_DIR}/app/logo.ico")

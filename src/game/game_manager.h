@@ -20,7 +20,7 @@ class GameManager {
     std::atomic<bool> keep_running = false;
 
     std::random_device rd;
-    unsigned int seed;
+    unsigned int seed = 42;
 
     void run_multiple_games();
 

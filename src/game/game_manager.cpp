@@ -1,9 +1,7 @@
 #include "game_manager.h"
 
 
-GameManager::GameManager() {
-
-}
+GameManager::GameManager() = default;
 
 GameManager::~GameManager() {
   close_log();
