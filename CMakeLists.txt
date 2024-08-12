@@ -8,40 +8,42 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Define source files
 set(MAIN_SOURCES
-    main.cpp
+        main.cpp
 )
 
 set(GAME_SOURCES
-    src/game/board.cpp
-    src/game/components.h
-    src/game/game.cpp
-    src/game/game_manager.cpp
-    src/game/player.cpp
-    src/game/HumanPlayer/console_player.cpp
-    src/game/HumanPlayer/gui_player.cpp
-    src/game/AIHelpers/ai_helper.cpp
-    #        src/game/AIPlayer/ai_zwik_player.cpp
-    src/game/AIHelpers/bean_helper.cpp
-    src/game/AIPlayer/ai_bean_player.cpp
-    src/game/AIPlayer/random_player.cpp
+        src/game/board.cpp
+        src/game/components.h
+        src/game/game.cpp
+        src/game/game_manager.cpp
+        src/game/player.cpp
+        src/game/HumanPlayer/console_player.cpp
+        src/game/HumanPlayer/gui_player.cpp
+        src/game/AIHelpers/ai_helper.cpp
+        src/game/AIHelpers/zwik_helper.cpp
+        src/game/AIHelpers/bean_helper.cpp
+        #        src/game/AIPlayer/ai_zwik_player.cpp
+        src/game/AIPlayer/ai_bean_player.cpp
+        src/game/AIPlayer/random_player.cpp
 )
 
 set(APP_SOURCES
-    app/app.cpp
-    app/viewport.cpp
-    app/windows/window.cpp
-    app/windows/window_board.cpp
-    app/windows/window_game.cpp
-    app/windows/window_player.cpp
-    app/windows/window_ai.cpp
-    app/windows/window_replay.cpp
-    app/3rd_party/imgui/imgui.cpp
-    app/3rd_party/imgui/imgui_demo.cpp
-    app/3rd_party/imgui/imgui_draw.cpp
-    app/3rd_party/imgui/imgui_tables.cpp
-    app/3rd_party/imgui/imgui_widgets.cpp
-    app/3rd_party/imgui/backends/imgui_impl_win32.cpp
-    app/3rd_party/imgui/backends/imgui_impl_opengl3.cpp
+        app/app.cpp
+        app/viewport.cpp
+        app/app_components.h
+        app/windows/window.cpp
+        app/windows/window_board.cpp
+        app/windows/window_game.cpp
+        app/windows/window_player.cpp
+        app/windows/window_ai.cpp
+        app/windows/window_replay.cpp
+        app/3rd_party/imgui/imgui.cpp
+        app/3rd_party/imgui/imgui_demo.cpp
+        app/3rd_party/imgui/imgui_draw.cpp
+        app/3rd_party/imgui/imgui_tables.cpp
+        app/3rd_party/imgui/imgui_widgets.cpp
+        app/3rd_party/imgui/backends/imgui_impl_win32.cpp
+        app/3rd_party/imgui/backends/imgui_impl_opengl3.cpp
 )
 
 # Create executable

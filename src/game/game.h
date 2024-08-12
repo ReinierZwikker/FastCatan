@@ -20,6 +20,7 @@ struct Game {
 
   void add_player(PlayerType player_type, int player_id);
   void add_players(PlayerType player_type[4]);
+  void add_players(Player* new_players[4]);
 
   // Handle game state
   GameStates game_state = UnInitialized;
@@ -32,7 +33,7 @@ struct Game {
   std::mutex move_lock;
   std::condition_variable cv;
   std::mutex mutex;
-  void human_input_received(Move move);
+  void human_input_received(Move move) const;
 
   int num_players;
   // Player order: [Green, Red, White, Blue]
@@ -53,7 +54,7 @@ struct Game {
   DevelopmentType development_cards[amount_of_development_cards]{};
   int current_development_card = 0;
 
-  void unavailable_move(Move move, std::string);
+  void unavailable_move(Move move, const std::string&);
 
   void start_game();
   void step_round();
@@ -77,7 +78,7 @@ struct Game {
   void give_cards(int rolled_number);
 
   // Logging
-  void add_move_to_log(Move move);
+  void add_move_to_log(Move move) const;
   Logger* log = nullptr;
   unsigned int move_id = 0;
 

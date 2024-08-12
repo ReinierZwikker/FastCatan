@@ -5,8 +5,9 @@
 #include "viewport.h"
 #include "game/game.h"
 #include "game/components.h"
+#include "app_components.h"
 
 void CheckAvailableTypes(Game*, int);
-void WindowPlayer(Game*, ViewPort*, int, bool);
+void WindowPlayer(Game*, ViewPort*, int, AppInfo*);
 
 #endif //FASTCATAN_WINDOW_PLAYER_H

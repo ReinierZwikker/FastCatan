@@ -11,6 +11,8 @@
 #include <GL/GL.h>
 #include <tchar.h>
 
+#include "app_components.h"
+
 // Include other GUI
 #include "viewport.h"
 #include "windows/window_board.h"
@@ -36,12 +38,11 @@ class App {
     bool show_demo_window = false;
     bool show_board_window = false;
     bool show_game_window = false;
-    bool show_player_window[4] = {true, false, false, false};
+    bool show_player_window[4] = {false, false, false, false};
     bool show_ai_window = true;
-    bool show_replay_window = true;
+    bool show_replay_window = false;
 
-    bool training_in_progress = false;
-    bool replay_in_progress = false;
+    AppInfo app_info{};
 
     Game* game_pointer;
     WindowAI window_ai;

@@ -5,7 +5,7 @@ GuiPlayer::GuiPlayer(Player *connected_player) {
   input_received = false;
 }
 
-Move GuiPlayer::get_move(Board *board, int cards[5]) {
+Move GuiPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
   std::unique_lock<std::mutex> lock(waiting);
 
   player_state = PlayerState::Playing;

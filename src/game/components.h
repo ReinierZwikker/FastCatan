@@ -81,6 +81,7 @@ inline std::string color_offset(Color color) { return color_offsets[color_index(
  *     CARDS      *
  ******************/
 
+
 #pragma pack(push, 1)
 enum class CardType : uint8_t {
     Brick,
@@ -280,7 +281,7 @@ enum class MoveType : uint8_t {
   Trade,           // Specify: Other Player, Transmitting Card, Receiving Card, Amount
   Exchange,        // Specify: Transmitting Card, Receiving Card, Amount due to Harbor
   moveRobber,      // Specify: Tile Index
-  getCardBank,     // Specify: Card
+  getCardBank,     // Specify: Card Index
   endTurn,
   NoMove,
   Replay
@@ -290,7 +291,7 @@ enum class MoveType : uint8_t {
 inline MoveType index_move(int move_index) { return (MoveType) move_index; }
 inline int move_index(MoveType move) { return (int) move; }
 
-enum TurnType {
+enum class TurnType : uint8_t {
   openingTurnVillage,
   openingTurnStreet,
   normalTurn,
@@ -378,13 +379,22 @@ inline std::string move2string(Move move) {
  *    PLAYERS     *
  ******************/
 
-enum PlayerType {
+enum class PlayerType : uint8_t {
     consolePlayer,
     guiPlayer,
     randomPlayer,
     zwikPlayer,
     beanPlayer,
     NoPlayer
+};
+
+static const char* player_type_char[] = {
+    "Console Player",
+    "GUI Player",
+    "Random Player",
+    "Zwik Player",
+    "Bean Player",
+    "No Player"
 };
 
 enum PlayerState {
@@ -427,6 +437,12 @@ static const char* game_states[] = {
     "Unavailable Move"
 };
 
+struct GameInfo {
+  uint8_t current_dev_card;
+  TurnType turn_type;
+  int current_round;
+};
+
 /******************
  *    Logging     *
  ******************/
@@ -458,5 +474,19 @@ struct Logger {
   unsigned int writes = 0;
   unsigned int games_played = 0;
 };
+
+/*************
+ *    AI     *
+ *************/
+
+struct AISummary {
+  PlayerType type;
+  uint16_t id;
+  unsigned int seed;
+  float win_rate;  // between 0-1
+  float average_moves;
+  float average_points;  // between 0-11
+};
+
 
 #endif //FASTCATAN_COMPONENTS_H

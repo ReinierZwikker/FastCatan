@@ -250,9 +250,9 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
   Move *current_move;
 
   // Streets
-  if (turn_type == openingTurnStreet || turn_type == normalTurn || turn_type == devTurnStreet) {
+  if (turn_type == TurnType::openingTurnStreet || turn_type == TurnType::normalTurn || turn_type == TurnType::devTurnStreet) {
     for (int street_i = 0; street_i < amount_of_streets; ++street_i) {
-      if (street_available(&board->street_array[street_i], player_color, turn_type == openingTurnStreet)
+      if (street_available(&board->street_array[street_i], player_color, turn_type == TurnType::openingTurnStreet)
        && resources_for_street()) {
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
@@ -266,9 +266,9 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
   }
 
   // Villages
-  if (turn_type == openingTurnVillage || turn_type == normalTurn) {
+  if (turn_type == TurnType::openingTurnVillage || turn_type == TurnType::normalTurn) {
     for (int corner_i = 0; corner_i < amount_of_corners; ++corner_i) {
-      if (corner_village_available(&board->corner_array[corner_i], player_color, turn_type == openingTurnVillage)
+      if (corner_village_available(&board->corner_array[corner_i], player_color, turn_type == TurnType::openingTurnVillage)
        && resources_for_village()) {
         current_move = add_new_move(current_move_id);
         if (current_move == nullptr) { return available_moves; }
@@ -282,7 +282,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
   }
 
   // Cities
-  if (turn_type == normalTurn) {
+  if (turn_type == TurnType::normalTurn) {
     for (int corner_i = 0; corner_i < amount_of_corners; ++corner_i) {
       if (corner_city_available(&board->corner_array[corner_i], player_color)
        && resources_for_city()) {
@@ -298,7 +298,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
   }
 
   // Development Card
-  if (turn_type == normalTurn) {
+  if (turn_type == TurnType::normalTurn) {
     if (resources_for_development() && current_development_card < amount_of_development_cards) {
       current_move = add_new_move(current_move_id);
       if (current_move == nullptr) { return available_moves; }
@@ -325,7 +325,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
 
 
   // Exchanging
-  if (turn_type == normalTurn) {
+  if (turn_type == TurnType::normalTurn) {
     for (int card_i = 0; card_i < 5; ++card_i) {
       // TODO implement harbors?
       if (cards[card_i] > 4) {
@@ -349,7 +349,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
 
 
   // Robber
-  if (turn_type == robberTurn || turn_type == devTurnKnight) {
+  if (turn_type == TurnType::robberTurn || turn_type == TurnType::devTurnKnight) {
     for (int tile_i = 0; tile_i < amount_of_tiles; ++tile_i) {
       if (!board->tile_array[tile_i].robber) {
         current_move = add_new_move(current_move_id);
@@ -364,7 +364,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
   }
 
   // Year Of Plenty or Monopoly (Development Card)
-  if (turn_type == devTurnYearOfPlenty || turn_type == devTurnMonopoly) {
+  if (turn_type == TurnType::devTurnYearOfPlenty || turn_type == TurnType::devTurnMonopoly) {
     for (int card_type_i = 0; card_type_i < 5; ++card_type_i) {
       current_move = add_new_move(current_move_id);
       if (current_move == nullptr) { return available_moves; }
@@ -377,7 +377,7 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
   }
 
   // End Turn
-  if (turn_type == normalTurn) {
+  if (turn_type == TurnType::normalTurn) {
 
     current_move = add_new_move(current_move_id);
     if (current_move == nullptr) { return available_moves; }
@@ -419,6 +419,7 @@ void Player::remove_cards(CardType card_type, int amount) {
 
 void Player::buy_development(DevelopmentType development_type) {
   DevelopmentCard development_card;
+  dev_cards[(int) development_type] += 1;
   development_card.type = development_type;
   development_card.bought_this_round = true;
 

@@ -23,7 +23,7 @@ WindowReplay::~WindowReplay() {
 
 }
 
-bool WindowReplay::show(Game* game, ViewPort* viewport) {
+void WindowReplay::show(Game* game, ViewPort* viewport, AppInfo* app_info) {
 
   if (replaying) {
     mutex.lock();
@@ -77,7 +77,7 @@ bool WindowReplay::show(Game* game, ViewPort* viewport) {
       game->reseed(loaded_games[current_game].seed);
       PlayerType player_type[4];
       for (int player_i = 0; player_i < game->num_players; ++player_i) {
-        player_type[player_i] = guiPlayer;
+        player_type[player_i] = PlayerType::guiPlayer;
       }
       game->add_players(player_type);
       game->reset();
@@ -335,7 +335,8 @@ bool WindowReplay::show(Game* game, ViewPort* viewport) {
       }
     }
   }
-  return replaying;
+
+  app_info->state = AppState::Replaying;
 }
 
 void WindowReplay::load_games(const std::string& folder) {

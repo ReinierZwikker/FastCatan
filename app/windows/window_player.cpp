@@ -56,13 +56,13 @@ void CheckAvailableTypes(Game* game, int player_id) {
 }
 
 
-void WindowPlayer(Game* game, ViewPort* viewport, int player_id, bool replay_in_progress) {
+void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_info) {
   player_mutex.lock();
   PlayerState player_state = game->players[player_id]->agent->get_player_state();
   GameStates game_state = game->game_state;
   player_mutex.unlock();
 
-  if (player_state == Playing && !replay_in_progress) {
+  if (player_state == Playing && app_info->state != AppState::Replaying) {
     CheckAvailableTypes(game, player_id);
     if (game_state == PlayingRound) {
       disable_end_turn[player_id] = false;
@@ -83,8 +83,8 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, bool replay_in_
 
     ImGui::TableNextColumn();
     player_mutex.lock();
-    int player_type = game->players[player_id]->agent->get_player_type();
-    int current_player_type = game->players[player_id]->agent->get_player_type();  // Save the current player type
+    int player_type = (int)game->players[player_id]->agent->get_player_type();
+    int current_player_type = (int)game->players[player_id]->agent->get_player_type();  // Save the current player type
     ImGui::Combo("##Player Type", &player_type, "Console  \0GUI      \0Random   \0Zwik     \0Bean     \0No Player\0\0");
     if (current_player_type != player_type) {
       game->add_player((PlayerType)player_type, player_id);
@@ -132,7 +132,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, bool replay_in_
   PlayerType player_type = game->players[player_id]->agent->get_player_type();
   player_mutex.unlock();
 
-  if (player_type == PlayerType::guiPlayer && !replay_in_progress) {
+  if (player_type == PlayerType::guiPlayer && app_info->state != AppState::Replaying) {
     ImGui::Combo("Move", &current_move[player_id], "Build\0Trade\0\0");
 
     switch (current_move[player_id]) {

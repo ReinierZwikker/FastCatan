@@ -17,7 +17,7 @@
 class GuiPlayer : public PlayerAgent {
 public:
   explicit GuiPlayer(Player *connected_player);
-  Move get_move(Board *board, int cards[5]) override;
+  Move get_move(Board *board, int cards[5], GameInfo game_info) override;
   void finish_round(Board *board) override;
 
   inline PlayerType get_player_type() override { return player_type; }
@@ -36,7 +36,7 @@ public:
 private:
   Move selected_move;
   Player *player;
-  const PlayerType player_type = guiPlayer;
+  const PlayerType player_type = PlayerType::guiPlayer;
 
   static Move load_turn(int move_id);
 

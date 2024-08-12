@@ -221,7 +221,7 @@ void App::Refresh() {
   // AI Menu
   if (show_ai_window) {
     ImGui::Begin("AI Menu", &show_ai_window);
-    training_in_progress = window_ai.show();
+    window_ai.show(&app_info);
 
     ImGui::End();
   }
@@ -229,13 +229,13 @@ void App::Refresh() {
   // Replay Menu
   if (show_replay_window) {
     ImGui::Begin("Replay Menu", &show_replay_window);
-    replay_in_progress = window_replay.show(game_pointer, &viewport);
+    window_replay.show(game_pointer, &viewport, &app_info);
 
     ImGui::End();
   }
 
   // Board Menu
-  if (show_board_window && !training_in_progress) {
+  if (show_board_window && app_info.state != AppState::Training) {
     ImGui::Begin("Board", &show_board_window);
     WindowBoard(game_pointer, &viewport);
 
@@ -243,7 +243,7 @@ void App::Refresh() {
   }
 
   // Game Menu
-  if (show_game_window && !training_in_progress) {
+  if (show_game_window && app_info.state != AppState::Training) {
     ImGui::Begin("Game", &show_game_window);
     WindowGame(game_pointer);
 
@@ -252,11 +252,11 @@ void App::Refresh() {
 
   // Player Windows
   for (int player_i = 0; player_i < num_players; player_i++) {
-    if (show_player_window[player_i] && !training_in_progress) {
+    if (show_player_window[player_i] && app_info.state != AppState::Training) {
       char player_string[12];
       sprintf(player_string, "Player %i - %s", player_i + 1, color_name(index_color(player_i)).c_str());
       ImGui::Begin(player_string, &show_player_window[player_i]);
-      WindowPlayer(game_pointer, &viewport, player_i, replay_in_progress);
+      WindowPlayer(game_pointer, &viewport, player_i, &app_info);
 
       ImGui::End();
     }
@@ -268,7 +268,7 @@ void App::Refresh() {
   glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  if (!training_in_progress) {
+  if (app_info.state != AppState::Training) {
     viewport.Refresh(game_pointer);
   }
 

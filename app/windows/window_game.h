@@ -5,6 +5,7 @@
 #include "viewport.h"
 #include "game/game.h"
 #include "game/components.h"
+#include "app_components.h"
 
 void WindowGame(Game*);
 

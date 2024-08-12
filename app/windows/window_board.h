@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "viewport.h"
 #include "game/game.h"
+#include "app_components.h"
 
 void WindowBoard(Game* game, ViewPort* viewport);
 

@@ -5,6 +5,7 @@
 #include "viewport.h"
 #include "game/game_manager.h"
 #include "game/components.h"
+#include "app_components.h"
 
 #include <thread>
 #include <iostream>
@@ -19,7 +20,7 @@ class WindowReplay {
     WindowReplay();
     ~WindowReplay();
 
-    bool show(Game*, ViewPort*);
+    void show(Game*, ViewPort*, AppInfo*);
 
   private:
 

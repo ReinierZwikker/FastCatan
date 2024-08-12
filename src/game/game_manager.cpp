@@ -50,7 +50,7 @@ void GameManager::add_game_to_log() {
     log.game_summaries->id = games_played;
     log.game_summaries->rounds = game.current_round;
     log.game_summaries->moves_played = log.writes;
-    log.game_summaries->run_time = (uint8_t)(run_speed * 1000);
+    log.game_summaries->run_time = (uint8_t)(run_speed * 1000);  // to ms
     log.game_summaries->winner = game.game_winner;
     log.game_summaries->num_players = game.num_players;
     log.game_summaries->seed = game.seed;
@@ -69,12 +69,78 @@ void GameManager::write_log_to_disk() const {
   }
 }
 
+void GameManager::add_ai_helper(BeanHelper* bean_ai_helper) {
+  bean_helper = bean_ai_helper;
+}
+
+void GameManager::add_ai_helper(ZwikHelper* zwik_ai_helper) {
+  zwik_helper = zwik_ai_helper;
+}
+
+void GameManager::update_ai() {
+  if (bean_helper != nullptr) {
+    bean_helper->update();
+  }
+  if (zwik_helper != nullptr) {
+    zwik_helper->update();
+  }
+}
+
+void GameManager::assign_players() {
+  Player* players[4];
+  uint8_t bean_player_i = 0;
+  uint8_t zwik_player_i = 0;
+  for (int player_i = 0; player_i < app_info.num_players; ++player_i) {
+    players[player_i] = new Player(&game.board, index_color(player_i));
+    switch (app_info.selected_players[player_i]) {
+      case PlayerType::beanPlayer:
+        if (bean_helper != nullptr) {
+          players[player_i] = bean_helper->ai_players[bean_player_i];
+          players[player_i]->activated = true;
+          ++bean_player_i;
+        }
+        else {
+          error_message = {WindowName::AI, (uint8_t)player_i, "Bean Helper was not initialized"};
+          break;
+        }
+        break;
+      case PlayerType::zwikPlayer:
+        if (zwik_helper != nullptr) {
+          players[player_i] = zwik_helper->ai_players[zwik_player_i];
+          players[player_i]->activated = true;
+          ++zwik_player_i;
+        }
+        else {
+          error_message = {WindowName::AI, (uint8_t)player_i, "Zwik Helper was not initialized"};
+          break;
+        }
+        break;
+      case PlayerType::consolePlayer:
+        error_message = {WindowName::AI, (uint8_t)player_i, "Console player is not implemented"};
+        break;
+      case PlayerType::guiPlayer:
+        players[player_i]->agent = new GuiPlayer(players[player_i]);
+        players[player_i]->activated = true;
+        break;
+      case PlayerType::randomPlayer:
+        players[player_i]->agent = new RandomPlayer(players[player_i]);
+        players[player_i]->activated = true;
+        break;
+      case PlayerType::NoPlayer:
+        break;
+    }
+  }
+  game.add_players(players);
+}
+
 void GameManager::run_multiple_games() {
 
   game.log = &log;
 
   while(keep_running) {
     clock_t begin_clock = clock();
+
+    assign_players();
 
     if (log.type == MoveLog || log.type == BothLogs) {
       Move move;
@@ -101,6 +167,8 @@ void GameManager::run_multiple_games() {
         game.reseed(seed);
       }
     }
+
+    update_ai();
 
     game.reset();
     ++games_played;
