@@ -13,6 +13,7 @@ public:
   virtual inline PlayerType get_player_type() { return PlayerType::NoPlayer; }
   virtual inline PlayerState get_player_state() { return Waiting; }
   virtual inline void unpause(Move move) {}
+  unsigned int agent_seed;
 };
 
 class Player {

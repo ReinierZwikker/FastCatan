@@ -55,16 +55,19 @@ void Game::add_player(PlayerType player_type, int player_id) {
     case PlayerType::consolePlayer: {
       auto *new_agent = new ConsolePlayer(players[player_id]);
       players[player_id]->agent = new_agent;
+      assigned_players[player_id] = true;
       break;
     }
     case PlayerType::guiPlayer: {
       auto *new_agent = new GuiPlayer(players[player_id]);
       players[player_id]->agent = new_agent;
+      assigned_players[player_id] = true;
       break;
     }
     case PlayerType::randomPlayer: {
-      auto *new_agent = new RandomPlayer(players[player_id]);
+      auto *new_agent = new RandomPlayer(players[player_id], rd());
       players[player_id]->agent = new_agent;
+      assigned_players[player_id] = true;
       break;
     }
     case PlayerType::zwikPlayer: {
@@ -82,12 +85,12 @@ void Game::add_player(PlayerType player_type, int player_id) {
 }
 
 void Game::add_players(PlayerType player_type[4]) {
-  for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    if (players[player_i]) {
-      delete(players[player_i]->agent);
-      delete(players[player_i]);
-    }
-  }
+//  for (int player_i = 0; player_i < Game::num_players; player_i++) {
+//    if (players[player_i] != nullptr) {
+//      delete(players[player_i]->agent);
+//      delete(players[player_i]);
+//    }
+//  }
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     players[player_i] = new Player(&board, index_color(player_i));
     add_player(player_type[player_i], player_i);
@@ -104,7 +107,8 @@ void Game::add_players(Player* new_players[4]) {
 
 void Game::delete_players() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    if (players[player_i] != nullptr) {
+    if (players[player_i] != nullptr && assigned_players[player_i]) {
+      assigned_players[player_i] = false;
       delete players[player_i]->agent;
       delete players[player_i];
     }
@@ -240,7 +244,7 @@ void Game::start_game() {
   game_state = GameStates::SetupRoundFinished;
 }
 
-void Game::human_input_received(Move move) const {
+void Game::human_input_received(Move move) {
   current_player->agent->unpause(move);
 }
 

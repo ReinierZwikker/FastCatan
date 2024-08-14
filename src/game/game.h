@@ -35,12 +35,13 @@ struct Game {
   std::mutex move_lock;
   std::condition_variable cv;
   std::mutex mutex;
-  void human_input_received(Move move) const;
+  void human_input_received(Move move);
 
   int num_players;
   // Player order: [Green, Red, White, Blue]
   Player *players[4]{};
   Player *current_player = nullptr;
+  bool assigned_players[4];
   int current_player_id = 0;
 
   // Victory items
@@ -68,7 +69,9 @@ struct Game {
   int die_2 = 0;
   void reseed(unsigned int input_seed);
   unsigned int seed = 42;
+
   std::mt19937 gen;
+  std::random_device rd;
   std::uniform_int_distribution<> dice;
   std::uniform_int_distribution<> card;
 

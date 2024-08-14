@@ -21,7 +21,7 @@ private:
   std::random_device rd;
   std::mt19937 gen;
 
-  std::vector<BeanNN*> bean_players;
+  std::vector<BeanNN*> bean_nn_vector;
 
   uint8_t amount_of_layers = 0;
   uint8_t nodes_in_layer = 0;

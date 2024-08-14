@@ -12,11 +12,12 @@ public:
   const static uint16_t input_nodes = 240;
   const static uint16_t output_nodes = 10 + 72 + 5 + 5;
 
+  unsigned int seed;
+
 private:
   float* weights;
   float* biases;
   std::mt19937 gen;
-  unsigned int seed;
 
   uint8_t num_hidden_layers = 0;
   uint16_t nodes_per_layer = 0;
@@ -30,7 +31,7 @@ private:
 
 class BeanPlayer : public PlayerAgent {
 public:
-  explicit BeanPlayer(Player *connected_player);
+  explicit BeanPlayer(Player *connected_player, unsigned int seed);
   Move get_move(Board *board, int cards[5], GameInfo game_info) override;
   void finish_round(Board *board) override;
   inline void unpause(Move move) override {};

@@ -36,6 +36,7 @@ private:
 
   // AI Helpers
   BeanHelper* bean_helper = nullptr;
+  bool bean_helper_active = false;
   int bean_pop_size = 5;
   int layers = 4;
   int nodes_per_layer = 50;
@@ -43,6 +44,7 @@ private:
   bool randomize_seed = false;
 
   ZwikHelper* zwik_helper = nullptr;
+  bool zwik_helper_active = false;
   int zwik_pop_size = 200;
 
   // Show bools

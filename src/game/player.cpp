@@ -387,10 +387,6 @@ Move *Player::update_available_moves(TurnType turn_type, Player *players[4], int
     ++current_move_id;
   }
 
-  if (current_move_id == 0) {
-    std::cout << "here" << std::endl;
-  }
-
   // Closing mark
   if (current_move_id >= max_available_moves) {
     printf("Ran out of available moves!");

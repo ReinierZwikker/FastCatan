@@ -462,6 +462,8 @@ struct GameSummary {
   Color winner;
   uint8_t num_players;
   unsigned int seed;
+  unsigned int seed_players[4];
+  PlayerType type_players[4];
 };
 
 struct Logger {

@@ -34,8 +34,8 @@ void WindowAI::train_button() {
 
     for (int game_i = 0; game_i < num_threads; game_i++) {
       game_managers[game_i].app_info = *app_info;  // Put the current app_info into the game manager
-      game_managers[game_i].bean_helper = bean_helper;
-      game_managers[game_i].zwik_helper = zwik_helper;
+      if (bean_helper_active) { game_managers[game_i].add_ai_helper(bean_helper); }
+      if (zwik_helper_active) { game_managers[game_i].add_ai_helper(zwik_helper); }
 
       game_managers[game_i].keep_running = true;
       game_managers[game_i].id = game_i;
@@ -44,7 +44,7 @@ void WindowAI::train_button() {
       game_managers[game_i].start_log(game_managers[game_i].log.type,
                                       std::string(folder) + save_name + std::to_string(game_i + 1), folder);
 
-      game_managers[game_i].seed = seed;
+      game_managers[game_i].add_seed(seed);
       threads[game_i] = std::thread(&GameManager::run_multiple_games, &game_managers[game_i]);
       threads[game_i].detach();
     }
@@ -116,6 +116,7 @@ void WindowAI::bean_ai_window(Game* game) {
       if (bean_helper != nullptr) {
         delete bean_helper;
       }
+      bean_helper_active = true;
       bean_helper = new BeanHelper(bean_pop_size, (uint8_t)layers,
                                    (uint16_t)nodes_per_layer, (unsigned int)bean_seed, processor_count);
     }

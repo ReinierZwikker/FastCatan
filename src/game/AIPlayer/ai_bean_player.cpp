@@ -57,7 +57,8 @@ float BeanNN::relu(float value) {
  *    Agent     *
  ****************/
 
-BeanPlayer::BeanPlayer(Player *connected_player) {
+BeanPlayer::BeanPlayer(Player *connected_player, unsigned int input_seed) {
+  agent_seed = input_seed;
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
 }

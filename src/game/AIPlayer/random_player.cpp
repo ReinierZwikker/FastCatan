@@ -3,7 +3,7 @@
 
 #include "random_player.h"
 
-RandomPlayer::RandomPlayer(Player *connected_player) : gen(42) {
+RandomPlayer::RandomPlayer(Player *connected_player, unsigned int input_seed) : gen(input_seed) {
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
   // player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");

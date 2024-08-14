@@ -1,12 +1,21 @@
 #include "game_manager.h"
 
 
-GameManager::GameManager() = default;
+GameManager::GameManager() : new_seed(0, std::numeric_limits<unsigned int>::max()), gen(42) {
+  game = new Game(true);
+}
 
 GameManager::~GameManager() {
+  delete game;
+
   close_log();
   delete log.game_summaries;
   delete log.moves;
+}
+
+void GameManager::add_seed(unsigned int input_seed) {
+  seed = input_seed;
+  gen.seed(input_seed);
 }
 
 void GameManager::start_log(LogType log_type, const std::string& filename,
@@ -48,12 +57,17 @@ void GameManager::close_log() const {
 void GameManager::add_game_to_log() {
   if (log.game_summaries && (log.type == GameLog || log.type == BothLogs)) {
     log.game_summaries->id = games_played;
-    log.game_summaries->rounds = game.current_round;
+    log.game_summaries->rounds = game->current_round;
     log.game_summaries->moves_played = log.writes;
     log.game_summaries->run_time = (uint8_t)(run_speed * 1000);  // to ms
-    log.game_summaries->winner = game.game_winner;
-    log.game_summaries->num_players = game.num_players;
-    log.game_summaries->seed = game.seed;
+    log.game_summaries->winner = game->game_winner;
+    log.game_summaries->num_players = game->num_players;
+    log.game_summaries->seed = game->seed;
+
+    for (int player_i = 0; player_i < game->num_players; ++player_i) {
+      log.game_summaries->seed_players[player_i] = game->players[player_i]->agent->agent_seed;
+      log.game_summaries->type_players[player_i] = game->players[player_i]->agent->get_player_type();
+    }
   }
 }
 
@@ -71,18 +85,20 @@ void GameManager::write_log_to_disk() const {
 
 void GameManager::add_ai_helper(BeanHelper* bean_ai_helper) {
   bean_helper = bean_ai_helper;
+  bean_helper_active = true;
 }
 
 void GameManager::add_ai_helper(ZwikHelper* zwik_ai_helper) {
   zwik_helper = zwik_ai_helper;
+  zwik_helper_active = true;
 }
 
 void GameManager::update_ai() {
-  if (bean_helper != nullptr) {
-    bean_helper->update(&game, id);
+  if (bean_helper_active) {
+    bean_helper->update(game, id);
   }
-  if (zwik_helper != nullptr) {
-    zwik_helper->update(&game);
+  if (zwik_helper_active) {
+    zwik_helper->update(game);
   }
 }
 
@@ -98,6 +114,7 @@ void GameManager::assign_players() {
           players[player_i] = bean_helper->ai_total_players[id][bean_player_i];
           manager_mutex.unlock();
           players[player_i]->activated = true;
+          game->assigned_players[player_i] = true;
           ++bean_player_i;
         }
         else {
@@ -110,6 +127,7 @@ void GameManager::assign_players() {
           players[player_i] = zwik_helper->ai_total_players[id][zwik_player_i];
           manager_mutex.unlock();
           players[player_i]->activated = true;
+          game->assigned_players[player_i] = true;
           ++zwik_player_i;
         }
         else {
@@ -120,65 +138,83 @@ void GameManager::assign_players() {
         throw std::invalid_argument("Console Player not properly initialized");
         break;
       case PlayerType::guiPlayer:
-        players[player_i] = new Player(&game.board, index_color(player_i));
+        players[player_i] = new Player(&game->board, index_color(player_i));
         players[player_i]->agent = new GuiPlayer(players[player_i]);
         players[player_i]->activated = true;
+        game->assigned_players[player_i] = true;
         break;
       case PlayerType::randomPlayer:
-        players[player_i] = new Player(&game.board, index_color(player_i));
-        players[player_i]->agent = new RandomPlayer(players[player_i]);
+        players[player_i] = new Player(&game->board, index_color(player_i));
+        players[player_i]->agent = new RandomPlayer(players[player_i], new_seed(gen));
         players[player_i]->activated = true;
+        game->assigned_players[player_i] = true;
         break;
       case PlayerType::NoPlayer:
         break;
     }
   }
-  game.add_players(players);
+  game->add_players(players);
+}
+
+void GameManager::run() {
+  clock_t begin_clock = clock();
+
+  assign_players();
+
+  if (log.type == MoveLog || log.type == BothLogs) {
+    Move move;
+    move.type = MoveType::Replay;
+    move.index = games_played;
+    log.moves[0] = move;
+    ++log.writes;
+  }
+
+  game->run_game();
+
+  if (log.type == GameLog || log.type == BothLogs) {
+    add_game_to_log();
+  }
+
+  write_log_to_disk();
+  log.writes = 0;
+
+  if (log.type != NoLog) {
+    if (seed == 0) {
+      game->reseed(new_seed(gen));
+    }
+    else {
+      game->reseed(seed);
+    }
+  }
+
+  update_ai();
+
+  game->reset();
+
+  ++games_played;
+  clock_t end_clock = clock();
+  run_speed = (double)(end_clock - begin_clock) / CLOCKS_PER_SEC;
+}
+
+void GameManager::run_single_game() {
+  game->log = &log;
+  game->reseed(seed);
+  update_ai();
+
+  run();
+
+  write_log_to_disk();
+  close_log();
 }
 
 void GameManager::run_multiple_games() {
 
-  game.log = &log;
+  game->log = &log;
+  game->reseed(seed);
   update_ai();
 
   while(keep_running) {
-    clock_t begin_clock = clock();
-
-    assign_players();
-
-    if (log.type == MoveLog || log.type == BothLogs) {
-      Move move;
-      move.type = MoveType::Replay;
-      move.index = games_played;
-      log.moves[0] = move;
-      ++log.writes;
-    }
-
-    game.run_game();
-
-    if (log.type == GameLog || log.type == BothLogs) {
-      add_game_to_log();
-    }
-
-    write_log_to_disk();
-    log.writes = 0;
-
-    if (log.type != NoLog) {
-      if (seed == 0) {
-        game.reseed(rd());
-      }
-      else {
-        game.reseed(seed);
-      }
-    }
-
-    update_ai();
-
-    game.reset();
-
-    ++games_played;
-    clock_t end_clock = clock();
-    run_speed = (double)(end_clock - begin_clock) / CLOCKS_PER_SEC;
+    run();
   }
 
   write_log_to_disk();

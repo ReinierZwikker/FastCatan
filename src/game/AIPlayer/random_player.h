@@ -11,7 +11,7 @@
 
 class RandomPlayer : public PlayerAgent {
 public:
-  explicit RandomPlayer(Player *connected_player);
+  explicit RandomPlayer(Player *connected_player, unsigned int seed);
   Move get_move(Board *board, int cards[5], GameInfo game_info) override;
   void finish_round(Board *board) override;
   inline void unpause(Move move) override {};
