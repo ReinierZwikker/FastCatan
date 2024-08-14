@@ -78,7 +78,7 @@ Move BeanPlayer::go_through_moves(MoveType move_type, uint16_t index, CardType t
     }
     if (player->available_moves[move_i].type == move_type && player->available_moves[move_i].index == index &&
         player->available_moves[move_i].tx_card == tx_card && player->available_moves[move_i].rx_card == rx_card) {
-      move = player->available_moves[move_i];
+      return player->available_moves[move_i];
     }
   }
   return move;
@@ -117,7 +117,7 @@ Move BeanPlayer::get_move(Board *board, int *cards, GameInfo game_info) {
 
   // TODO: Check if available_move_types inits as false!!
   // [1] Gets which move types are available from the possible moves
-  bool available_move_types[12];
+  bool available_move_types[12] = {false};
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
     if (!available_move_types[(int)player->available_moves[move_i].type]) {
       available_move_types[(int)player->available_moves[move_i].type] = true;
@@ -169,13 +169,13 @@ Move BeanPlayer::get_move(Board *board, int *cards, GameInfo game_info) {
   // [3] Run the NN
   output = neural_net->calculate_move_probability(input);
   float* move_types = output;  // MoveType
-  float* index = output + 9;  // Index
-  float* tx_cards = output + 81;
-  float* rx_cards = output + 86;
+  float* index = output + 10;  // Index
+  float* tx_cards = output + 82;
+  float* rx_cards = output + 87;
 
   // [4] Sort MoveTypes to find the one the AI liked the most
-  int move_type_indices[9];
-  bubble_sort_indices(move_type_indices, move_types, 9);
+  int move_type_indices[10];
+  bubble_sort_indices(move_type_indices, move_types, 10);
 
   // [5] Get a valid move
   for (int move_type_indice : move_type_indices) {
@@ -222,12 +222,18 @@ Move BeanPlayer::get_move(Board *board, int *cards, GameInfo game_info) {
 
         // Go through all the available indices
         for (int index_indice: index_indices) {
-          move = go_through_moves(index_move(move_type_indice), index_indice, index_card(0), index_card(0));
+          move = go_through_moves(index_move(move_type_indice), index_indice, CardType::NoCard, CardType::NoCard);
+          if (move.type != MoveType::NoMove) {
+            return move;
+          }
         }
       }
       // [c] Find the first MoveType in the available moves (buDevelopment, endTurn)
       else if (!get_tx_rx) {
-        move = go_through_moves(index_move(move_type_indice), 0, index_card(0), index_card(0));
+        move = go_through_moves(index_move(move_type_indice), 0, CardType::NoCard, CardType::NoCard);
+        if (move.type != MoveType::NoMove) {
+          return move;
+        }
       }
       // [d] Find the highest ranked Exchange
       else {
@@ -244,10 +250,14 @@ Move BeanPlayer::get_move(Board *board, int *cards, GameInfo game_info) {
           for (int rx_indice : rx_indices) {
             move = go_through_moves(index_move(move_type_indice), 0,
                                     index_card(tx_indice), index_card(rx_indice));
+            if (move.type != MoveType::NoMove) {
+              return move;
+            }
           }
         }
       }
     }
+
   }
 
   // [6] Return the selected move

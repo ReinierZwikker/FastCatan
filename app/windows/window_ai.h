@@ -17,7 +17,7 @@ public:
   WindowAI();
   ~WindowAI();
 
-  void show(AppInfo* app_info);
+  void show(Game* game, AppInfo* app_info);
 
 private:
   unsigned int seed = 0;
@@ -56,8 +56,8 @@ private:
   void train_button();
   void stop_training_button();
   void select_players_window();
-  void bean_ai_window();
-  void zwik_ai_window();
+  void bean_ai_window(Game* game);
+  void zwik_ai_window(Game* game);
 };
 
 

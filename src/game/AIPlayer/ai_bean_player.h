@@ -9,8 +9,8 @@ public:
   ~BeanNN();
 
   float* calculate_move_probability(float* input);
-  const static uint16_t input_nodes = 236;
-  const static uint16_t output_nodes = 9 + 72 + 5 + 5;
+  const static uint16_t input_nodes = 240;
+  const static uint16_t output_nodes = 10 + 72 + 5 + 5;
 
 private:
   float* weights;
@@ -42,7 +42,7 @@ public:
 
   ~BeanPlayer();
 
-  BeanNN* neural_net = nullptr;
+  BeanNN* neural_net;
 
 private:
   Move go_through_moves(MoveType move_type, uint16_t index, CardType tx_card, CardType rx_card);

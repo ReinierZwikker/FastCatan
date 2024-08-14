@@ -34,6 +34,8 @@ void WindowAI::train_button() {
 
     for (int game_i = 0; game_i < num_threads; game_i++) {
       game_managers[game_i].app_info = *app_info;  // Put the current app_info into the game manager
+      game_managers[game_i].bean_helper = bean_helper;
+      game_managers[game_i].zwik_helper = zwik_helper;
 
       game_managers[game_i].keep_running = true;
       game_managers[game_i].id = game_i;
@@ -98,7 +100,7 @@ void WindowAI::select_players_window() {
   }
 }
 
-void WindowAI::bean_ai_window() {
+void WindowAI::bean_ai_window(Game* game) {
   if (ImGui::BeginTable("beanstatus", 3)) {
     if (bean_helper == nullptr) {
       ImGui::TableNextColumn(); ImGui::Text("Status");
@@ -115,14 +117,14 @@ void WindowAI::bean_ai_window() {
         delete bean_helper;
       }
       bean_helper = new BeanHelper(bean_pop_size, (uint8_t)layers,
-                                   (uint16_t)nodes_per_layer, (unsigned int)bean_seed);
+                                   (uint16_t)nodes_per_layer, (unsigned int)bean_seed, processor_count);
     }
     ImGui::EndTable();
   }
 
   if (ImGui::BeginTable("bean_settings", 1)) {
     ImGui::TableNextColumn();
-    ImGui::SliderInt("Population Size", &bean_pop_size, 1, 2000);
+    ImGui::SliderInt("Population Size", &bean_pop_size, 4, 2000);
 
     ImGui::TableNextColumn();
     ImGui::SliderInt("Amount of layers", &layers, 1, 50);
@@ -145,11 +147,11 @@ void WindowAI::bean_ai_window() {
 
 }
 
-void WindowAI::zwik_ai_window() {
+void WindowAI::zwik_ai_window(Game* game) {
 
 }
 
-void WindowAI::show(AppInfo* app_information) {
+void WindowAI::show(Game* game, AppInfo* app_information) {
   app_info = app_information;
 
   int total_games_played = 0;
@@ -211,13 +213,13 @@ void WindowAI::show(AppInfo* app_information) {
 
   if (show_bean_ai_menu) {
     ImGui::Begin("Bean AI Menu", &show_bean_ai_menu);
-    bean_ai_window();
+    bean_ai_window(game);
     ImGui::End();
   }
 
   if (show_zwik_ai_menu) {
     ImGui::Begin("Zwik AI Menu", &show_zwik_ai_menu);
-    zwik_ai_window();
+    zwik_ai_window(game);
     ImGui::End();
   }
 

@@ -22,6 +22,8 @@ public:
   std::atomic<int> games_played = 0;
   std::atomic<bool> keep_running = false;
 
+  std::mutex manager_mutex;
+
   std::random_device rd;
   unsigned int seed = 42;
 

@@ -20,7 +20,9 @@ struct Game {
 
   void add_player(PlayerType player_type, int player_id);
   void add_players(PlayerType player_type[4]);
+
   void add_players(Player* new_players[4]);
+  void delete_players();
 
   // Handle game state
   GameStates game_state = UnInitialized;

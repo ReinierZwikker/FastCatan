@@ -96,14 +96,17 @@ void Game::add_players(PlayerType player_type[4]) {
 
 void Game::add_players(Player* new_players[4]) {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    if (players[player_i]) {
-      delete(players[player_i]->agent);
-      delete(players[player_i]);
-    }
-  }
-  for (int player_i = 0; player_i < Game::num_players; player_i++) {
     if (new_players[player_i] != nullptr) {
       players[player_i] = new_players[player_i];
+    }
+  }
+}
+
+void Game::delete_players() {
+  for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    if (players[player_i] != nullptr) {
+      delete players[player_i]->agent;
+      delete players[player_i];
     }
   }
 }
@@ -478,14 +481,7 @@ void Game::reset() {
   longest_road_player = nullptr;
   most_knights_player = nullptr;
 
-  PlayerType player_type[4] = {PlayerType::NoPlayer,
-                               PlayerType::NoPlayer,
-                               PlayerType::NoPlayer,
-                               PlayerType::NoPlayer};
-  for (int player_i = 0; player_i < num_players; ++player_i) {
-    player_type[player_i] = players[player_i]->agent->get_player_type();
-  }
-  add_players(player_type);
+  delete_players();
 
   shuffle_development_cards();
   current_development_card = 0;

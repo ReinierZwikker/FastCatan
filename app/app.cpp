@@ -221,7 +221,7 @@ void App::Refresh() {
   // AI Menu
   if (show_ai_window) {
     ImGui::Begin("AI Menu", &show_ai_window);
-    window_ai.show(&app_info);
+    window_ai.show(game_pointer, &app_info);
 
     ImGui::End();
   }

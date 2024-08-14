@@ -8,10 +8,10 @@
 
 class BeanHelper : public AIHelper{
 public:
-  BeanHelper(unsigned int, uint8_t, uint8_t, unsigned int);
+  BeanHelper(unsigned int, uint8_t, uint8_t, unsigned int, unsigned int);
   ~BeanHelper();
 
-  void update();
+  void update(Game* game, int id);
 
 private:
   void eliminate();
@@ -22,6 +22,10 @@ private:
   std::mt19937 gen;
 
   std::vector<BeanNN*> bean_players;
+
+  uint8_t amount_of_layers = 0;
+  uint8_t nodes_in_layer = 0;
+  unsigned int seed = 0;
 };
 
 #endif //FASTCATAN_BEAN_HELPER_H

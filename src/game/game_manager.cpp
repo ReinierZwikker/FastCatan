@@ -79,10 +79,10 @@ void GameManager::add_ai_helper(ZwikHelper* zwik_ai_helper) {
 
 void GameManager::update_ai() {
   if (bean_helper != nullptr) {
-    bean_helper->update();
+    bean_helper->update(&game, id);
   }
   if (zwik_helper != nullptr) {
-    zwik_helper->update();
+    zwik_helper->update(&game);
   }
 }
 
@@ -91,38 +91,41 @@ void GameManager::assign_players() {
   uint8_t bean_player_i = 0;
   uint8_t zwik_player_i = 0;
   for (int player_i = 0; player_i < app_info.num_players; ++player_i) {
-    players[player_i] = new Player(&game.board, index_color(player_i));
     switch (app_info.selected_players[player_i]) {
       case PlayerType::beanPlayer:
         if (bean_helper != nullptr) {
-          players[player_i] = bean_helper->ai_players[bean_player_i];
+          manager_mutex.lock();
+          players[player_i] = bean_helper->ai_total_players[id][bean_player_i];
+          manager_mutex.unlock();
           players[player_i]->activated = true;
           ++bean_player_i;
         }
         else {
-          error_message = {WindowName::AI, (uint8_t)player_i, "Bean Helper was not initialized"};
-          break;
+          throw std::invalid_argument("Bean Player not properly initialized");
         }
         break;
       case PlayerType::zwikPlayer:
         if (zwik_helper != nullptr) {
-          players[player_i] = zwik_helper->ai_players[zwik_player_i];
+          manager_mutex.lock();
+          players[player_i] = zwik_helper->ai_total_players[id][zwik_player_i];
+          manager_mutex.unlock();
           players[player_i]->activated = true;
           ++zwik_player_i;
         }
         else {
-          error_message = {WindowName::AI, (uint8_t)player_i, "Zwik Helper was not initialized"};
-          break;
+          throw std::invalid_argument("Zwik Player not properly initialized");
         }
         break;
       case PlayerType::consolePlayer:
-        error_message = {WindowName::AI, (uint8_t)player_i, "Console player is not implemented"};
+        throw std::invalid_argument("Console Player not properly initialized");
         break;
       case PlayerType::guiPlayer:
+        players[player_i] = new Player(&game.board, index_color(player_i));
         players[player_i]->agent = new GuiPlayer(players[player_i]);
         players[player_i]->activated = true;
         break;
       case PlayerType::randomPlayer:
+        players[player_i] = new Player(&game.board, index_color(player_i));
         players[player_i]->agent = new RandomPlayer(players[player_i]);
         players[player_i]->activated = true;
         break;
@@ -136,6 +139,7 @@ void GameManager::assign_players() {
 void GameManager::run_multiple_games() {
 
   game.log = &log;
+  update_ai();
 
   while(keep_running) {
     clock_t begin_clock = clock();
@@ -171,6 +175,7 @@ void GameManager::run_multiple_games() {
     update_ai();
 
     game.reset();
+
     ++games_played;
     clock_t end_clock = clock();
     run_speed = (double)(end_clock - begin_clock) / CLOCKS_PER_SEC;

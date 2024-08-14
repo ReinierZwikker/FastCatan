@@ -26,10 +26,10 @@ struct ErrorMessage {
 
 struct AppInfo {
   AppState state = AppState::Idle;
-  PlayerType selected_players[4] = {PlayerType::randomPlayer,
-                                    PlayerType::randomPlayer,
-                                    PlayerType::randomPlayer,
-                                    PlayerType::randomPlayer};
+  PlayerType selected_players[4] = {PlayerType::beanPlayer,
+                                    PlayerType::beanPlayer,
+                                    PlayerType::beanPlayer,
+                                    PlayerType::beanPlayer};
   uint8_t num_players = 0;
 };
 

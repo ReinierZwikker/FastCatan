@@ -5,10 +5,10 @@
 
 class ZwikHelper : public AIHelper{
 public:
-  ZwikHelper(unsigned int);
+  ZwikHelper(unsigned int, unsigned int);
   ~ZwikHelper();
 
-  void update();
+  void update(Game*);
 
 private:
   void eliminate();
