@@ -11,13 +11,15 @@
 #include <GL/GL.h>
 #include <tchar.h>
 
+#include "app_components.h"
+
 // Include other GUI
 #include "viewport.h"
-#include "window_board.h"
-#include "window_game.h"
-#include "window_player.h"
-#include "window_ai.h"
-#include "window_replay.h"
+#include "windows/window_board.h"
+#include "windows/window_game.h"
+#include "windows/window_player.h"
+#include "windows/window_ai.h"
+#include "windows/window_replay.h"
 
 
 class App {
@@ -38,9 +40,9 @@ class App {
     bool show_game_window = false;
     bool show_player_window[4] = {false, false, false, false};
     bool show_ai_window = true;
-    bool show_replay_window = true;
+    bool show_replay_window = false;
 
-    bool training_in_progress = false;
+    AppInfo app_info{};
 
     Game* game_pointer;
     WindowAI window_ai;
@@ -67,7 +69,7 @@ class App {
     // Initialize parameters for later use
     MSG msg{};
     ImGuiIO& io;
-    HWND hwnd;
+    HWND hwnd{};
     WNDCLASSEXW wc{};
 
     // State

@@ -13,7 +13,7 @@ void ConsolePlayer::player_print(std::string text) {
   printf("%s%s", console_tag.c_str(), text.c_str());
 }
 
-Move ConsolePlayer::get_move(Board *board, int cards[5]) {
+Move ConsolePlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
   Move selected_move;
 
   player_print("Cards:\n");

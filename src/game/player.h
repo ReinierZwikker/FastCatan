@@ -8,11 +8,12 @@
 
 class PlayerAgent {
 public:
-  virtual inline Move get_move(Board *board, int cards[5]) { return {}; }
+  virtual inline Move get_move(Board *board, int cards[5], GameInfo game_info) { return {}; }
   virtual inline void finish_round(Board *board) {}
-  virtual inline PlayerType get_player_type() { return NoPlayer; }
+  virtual inline PlayerType get_player_type() { return PlayerType::NoPlayer; }
   virtual inline PlayerState get_player_state() { return Waiting; }
   virtual inline void unpause(Move move) {}
+  unsigned int agent_seed;
 };
 
 class Player {
@@ -40,8 +41,12 @@ public:
   int resources_left[3] = {     15,        5,      4};
   int cards[5]{};
 
+  // Harbors                  {Brick, Lumber, Ore,   Grain, Whool}
+  bool available_harbors[5] = {false, false,  false, false, false};
+
   // Development Cards
   std::vector<DevelopmentCard> development_cards{};
+  int dev_cards[5]{};
   bool played_development_card = false;
   int victory_cards = 0;
 

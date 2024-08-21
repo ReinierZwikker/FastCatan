@@ -1,0 +1,66 @@
+#ifndef FASTCATAN_WINDOW_AI_H
+#define FASTCATAN_WINDOW_AI_H
+
+#include "imgui.h"
+#include "viewport.h"
+#include "game/game_manager.h"
+#include "game/components.h"
+#include "app_components.h"
+
+#include <thread>
+#include <iostream>
+#include <mutex>
+
+
+class WindowAI {
+public:
+  WindowAI();
+  ~WindowAI();
+
+  void show(Game* game, AppInfo* app_info);
+
+private:
+  unsigned int seed = 0;
+
+  const unsigned int processor_count = std::thread::hardware_concurrency();
+  int num_threads = 30;
+
+  int games_played[30];
+
+  // TODO : Make size depend on processor_count
+  GameManager game_managers[30];
+  std::thread threads[30];
+
+  // Logging
+  int log_type = 0;
+
+  // AI Helpers
+  BeanHelper* bean_helper = nullptr;
+  bool bean_helper_active = false;
+  int bean_pop_size = 5;
+  int layers = 4;
+  int nodes_per_layer = 50;
+  int bean_seed = 42;
+  bool randomize_seed = false;
+
+  ZwikHelper* zwik_helper = nullptr;
+  bool zwik_helper_active = false;
+  int zwik_pop_size = 200;
+
+  // Show bools
+  bool show_select_players_menu = false;
+  bool show_bean_ai_menu = false;
+  bool show_zwik_ai_menu = false;
+  uint8_t show_player_error[4] = {0, 0, 0, 0};
+
+  // Widgets
+  AppInfo* app_info = nullptr;
+  void train_button();
+  void stop_training_button();
+  void select_players_window();
+  void bean_ai_window(Game* game);
+  void zwik_ai_window(Game* game);
+};
+
+
+#endif //FASTCATAN_WINDOW_AI_H

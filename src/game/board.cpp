@@ -1,8 +1,3 @@
-#include <algorithm>
-#include <random>
-#include <stdexcept>
-#include <iostream>
-
 #include "board.h"
 
 bool compare_number_tokens(int number_token_1, int number_token_2) {
@@ -47,7 +42,7 @@ Harbor::Harbor(int input_tile_id, int input_corner_1, int input_corner_2, Harbor
 }
 
 
-Board::Board() {
+Board::Board() : gen(seed) {
 
   for (int corner = 0; corner < amount_of_corners; corner++) {
     corner_array[corner].id = corner;
@@ -239,25 +234,42 @@ void Board::InitializeTilesAndTokens() {
  * Randomly shuffles the tile_array and tokens using the default random engine.
  */
 void Board::ShuffleTilesAndTokens() {
-  auto rng = std::default_random_engine {seed};
-  std::shuffle(available_tiles, available_tiles + amount_of_tiles, rng);
-  std::shuffle(number_tokens, number_tokens + amount_of_tokens, rng);
+  // Tile Types
+  TileType local_available_tiles[amount_of_tiles];
+  for (int tile_i = 0; tile_i < amount_of_tiles; ++tile_i) {
+    local_available_tiles[tile_i] = available_tiles[tile_i];
+  }
+  std::shuffle(local_available_tiles, local_available_tiles + amount_of_tiles, gen);
+  AddTileTypeToTiles(local_available_tiles);
+
+  // Number Tokens
+  int local_number_tokens[amount_of_tokens];
+  for (int token_i = 0; token_i < amount_of_tokens; ++token_i) {
+    local_number_tokens[token_i] = number_tokens[token_i];
+  }
+  std::shuffle(local_number_tokens, local_number_tokens + amount_of_tokens, gen);
+  AddNumberTokensToTiles(local_number_tokens);
+}
+
+/*
+ * Adds the tile types to the tile structs
+ */
+void Board::AddTileTypeToTiles(const TileType* shuffled_tiles) {
+  int current_tile = 0;
+  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
+    tile_array[tile_i].type = shuffled_tiles[tile_i];
+    tile_array[tile_i].robber = false;
+  }
 }
 
 /*
  * Adds the number tokens to the tile structs
  */
-void Board::AddTileTypeAndNumberTokensToTiles() {
-  int current_tile = 0;
-  for (int tile_i = 0; tile_i < amount_of_tiles; tile_i++) {
-    tile_array[tile_i].type = available_tiles[tile_i];
-    tile_array[tile_i].robber = false;
-  }
-
+void Board::AddNumberTokensToTiles(const int* shuffled_number_tokens) {
   int current_token = 0;
   for (auto & tile : tile_array) {
     if (tile.type != TileType::Desert) {
-      tile.number_token = number_tokens[current_token];
+      tile.number_token = shuffled_number_tokens[current_token];
 
       current_token++;
     }
@@ -323,10 +335,11 @@ bool Board::CheckNumberTokens() {
 }
 
 void Board::Randomize() {
+  gen.seed(seed);
+  InitializeTilesAndTokens();
   bool correct = false;
   while (!correct) {
     ShuffleTilesAndTokens();
-    AddTileTypeAndNumberTokensToTiles();
     correct = CheckNumberTokens();
   }
 }

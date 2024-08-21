@@ -56,13 +56,13 @@ void CheckAvailableTypes(Game* game, int player_id) {
 }
 
 
-void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
+void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_info) {
   player_mutex.lock();
   PlayerState player_state = game->players[player_id]->agent->get_player_state();
   GameStates game_state = game->game_state;
   player_mutex.unlock();
 
-  if (player_state == Playing) {
+  if (player_state == Playing && app_info->state != AppState::Replaying) {
     CheckAvailableTypes(game, player_id);
     if (game_state == PlayingRound) {
       disable_end_turn[player_id] = false;
@@ -72,9 +72,24 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     disable_end_turn[player_id] = true;
   }
 
-  if (ImGui::BeginTable("split", 3)) {
+  if (ImGui::BeginTable("split", 4)) {
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 90.0f); // Fixed width for Button1
+    ImGui::TableSetupColumn("StatusInt", ImGuiTableColumnFlags_WidthStretch, 50.0f); // Fixed width for Button2
+    ImGui::TableSetupColumn("PlayerType", ImGuiTableColumnFlags_WidthFixed, 100.0f); // Fixed width for Button3
+    ImGui::TableSetupColumn("EndTurn", ImGuiTableColumnFlags_WidthFixed, 50.0f); // Slider takes up remaining space
+
     ImGui::TableNextColumn(); ImGui::Text("Status");
     ImGui::TableNextColumn(); ImGui::Text("%s", player_state_char[player_state]);
+
+    ImGui::TableNextColumn();
+    player_mutex.lock();
+    int player_type = (int)game->players[player_id]->agent->get_player_type();
+    int current_player_type = (int)game->players[player_id]->agent->get_player_type();  // Save the current player type
+    ImGui::Combo("##Player Type", &player_type, "Console  \0GUI      \0Random   \0Zwik     \0Bean     \0No Player\0\0");
+    if (current_player_type != player_type) {
+      game->add_player((PlayerType)player_type, player_id);
+    }
+    player_mutex.unlock();
 
     // End Turn Button
     if (disable_end_turn[player_id]) {
@@ -82,13 +97,12 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
     }
     ImGui::TableNextColumn(); ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("End Turn").x);
-    if (ImGui::Button("End Turn")) {
+    if (ImGui::Button("End Turn", ImVec2(-1.0f, 0.0f))) {
       moves[player_id] = Move();
       moves[player_id].type = MoveType::endTurn;
 
       player_mutex.lock();
-      game->gui_moves[player_id] = moves[player_id];
-      game->human_input_received();
+      game->human_input_received(moves[player_id]);
       player_mutex.unlock();
 
       CheckAvailableTypes(game, player_id);
@@ -99,10 +113,14 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
     }
 
     ImGui::TableNextColumn(); ImGui::Text("Longest Route");
+
     player_mutex.lock();
     ImGui::TableNextColumn(); ImGui::Text("%i", game->players[player_id]->longest_route);
     player_mutex.unlock();
+
     ImGui::TableNextColumn(); ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("End Turn").x);
+
+    ImGui::TableNextColumn();
     player_mutex.lock();
     ImGui::Text("%i VP", game->players[player_id]->victory_points);
     player_mutex.unlock();
@@ -114,7 +132,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
   PlayerType player_type = game->players[player_id]->agent->get_player_type();
   player_mutex.unlock();
 
-  if (player_type == PlayerType::guiPlayer) {
+  if (player_type == PlayerType::guiPlayer && app_info->state != AppState::Replaying) {
     ImGui::Combo("Move", &current_move[player_id], "Build\0Trade\0\0");
 
     switch (current_move[player_id]) {
@@ -158,8 +176,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id) {
                     moves[player_id].type = index_move(current_structure[player_id]);
                     moves[player_id].index = game->players[player_id]->available_moves[move_i].index;
 
-                    game->gui_moves[player_id] = moves[player_id];
-                    game->human_input_received();
+                    game->human_input_received(moves[player_id]);
                     player_mutex.unlock();
 
                     CheckAvailableTypes(game, player_id);
