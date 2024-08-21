@@ -1,5 +1,5 @@
-#ifndef FASTCATAN_HUMAN_PLAYER_H
-#define FASTCATAN_HUMAN_PLAYER_H
+#ifndef FASTCATAN_CONSOLE_PLAYER_H
+#define FASTCATAN_CONSOLE_PLAYER_H
 
 #include "../components.h"
 #include "../board.h"
@@ -11,7 +11,7 @@
 class ConsolePlayer : public PlayerAgent {
 public:
   explicit ConsolePlayer(Player *connected_player);
-  Move get_move(Board *board, int cards[5]) override;
+  Move get_move(Board *board, int cards[5], GameInfo game_info) override;
   void finish_round(Board *board) override;
   inline void unpause(Move move) override {};
 
@@ -24,10 +24,10 @@ public:
 
 private:
   Player *player;
-  const PlayerType player_type = consolePlayer;
+  const PlayerType player_type = PlayerType::consolePlayer;
   const PlayerState player_state = Waiting;
   std::string console_tag;
 };
 
 
-#endif //FASTCATAN_HUMAN_PLAYER_H
+#endif //FASTCATAN_CONSOLE_PLAYER_H

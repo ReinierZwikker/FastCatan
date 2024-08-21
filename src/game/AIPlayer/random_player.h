@@ -1,5 +1,5 @@
-#ifndef FASTCATAN_HUMAN_PLAYER_H
-#define FASTCATAN_HUMAN_PLAYER_H
+#ifndef FASTCATAN_RANDOM_PLAYER
+#define FASTCATAN_RANDOM_PLAYER
 
 #include "../components.h"
 #include "../board.h"
@@ -11,8 +11,8 @@
 
 class RandomPlayer : public PlayerAgent {
 public:
-  explicit RandomPlayer(Player *connected_player);
-  Move get_move(Board *board, int cards[5]) override;
+  explicit RandomPlayer(Player *connected_player, unsigned int seed);
+  Move get_move(Board *board, int cards[5], GameInfo game_info) override;
   void finish_round(Board *board) override;
   inline void unpause(Move move) override {};
 
@@ -27,7 +27,7 @@ public:
 
 private:
   Player *player;
-  const PlayerType player_type = NNPlayer;
+  const PlayerType player_type = PlayerType::randomPlayer;
   const PlayerState player_state = Waiting;
   std::string console_tag;
 
@@ -35,4 +35,4 @@ private:
 };
 
 
-#endif //FASTCATAN_HUMAN_PLAYER_H
+#endif //FASTCATAN_RANDOM_PLAYER
