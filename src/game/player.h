@@ -3,6 +3,7 @@
 
 #include <set>
 #include <vector>
+#include <cuda_runtime.h>
 #include "components.h"
 #include "board.h"
 
@@ -13,6 +14,7 @@ public:
   virtual inline PlayerType get_player_type() { return PlayerType::NoPlayer; }
   virtual inline PlayerState get_player_state() { return Waiting; }
   virtual inline void unpause(Move move) {}
+  virtual inline void add_cuda(cudaStream_t* cuda_stream) {}
   unsigned int agent_seed;
 };
 
@@ -59,6 +61,9 @@ public:
   bool road_leader = false;  // If this player gets the victory points for longest route
 
   int victory_points = 0;
+
+  // Wrong Moves chosen before getting an available one
+  int mistakes = 0;
 
   virtual ~Player();
 

@@ -1,6 +1,7 @@
 #include "viewport.h"
 #include "../app/3rd_party/imgui/imgui.h"
 #include "../app/3rd_party/imgui/imgui_internal.h"
+#include <windows.h>
 #include <GL/GL.h>
 #include <GL/glu.h>
 #define STB_IMAGE_IMPLEMENTATION
@@ -59,8 +60,9 @@ float ViewPort::ConvertCornerRow2y(int column, int row, bool increasing) const {
 }
 
 void ViewPort::CalculateCoordinates(Game* game) {
-  float x, y, tile_shift;
-  float previous_x, previous_y;
+  float x = 0;
+  float y = 0;
+  float tile_shift = 0;
 
   for (int row = 0; row < tile_rows; row++) {
     // Shift x location based on row to interlock the hexagons

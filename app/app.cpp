@@ -154,6 +154,8 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
   viewport.CalculateCoordinates(game_pointer);
   viewport.NewMap(game_pointer);
 
+  app_info.num_players = game->num_players;
+
 //  for (int player_i = 0; player_i < game->num_players; player_i++) {
 //    CheckAvailableTypes(game_pointer, player_i);
 //    show_player_window[player_i] = true;
@@ -275,7 +277,7 @@ void App::Refresh() {
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   // Update and Render additional Platform Windows
-  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable && !done)
   {
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();

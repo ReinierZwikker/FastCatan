@@ -2,15 +2,20 @@
 
 
 GameManager::GameManager() : new_seed(0, std::numeric_limits<unsigned int>::max()), gen(42) {
+
   game = new Game(true);
+
 }
 
 GameManager::~GameManager() {
   delete game;
+  game = nullptr;
 
   close_log();
   delete log.game_summaries;
   delete log.moves;
+  log.game_summaries = nullptr;
+  log.moves = nullptr;
 }
 
 void GameManager::add_seed(unsigned int input_seed) {
@@ -56,7 +61,7 @@ void GameManager::close_log() const {
 
 void GameManager::add_game_to_log() {
   if (log.game_summaries && (log.type == GameLog || log.type == BothLogs)) {
-    log.game_summaries->id = games_played;
+    log.game_summaries->id = total_games_played;
     log.game_summaries->rounds = game->current_round;
     log.game_summaries->moves_played = log.writes;
     log.game_summaries->run_time = (uint8_t)(run_speed * 1000);  // to ms
@@ -95,7 +100,7 @@ void GameManager::add_ai_helper(ZwikHelper* zwik_ai_helper) {
 
 void GameManager::update_ai() {
   if (bean_helper_active) {
-    bean_helper->update(game, id);
+    bean_helper->update(game, id, games_played);
   }
   if (zwik_helper_active) {
     zwik_helper->update(game);
@@ -112,6 +117,9 @@ void GameManager::assign_players() {
         if (bean_helper != nullptr) {
           manager_mutex.lock();
           players[player_i] = bean_helper->ai_total_players[id][bean_player_i];
+//          if (id == 0) {
+//            players[player_i]->agent->add_cuda(&cuda_stream);
+//          }
           manager_mutex.unlock();
           players[player_i]->activated = true;
           game->assigned_players[player_i] = true;
@@ -159,39 +167,51 @@ void GameManager::assign_players() {
 void GameManager::run() {
   clock_t begin_clock = clock();
 
-  assign_players();
-
-  if (log.type == MoveLog || log.type == BothLogs) {
-    Move move;
-    move.type = MoveType::Replay;
-    move.index = games_played;
-    log.moves[0] = move;
-    ++log.writes;
-  }
-
-  game->run_game();
-
-  if (log.type == GameLog || log.type == BothLogs) {
-    add_game_to_log();
-  }
-
-  write_log_to_disk();
-  log.writes = 0;
-
-  if (log.type != NoLog) {
-    if (seed == 0) {
-      game->reseed(new_seed(gen));
+  if (!updating) {
+    if (ready_for_update) {
+      update_ai();
     }
-    else {
-      game->reseed(seed);
+    ready_for_update = false;
+
+    assign_players();
+
+    if (log.type == MoveLog || log.type == BothLogs) {
+      Move move;
+      move.type = MoveType::Replay;
+      move.index = 0;
+      log.moves[0] = move;
+      ++log.writes;
     }
+
+    game->run_game();
+
+    if (log.type == GameLog || log.type == BothLogs) {
+      add_game_to_log();
+    }
+
+    write_log_to_disk();
+    log.writes = 0;
+
+    if (log.type != NoLog) {
+      if (seed == 0) {
+        game->reseed(new_seed(gen));
+      }
+      else {
+        game->reseed(seed);
+      }
+    }
+
+    update_ai();
+
+    game->reset();
+
+    ++total_games_played;
+    ++games_played;
+  }
+  else {
+    ready_for_update = true;
   }
 
-  update_ai();
-
-  game->reset();
-
-  ++games_played;
   clock_t end_clock = clock();
   run_speed = (double)(end_clock - begin_clock) / CLOCKS_PER_SEC;
 }
@@ -208,6 +228,10 @@ void GameManager::run_single_game() {
 }
 
 void GameManager::run_multiple_games() {
+  cudaError_t err = cudaStreamCreate(&cuda_stream);
+  if (err != cudaSuccess) {
+    fprintf(stderr, "Failed to create CUDA stream: %s\n", cudaGetErrorString(err));
+  }
 
   game->log = &log;
   game->reseed(seed);

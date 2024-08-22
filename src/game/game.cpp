@@ -5,7 +5,7 @@
 
 
 Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed), dice(1, 6), card(0, 4) {
-  if (num_players < 0 or num_players > 4) {
+  if (num_players < 0 || num_players > 4) {
     throw std::invalid_argument("Maximum amount of players is four!");
   }
 
@@ -44,6 +44,7 @@ Game::~Game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     delete(players[player_i]->agent);
     delete(players[player_i]);
+    players[player_i] = nullptr;
   }
 }
 
@@ -178,9 +179,10 @@ void Game::start_game() {
 
       game_info = {(uint8_t)current_development_card,
                    TurnType::openingTurnVillage, current_round};
+
       chosen_move = current_player->agent->get_move(&board, current_player->cards, game_info);
 
-      if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+      add_move_to_log(chosen_move);
       if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
         unavailable_move(chosen_move, "first village");
       }
@@ -194,7 +196,7 @@ void Game::start_game() {
                    TurnType::openingTurnStreet, current_round};
       chosen_move = current_player->agent->get_move(&board, current_player->cards, game_info);
 
-      if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+      add_move_to_log(chosen_move);
       if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
         unavailable_move(chosen_move, "first street");
       }
@@ -216,7 +218,7 @@ void Game::start_game() {
                    TurnType::openingTurnVillage, current_round};
       chosen_move = current_player->agent->get_move(&board, current_player->cards, game_info);
 
-      if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+      add_move_to_log(chosen_move);
       if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
         unavailable_move(chosen_move, "second village");
       }
@@ -230,7 +232,7 @@ void Game::start_game() {
                    TurnType::openingTurnStreet, current_round};
       chosen_move = current_player->agent->get_move(&board, current_player->cards, game_info);
 
-      if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+      add_move_to_log(chosen_move);
       if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
         unavailable_move(chosen_move, "second street");
       }
@@ -249,7 +251,6 @@ void Game::human_input_received(Move move) {
 }
 
 void Game::step_round() {
-
   GameInfo game_info{};
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     current_player = players[player_i];
@@ -281,7 +282,7 @@ void Game::step_round() {
                      TurnType::robberTurn, current_round};
         chosen_move = current_player->agent->get_move(&board, current_player->cards, game_info);
 
-        if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+        add_move_to_log(chosen_move);
         move_robber(chosen_move.index);
         if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
           unavailable_move(chosen_move, "robber turn");
@@ -296,7 +297,7 @@ void Game::step_round() {
                      TurnType::normalTurn, current_round};
         chosen_move = current_player->agent->get_move(&board, current_player->cards, game_info);
 
-        if (log != nullptr && (log->type == MoveLog || log->type == BothLogs)) { add_move_to_log(chosen_move); }
+        add_move_to_log(chosen_move);
 
         if (!move_in_available_moves(chosen_move, current_player->available_moves)) {
           unavailable_move(chosen_move, "normal turn");
@@ -616,6 +617,7 @@ void Game::give_cards(int rolled_number) {
 }
 
 void Game::add_move_to_log(Move move) const {
+  current_player->mistakes += move.mistakes;
   if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
     log->moves[log->writes] = move;
     ++log->writes;

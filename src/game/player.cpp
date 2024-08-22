@@ -434,11 +434,15 @@ void Player::buy_development(DevelopmentType development_type) {
 }
 
 void Player::play_development(int development_index) {
-  if (development_cards[development_index].type == Knight) {
+  if (index_dev_card(development_index) == Knight) {
     ++played_knight_cards;
   }
 
-  development_cards.erase(development_cards.begin() + development_index);
+  for (int dev_card_i = 0; dev_card_i < development_cards.size(); ++dev_card_i) {
+    if (index_dev_card(development_index) == development_cards[dev_card_i].type) {
+      development_cards.erase(development_cards.begin() + dev_card_i);
+    }
+  }
   played_development_card = true;
 }
 

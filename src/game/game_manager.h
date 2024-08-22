@@ -19,8 +19,12 @@ public:
   std::atomic<int> id = 0;
   std::atomic<double> run_speed = 0;
 
-  std::atomic<int> games_played = 0;
+  std::atomic<int> total_games_played = 0;
+  int games_played = 0;
   std::atomic<bool> keep_running = false;
+
+  std::atomic<bool> updating = false;
+  std::atomic<bool> ready_for_update = false;
 
   void run_multiple_games();
   void run_single_game();
@@ -34,6 +38,8 @@ public:
 
   Game* game = nullptr;
   Logger log{};
+
+  cudaStream_t cuda_stream;
 
   AppInfo app_info;
   ErrorMessage error_message;

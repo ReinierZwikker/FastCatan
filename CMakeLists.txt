@@ -1,15 +1,22 @@
 cmake_minimum_required(VERSION 3.22)
-
-project(FastCatan)
+project(FastCatan LANGUAGES CXX CUDA)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(CUDA 9.0 REQUIRED)
+
+
 # Define source files
 set(MAIN_SOURCES
         main.cpp
+        src/game/AIPlayer/cuda_nn.cu
 )
+
+set (VERIFICATION_SOURCES
+        verification.cpp
+        src/game/AIPlayer/cuda_nn.cu)
 
 set(GAME_SOURCES
         src/game/board.cpp
@@ -50,6 +57,19 @@ set(APP_SOURCES
 add_executable(FastCatan)
 target_sources(FastCatan PRIVATE ${MAIN_SOURCES} ${APP_SOURCES} ${GAME_SOURCES})
 
+add_executable(Verification)
+target_sources(Verification PRIVATE ${VERIFICATION_SOURCES} ${GAME_SOURCES})
+
+set_target_properties(
+        FastCatan
+        PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(
+        Verification
+        PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON)
+
 # Custom Icon
 set(IMAGE_SOURCE "${CMAKE_SOURCE_DIR}/app/logo.ico")
 set(IMAGE_DESTINATION "${CMAKE_BINARY_DIR}/logo.ico")
@@ -59,13 +79,21 @@ add_custom_command(TARGET FastCatan
         COMMAND ${CMAKE_COMMAND} -E copy ${IMAGE_SOURCE} ${IMAGE_DESTINATION}
         COMMENT "Copying the icon to the build directory")
 
-
 # Include directories
 target_include_directories(FastCatan PRIVATE
         src
         app/3rd_party/imgui
         app/3rd_party/imgui/backends
-        app)
+        app
+        ${CUDA_INCLUDE_DIRS})
+
+# Include directories
+target_include_directories(Verification PRIVATE
+        src
+        app/3rd_party/imgui
+        app/3rd_party/imgui/backends
+        app
+        ${CUDA_INCLUDE_DIRS})
 
 
 # Find OpenGL package
@@ -75,6 +103,11 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(FastCatan PRIVATE
         OpenGL::GL
         Dwmapi.lib
+        ${CUDA_LIBRARIES}
+)
+
+target_link_libraries(Verification PRIVATE
+        ${CUDA_LIBRARIES}
 )
 
 # Link against additional libraries for Windows
@@ -85,3 +118,4 @@ if(WIN32)
             user32
     )
 endif()
+

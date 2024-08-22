@@ -317,12 +317,13 @@ struct Move {
   }
   // Move template, only set applicable fields when communicating moves
   MoveType type = MoveType::NoMove;
-  uint16_t index = 0;
+  uint8_t index = 0;
   Color other_player = Color::NoColor;
   CardType tx_card = CardType::NoCard;
   CardType rx_card = CardType::NoCard;
   uint8_t tx_amount = 0;
   uint8_t rx_amount = 0;
+  uint8_t mistakes = 0;
 };
 #pragma pack(pop)
 
@@ -471,8 +472,8 @@ struct Logger {
   FILE* game_summary_file = nullptr;
   FILE* move_file = nullptr;
 
-  GameSummary* game_summaries;
-  Move* moves;
+  GameSummary* game_summaries = nullptr;
+  Move* moves = nullptr;
   unsigned int writes = 0;
   unsigned int games_played = 0;
 };
@@ -482,12 +483,13 @@ struct Logger {
  *************/
 
 struct AISummary {
-  PlayerType type;
-  uint16_t id;
-  unsigned int seed;
-  float win_rate;  // between 0-1
-  float average_moves;
-  float average_points;  // between 0-11
+  PlayerType type = PlayerType::NoPlayer;
+  uint8_t wins = 0;
+  uint16_t id = 0;
+  unsigned int seed = 42;
+  float win_rate = 0;  // between 0-1
+  float average_rounds = 0;
+  float average_points = 0;  // between 0-11
 };
 
 
