@@ -22,7 +22,8 @@ set(GAME_SOURCES
         src/game/AIHelpers/ai_helper.cpp
         src/game/AIHelpers/zwik_helper.cpp
         src/game/AIHelpers/bean_helper.cpp
-        #        src/game/AIPlayer/ai_zwik_player.cpp
+        src/game/AIPlayer/ai_zwik_player.cpp
+        src/game/AIPlayer/NeuralWeb.cpp
         src/game/AIPlayer/ai_bean_player.cpp
         src/game/AIPlayer/random_player.cpp
 )

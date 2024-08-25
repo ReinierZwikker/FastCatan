@@ -304,6 +304,9 @@ enum class TurnType : uint8_t {
   noTurn
 };
 
+inline TurnType index_turn(int turn_index) { return (TurnType) turn_index; }
+inline int turn_index(TurnType turn) { return (int) turn; }
+
 #pragma pack(push, 1)
 struct Move {
   inline Move() {

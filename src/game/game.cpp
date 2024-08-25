@@ -2,6 +2,7 @@
 
 #include "game.h"
 #include "game/AIPlayer/random_player.h"
+#include "game/AIPlayer/ai_zwik_player.h"
 
 
 Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed), dice(1, 6), card(0, 4) {
@@ -13,10 +14,10 @@ Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed)
   PlayerType player_type[4];
   if (gui) {
     for (int player_i = 0; player_i < num_players; ++player_i) {
-      player_type[player_i] = PlayerType::guiPlayer;
+      player_type[player_i] = PlayerType::randomPlayer;
     }
-  }
-  else {
+    player_type[0] = PlayerType::zwikPlayer;
+  } else {
     for (int player_i = 0; player_i < num_players; ++player_i) {
       player_type[player_i] = PlayerType::consolePlayer;
     }
@@ -71,7 +72,10 @@ void Game::add_player(PlayerType player_type, int player_id) {
       break;
     }
     case PlayerType::zwikPlayer: {
-      throw std::invalid_argument("ZwikPlayer not available");
+      auto *new_agent = new AIZwikPlayer(players[player_id]);
+      players[player_id]->agent = new_agent;
+      assigned_players[player_id] = true;
+      break;
     }
     case PlayerType::beanPlayer: {
       throw std::invalid_argument("BeanPlayer not available");

@@ -1,50 +1,246 @@
 #include <cstdio>
+#include <stdexcept>
 #include <iostream>
+
 
 #include "ai_zwik_player.h"
 
-AIZwikPlayer::AIZwikPlayer(Player *connected_player) {
+AIZwikPlayer::AIZwikPlayer(Player *connected_player) :
+    neuralWeb(amount_of_neurons,
+              amount_of_env_inputs+amount_of_inputs,
+              amount_of_outputs,
+              5454321) {
+
+  // HOW TO (de-)serialise
+//  neuralWeb.to_json((std::string) "ai_test.json", (std::filesystem::path) "ais");
+//  neuralWeb.to_string((std::string) "ai_test.ai", (std::filesystem::path) "ais");
+//
+//  NeuralWeb test = NeuralWeb((std::string) "ai_test.ai", (std::filesystem::path) "ais");
+//
+//  std::string test_str = test.to_string();
+//
+//  NeuralWeb test2 = NeuralWeb(test_str);
+
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
   player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
+
+  update_environment();
+
+}
+
+void AIZwikPlayer::update_environment() {
+  Board *board = player->board;
+
+  int env_input_i = 0;
+  for (auto tile : board->tile_array) {
+    // Make an 0.0 or 1.0 input for each tile type of the tile
+    for (int tile_type_i = 0; tile_type_i < 6; ++tile_type_i) {
+      inputs[env_input_i++] = (float) (tile.type == index_tile(tile_type_i));
+    }
+    // Split number tokens into two inputs, scaled from
+    //  2 -> 6 : a = 0.3 -> 1.0, b = 0
+    // 12 -> 8 : a = 0         , b = 0.3 -> 1.0
+    if (tile.number_token < 7) {
+      inputs[env_input_i++] = ((float) tile.number_token) / 6;
+      inputs[env_input_i++] = 0;
+    } else {
+      inputs[env_input_i++] = 0;
+      inputs[env_input_i++] = (14 - (float) tile.number_token) / 6;
+    }
+  }
+
+  if (env_input_i != amount_of_env_inputs) {
+    throw std::invalid_argument("Not enough environmental inputs!");
+  }
 }
 
 void AIZwikPlayer::player_print(std::string text) {
   printf("%s%s", console_tag.c_str(), text.c_str());
 }
 
-Move AIZwikPlayer::get_move(Board *board, int cards[5]) {
-  Move selected_move;
 
-//  player_print("My Cards:\n");
-
-//  for (int card_i = 0; card_i < 5; ++card_i) {
-//    player_print("    " + card_name(index_card(card_i)) + " = " + std::to_string(cards[card_i]) + "\n");
-//  }
-
-//  player_print("My possible moves:\n");
-
-  int move_i;
-
-  for (move_i = 0; move_i < max_available_moves; ++move_i) {
-    if (player->available_moves[move_i].move_type == NoMove) {
-      break;
+int quick_max_index(float *values, int amount_of_values) {
+  // TODO make quick
+  int max_index = 0;
+  float max_value = 0;
+  for (int i = 0; i < amount_of_values; ++i) {
+    if (values[i] > max_value) {
+      max_index = i;
+      max_value = values[i];
     }
-//    player_print("Move " + std::to_string(move_i + 1) + ": " + move2string(player->available_moves[move_i]) + "\n");
+  }
+  return max_index;
+}
+
+
+Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
+
+  /******************
+   *     INPUTS     *
+   ******************/
+
+
+  int input_i = amount_of_env_inputs;
+
+  for (auto tile : board->tile_array) {
+    inputs[input_i++] = (float) tile.robber;
+  }
+  for (auto corner : board->corner_array) {
+    // Corner : nothing = 0, village = 0.5, city = 1
+    inputs[input_i++] = ((float) corner.occupancy) / 2;
+    // 4 inputs, 1 if assigned color else 0
+    for (int color_i = 0; color_i < 4; ++color_i) {
+      inputs[input_i++] = (float) (corner.color == index_color(color_i));
+    }
+  }
+  for (auto street : board->street_array) {
+    // 4 inputs, 1 if assigned color else 0
+    for (int color_i = 0; color_i < 4; ++color_i) {
+      inputs[input_i++] = (float) (street.color == index_color(color_i));
+    }
   }
 
-  std::mt19937 gen(randomDevice());
-  std::uniform_int_distribution<> random_move(0, move_i-1);
+  for (auto card : player->cards) {
+    inputs[input_i++] = ((float) card) / 10.0f;
+  }
 
-  int selected_move_i = random_move(gen);
-
-  selected_move = player->available_moves[selected_move_i];
-
-//  player_print("Selecting a random move: " + std::to_string(selected_move_i) + "\n");
+  for (auto development_card : player->dev_cards) {
+    inputs[input_i++] = ((float) development_card) / 5.0f;
+  }
 
 
-//  player_print("\nSelected move: " + move2string(selected_move) + "\n");
-  return selected_move;
+  for (auto harbor : player->available_harbors) {
+    inputs[input_i++] = (float) harbor;
+  }
+
+  inputs[input_i++] = (float) player->knight_leader;
+  inputs[input_i++] = (float) player->road_leader;
+
+  inputs[input_i++] = ((float) player->victory_points) / 10.0f;
+
+  inputs[input_i++] = ((float) player->resources_left[0]) / 15.0f;
+  inputs[input_i++] = ((float) player->resources_left[1]) / 5.0f;
+  inputs[input_i++] = ((float) player->resources_left[2]) / 4.0f;
+
+  inputs[input_i++] = ((float) game_info.current_round) / 500.0f;
+  for (int turn_type_i = 0; turn_type_i < 9; ++turn_type_i) {
+    inputs[input_i++] = (float) (game_info.turn_type == index_turn(turn_type_i));
+  }
+
+
+  if (input_i != amount_of_env_inputs+amount_of_inputs) {
+    throw std::invalid_argument("Not enough inputs! "
+                                + std::to_string(input_i)
+                                + " != "
+                                + std::to_string(amount_of_env_inputs+amount_of_inputs) + "\n");
+  }
+
+  /******************
+   *    RUN WEB     *
+   ******************/
+
+  int cycles_ran = neuralWeb.run_web(&inputs[0], &outputs[0], 2000);
+
+  /******************
+   *    OUTPUTS     *
+   ******************/
+
+  // If no valid move found, try 2 times more
+  for (int run_try_i = 0; run_try_i < 3; ++run_try_i) {
+
+    int output_i = 0;
+
+    float *move_selections = &outputs[output_i];
+    output_i += 10;
+    float *street_selections = &outputs[output_i];
+    output_i += amount_of_streets;
+    float *corner_selections = &outputs[output_i];
+    output_i += amount_of_corners;
+    float *tile_selections = &outputs[output_i];
+    output_i += amount_of_tiles;
+    float *tx_card_selections = &outputs[output_i];
+    output_i += 5;
+    float *rx_card_selections = &outputs[output_i];
+    output_i += 5;
+    float *dev_card_selections = &outputs[output_i];
+
+    if (output_i != amount_of_outputs) {
+      throw std::invalid_argument("Not enough outputs!"
+                                  + std::to_string(output_i)
+                                  + " != "
+                                  + std::to_string(amount_of_outputs) + "\n");
+    }
+
+    Move chosen_move;
+
+    chosen_move.type = index_move(quick_max_index(move_selections, 10));
+
+    switch (chosen_move.type) {
+      case MoveType::buildStreet:
+        chosen_move.index = quick_max_index(street_selections, amount_of_streets);
+        break;
+      case MoveType::buildVillage:
+        chosen_move.index = quick_max_index(corner_selections, amount_of_corners);
+        break;
+      case MoveType::buildCity:
+        chosen_move.index = quick_max_index(corner_selections, amount_of_corners);
+        break;
+      case MoveType::buyDevelopment:
+        chosen_move.index = quick_max_index(dev_card_selections, 5);
+        break;
+      case MoveType::playDevelopment:
+        chosen_move.index = quick_max_index(dev_card_selections, 5);
+        break;
+      case MoveType::Trade:
+        // TODO implement trade
+        break;
+      case MoveType::Exchange:
+        chosen_move.tx_card = index_card(quick_max_index(tx_card_selections, 5));
+        chosen_move.tx_amount = 4;
+        chosen_move.rx_card = index_card(quick_max_index(rx_card_selections, 5));
+        chosen_move.rx_amount = 1;
+        break;
+      case MoveType::moveRobber:
+        chosen_move.index = quick_max_index(tile_selections, amount_of_tiles);
+        break;
+      case MoveType::getCardBank:
+        chosen_move.rx_card = index_card(quick_max_index(rx_card_selections, 5));
+        break;
+      case MoveType::endTurn:
+        break;
+      default:
+        throw std::invalid_argument("Not a valid move!");
+    }
+
+    for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+      if (player->available_moves[move_i].type == MoveType::NoMove) {
+        break;
+      }
+      if (chosen_move == player->available_moves[move_i]) {
+        player_print(move2string(chosen_move) + "\n");
+        return chosen_move;
+      }
+    }
+
+    // Run some more to find a possible solution
+    cycles_ran += neuralWeb.run_web(&inputs[0], &outputs[0], 500);
+  }
+
+  /******************
+   *    FALLBACK    *
+   ******************/
+
+  // If nothing found:
+  player_print("No move found! Playing: " + move2string(player->available_moves[0]) + "\n");
+
+  for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+    if (player->available_moves[move_i].type == MoveType::NoMove) {
+      break;
+    }
+  }
+
+  return player->available_moves[0];
 }
 
 void AIZwikPlayer::finish_round(Board *board) {
