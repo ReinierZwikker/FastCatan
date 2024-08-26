@@ -147,6 +147,19 @@ NeuralWeb::NeuralWeb(int amount_of_neurons,
 
 }
 
+
+std::string read_until(const std::string& ai_str, int &current_char, char end_marker) {
+
+  std::string temp;
+
+  while (ai_str[current_char] != end_marker) {
+    temp += ai_str[current_char++];
+  }
+  current_char++;
+
+  return temp;
+}
+
 /**
  * from string file,
  * takes filename and path to file
@@ -182,32 +195,27 @@ NeuralWeb::NeuralWeb(const std::string& ai_str) : gen(0) {
   from_string(ai_str);
 }
 
+NeuralWeb::NeuralWeb(const std::string& ai_str_A, const std::string& ai_str_B, const int seed) : gen(seed) {
+  AmountOfNeurons = 0;
+  AmountOfInputs = 0;
+  AmountOfOutputs = 0;
+  neurons = (Neuron*) nullptr;
+  input_neurons = (Neuron**) nullptr;
+  output_neurons = (Neuron**) nullptr;
+
+  combine_strings(ai_str_A, ai_str_B);
+}
+
 
 void NeuralWeb::from_string(const std::string& ai_str) {
 
-  std::string temp;
-
   int current_char = 0;
 
-  while (ai_str[current_char] != ',') {
-    temp += ai_str[current_char++];
-  }
-  current_char++;
-  AmountOfNeurons = std::stoi(temp);
+  AmountOfNeurons = std::stoi(read_until(ai_str, current_char, ','));
 
-  temp = "";
-  while (ai_str[current_char] != ',') {
-    temp += ai_str[current_char++];
-  }
-  current_char++;
-  AmountOfInputs = std::stoi(temp);
+  AmountOfInputs = std::stoi(read_until(ai_str, current_char, ','));
 
-  temp = "";
-  while (ai_str[current_char] != '|') {
-    temp += ai_str[current_char++];
-  }
-  current_char++;
-  AmountOfOutputs = std::stoi(temp);
+  AmountOfOutputs = std::stoi(read_until(ai_str, current_char, '|'));
 
   if (AmountOfNeurons < AmountOfInputs + AmountOfOutputs) {
     throw std::invalid_argument("Not enough neurons for the amount of inputs and outputs");
@@ -224,56 +232,149 @@ void NeuralWeb::from_string(const std::string& ai_str) {
 
   while (ai_str[current_char] != '|') {
 
-    temp = "";
-    while (ai_str[current_char] != ':') {
-      temp += ai_str[current_char++];
-    }
-    current_char++;
-    if (neurons[neuron_i].id != std::stoi(temp)) { throw std::invalid_argument("File is not a valid NWeb"); }
+    if (neurons[neuron_i].id != std::stoi(read_until(ai_str, current_char, ':'))) { throw std::invalid_argument("File is not a valid NWeb"); }
 
-    temp = "";
-    while (ai_str[current_char] != ';') {
-      temp += ai_str[current_char++];
-    }
-    current_char++;
-    neurons[neuron_i].threshold = std::stof(temp);
+    neurons[neuron_i].threshold = std::stof(read_until(ai_str, current_char, ';'));
 
     int downstream_conn_i = 0;
 
     while (ai_str[current_char] != '/') {
 
-      temp = "";
-      while (ai_str[current_char] != ',') {
-        temp += ai_str[current_char++];
-      }
-      current_char++;
-      neurons[neuron_i].downstream_connections[downstream_conn_i] = &neurons[std::stoi(temp)];
+      neurons[neuron_i].downstream_connections[downstream_conn_i] = &neurons[std::stoi(read_until(ai_str, current_char, ','))];
 
-      temp = "";
-      while (ai_str[current_char] != '~') {
-        temp += ai_str[current_char++];
-      }
-      current_char++;
-      neurons[neuron_i].downstream_weights[downstream_conn_i] = std::stof(temp);
+      neurons[neuron_i].downstream_weights[downstream_conn_i] = std::stof(read_until(ai_str, current_char, '~'));
 
       downstream_conn_i++;
 
-//      while (!neuron_found) {
-//        chosen_neuron = random_neuron(gen);
-//        neuron_found = true;
-//        for (auto prev_chosen_neuron : chosen_neurons) {
-//          if (prev_chosen_neuron == chosen_neuron) {
-//            neuron_found = false;
-//          }
-//        }
-//      }
-//      chosen_neurons[connection_i] = chosen_neuron;
-//      neurons[neuron_i].downstream_connections[connection_i] = &neurons[chosen_neuron];
-//      neurons[neuron_i].downstream_weights[connection_i] = random_weight(gen);
     }
     current_char++;
 
     neuron_i++;
+
+  }
+
+  // DOES NOT USE THE ACTUAL INPUT AND OUTPUT LIST:
+
+  // Link input and output neurons
+  input_neurons = (Neuron**) malloc(AmountOfInputs * sizeof(Neuron*));
+  for (int input_neuron_i = 0; input_neuron_i < AmountOfInputs; ++input_neuron_i) {
+    input_neurons[input_neuron_i] = &neurons[input_neuron_i];
+  }
+
+  output_neurons = (Neuron**) malloc(AmountOfOutputs * sizeof(Neuron*));
+  for (int output_neuron_i = 0; output_neuron_i < AmountOfOutputs; ++output_neuron_i) {
+    output_neurons[output_neuron_i] = &neurons[AmountOfInputs + output_neuron_i];
+  }
+}
+
+
+void NeuralWeb::combine_strings(const std::string& ai_str_A, const std::string& ai_str_B) {
+
+  int current_char_A = 0, current_char_B = 0;
+
+  int temp_A = 0, temp_B = 0;
+
+  temp_A = std::stoi(read_until(ai_str_A, current_char_A, ','));
+  temp_B = std::stoi(read_until(ai_str_B, current_char_B, ','));
+  if (temp_A == temp_B) {
+    AmountOfNeurons = temp_A;
+  } else {
+    throw std::invalid_argument("Neural Webs are not the same size!");
+  }
+
+  temp_A = std::stoi(read_until(ai_str_A, current_char_A, ','));
+  temp_B = std::stoi(read_until(ai_str_B, current_char_B, ','));
+  if (temp_A == temp_B) {
+    AmountOfInputs = temp_A;
+  } else {
+    throw std::invalid_argument("Neural Webs are not the same size!");
+  }
+
+  temp_A = std::stoi(read_until(ai_str_A, current_char_A, '|'));
+  temp_B = std::stoi(read_until(ai_str_B, current_char_B, '|'));
+  if (temp_A == temp_B) {
+    AmountOfOutputs = temp_A;
+  } else {
+    throw std::invalid_argument("Neural Webs are not the same size!");
+  }
+
+  if (AmountOfNeurons < AmountOfInputs + AmountOfOutputs) {
+    throw std::invalid_argument("Not enough neurons for the amount of inputs and outputs");
+  }
+
+  neurons = (Neuron*) malloc(AmountOfNeurons * sizeof(Neuron));
+
+  // Generate Empty Neurons
+  for (int neuron_i = 0; neuron_i < AmountOfNeurons; ++neuron_i) {
+    neurons[neuron_i] = Neuron(neuron_i, 0);
+  }
+
+  int neuron_i = 0;
+
+  std::uniform_real_distribution<float> random_parent(0.0f, 1.0f);
+
+  while (ai_str_A[current_char_A] != '|' && ai_str_B[current_char_B] != '|') {
+    if (neurons[neuron_i].id != std::stoi(read_until(ai_str_A, current_char_A, ':'))) { throw std::invalid_argument("File is not a valid NWeb"); }
+    if (neurons[neuron_i].id != std::stoi(read_until(ai_str_B, current_char_B, ':'))) { throw std::invalid_argument("File is not a valid NWeb"); }
+
+    if (random_parent(gen) <= 0.5) {
+
+      neurons[neuron_i].threshold = std::stof(read_until(ai_str_A, current_char_A, ';'));
+      read_until(ai_str_B, current_char_B, ';'); // <- skip other neuron
+
+      int downstream_conn_i = 0;
+
+      while (ai_str_A[current_char_A] != '/') {
+
+        neurons[neuron_i].downstream_connections[downstream_conn_i] = &neurons[std::stoi(read_until(ai_str_A, current_char_A, ','))];
+
+        neurons[neuron_i].downstream_weights[downstream_conn_i] = std::stof(read_until(ai_str_A, current_char_A, '~'));
+
+        downstream_conn_i++;
+
+      }
+
+      // skip other neuron:
+      while (ai_str_B[current_char_B] != '/') {
+        read_until(ai_str_B, current_char_B, ',');
+        read_until(ai_str_B, current_char_B, '~');
+
+      }
+      current_char_A++;
+      current_char_B++;
+
+      neuron_i++;
+
+    } else {
+
+      neurons[neuron_i].threshold = std::stof(read_until(ai_str_B, current_char_B, ';'));
+      read_until(ai_str_A, current_char_A, ';'); // <- skip other neuron
+
+      int downstream_conn_i = 0;
+
+      while (ai_str_B[current_char_B] != '/') {
+
+        neurons[neuron_i].downstream_connections[downstream_conn_i] = &neurons[std::stoi(read_until(ai_str_B, current_char_B, ','))];
+
+        neurons[neuron_i].downstream_weights[downstream_conn_i] = std::stof(read_until(ai_str_B, current_char_B, '~'));
+
+        downstream_conn_i++;
+
+      }
+
+      // skip other neuron:
+      while (ai_str_A[current_char_A] != '/') {
+        read_until(ai_str_A, current_char_A, ',');
+        read_until(ai_str_A, current_char_A, '~');
+
+      }
+      current_char_A++;
+      current_char_B++;
+
+      neuron_i++;
+    }
+
+
 
   }
 

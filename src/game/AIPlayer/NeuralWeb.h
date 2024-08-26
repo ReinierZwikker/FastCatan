@@ -1,7 +1,7 @@
 #ifndef FASTCATAN_NEURALWEB_H
 #define FASTCATAN_NEURALWEB_H
 
-#define NEURON_QUEUE_SIZE 2000
+#define NEURON_QUEUE_SIZE 5000
 #define NEURON_DOWNSTREAM_SIZE 5
 
 #include <random>
@@ -60,12 +60,15 @@ public:
             int amount_of_inputs,
             int amount_of_outputs,
             unsigned int web_seed,
-            float random_threshold_min = 0.5f,
-            float random_threshold_max = 0.9f,
+            float random_threshold_min = 0.8f,
+            float random_threshold_max = 0.95f,
             float random_weight_min = 0.1f,
             float random_weight_max = 1.0f,
             int random_am_of_conn_min = 1);
   NeuralWeb(const std::string& ai_str);
+  NeuralWeb(const std::string& ai_str_A,
+            const std::string& ai_str_B,
+            const int seed);
   NeuralWeb(const std::string& filename,
             const std::filesystem::path& dirPath);
   ~NeuralWeb();
@@ -80,6 +83,8 @@ public:
 
   void to_string(const std::string& filename,
                  const std::filesystem::path& dirPath);
+
+  void combine_strings(const std::string& ai_str_A, const std::string& ai_str_B);
 
 private:
 

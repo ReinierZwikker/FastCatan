@@ -15,24 +15,25 @@
 class AIZwikPlayer : public PlayerAgent {
 public:
   explicit AIZwikPlayer(Player *connected_player);
+  AIZwikPlayer(Player *connected_player, const std::string& ai_str);
 
-  void player_print(std::string text);
+  void player_print(const std::string& text);
 
   inline PlayerType get_player_type() override { return player_type; }
   inline PlayerState get_player_state() override { return player_state; }
 
   ~AIZwikPlayer();
 
+  const static int amount_of_neurons = 1500;
+  const static int amount_of_env_inputs = 152;
+  const static int amount_of_inputs = 608;
+  const static int amount_of_outputs = 165;
+
 private:
   Player *player;
   const PlayerType player_type = PlayerType::zwikPlayer;
   const PlayerState player_state = Waiting;
   std::string console_tag;
-
-  const static int amount_of_neurons = 1000;
-  const static int amount_of_env_inputs = 152;
-  const static int amount_of_inputs = 608;
-  const static int amount_of_outputs = 165;
 
   float inputs[amount_of_env_inputs + amount_of_inputs] = {};
   float outputs[amount_of_outputs] = {};

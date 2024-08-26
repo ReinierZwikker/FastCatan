@@ -124,7 +124,7 @@ void GameManager::assign_players() {
       case PlayerType::zwikPlayer:
         if (zwik_helper != nullptr) {
           manager_mutex.lock();
-          players[player_i] = zwik_helper->ai_total_players[id][zwik_player_i];
+          players[player_i] = zwik_helper->get_new_player(&game->board, index_color(player_i));
           manager_mutex.unlock();
           players[player_i]->activated = true;
           game->assigned_players[player_i] = true;
@@ -220,4 +220,3 @@ void GameManager::run_multiple_games() {
   write_log_to_disk();
   close_log();
 }
-

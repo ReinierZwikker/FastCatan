@@ -2,6 +2,20 @@
 #include <stdexcept>
 #include <iostream>
 
+// HOW TO (de-)serialise
+//  neuralWeb.to_json((std::string) "ai_test.json", (std::filesystem::path) "ais");
+//  neuralWeb.to_string((std::string) "ai_test.ai", (std::filesystem::path) "ais");
+//
+//  NeuralWeb test = NeuralWeb((std::string) "ai_test.ai", (std::filesystem::path) "ais");
+//
+//  std::string test_str = test.to_string();
+//
+//
+//  NeuralWeb test2 = NeuralWeb(test_str);
+//  std::string test_str2 = test2.to_string();
+//  std::string test_str3 = test2.to_string();
+//
+//  NeuralWeb test3 = NeuralWeb(test_str2, test_str3, 5342);
 
 #include "ai_zwik_player.h"
 
@@ -11,19 +25,21 @@ AIZwikPlayer::AIZwikPlayer(Player *connected_player) :
               amount_of_outputs,
               5454321) {
 
-  // HOW TO (de-)serialise
-//  neuralWeb.to_json((std::string) "ai_test.json", (std::filesystem::path) "ais");
-//  neuralWeb.to_string((std::string) "ai_test.ai", (std::filesystem::path) "ais");
-//
-//  NeuralWeb test = NeuralWeb((std::string) "ai_test.ai", (std::filesystem::path) "ais");
-//
-//  std::string test_str = test.to_string();
-//
-//  NeuralWeb test2 = NeuralWeb(test_str);
 
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
-  player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
+//  player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
+
+  update_environment();
+
+}
+
+AIZwikPlayer::AIZwikPlayer(Player *connected_player, const std::string& ai_str) :
+        neuralWeb(ai_str) {
+
+  player = connected_player;
+  console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
+//  player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
 
   update_environment();
 
@@ -55,12 +71,12 @@ void AIZwikPlayer::update_environment() {
   }
 }
 
-void AIZwikPlayer::player_print(std::string text) {
+void AIZwikPlayer::player_print(const std::string& text) {
   printf("%s%s", console_tag.c_str(), text.c_str());
 }
 
 
-int quick_max_index(float *values, int amount_of_values) {
+int quick_max_index(const float *values, int amount_of_values) {
   // TODO make quick
   int max_index = 0;
   float max_value = 0;
@@ -140,11 +156,13 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
    *    RUN WEB     *
    ******************/
 
-  int cycles_ran = neuralWeb.run_web(&inputs[0], &outputs[0], 2000);
+  int cycles_ran = neuralWeb.run_web(&inputs[0], &outputs[0], 3000);
 
   /******************
    *    OUTPUTS     *
    ******************/
+
+  Move chosen_move;
 
   // If no valid move found, try 2 times more
   for (int run_try_i = 0; run_try_i < 3; ++run_try_i) {
@@ -172,7 +190,7 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
                                   + std::to_string(amount_of_outputs) + "\n");
     }
 
-    Move chosen_move;
+//    Move chosen_move;
 
     chosen_move.type = index_move(quick_max_index(move_selections, 10));
 
@@ -218,13 +236,13 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
         break;
       }
       if (chosen_move == player->available_moves[move_i]) {
-        player_print(move2string(chosen_move) + "\n");
+        player_print("Found move: " + move2string(chosen_move) + " in " + std::to_string(cycles_ran) + " cycles\n");
         return chosen_move;
       }
     }
 
     // Run some more to find a possible solution
-    cycles_ran += neuralWeb.run_web(&inputs[0], &outputs[0], 500);
+    cycles_ran += neuralWeb.run_web(&inputs[0], &outputs[0], 1000);
   }
 
   /******************
@@ -232,7 +250,7 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
    ******************/
 
   // If nothing found:
-  player_print("No move found! Playing: " + move2string(player->available_moves[0]) + "\n");
+  player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[0]) + "\n");
 
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
     if (player->available_moves[move_i].type == MoveType::NoMove) {

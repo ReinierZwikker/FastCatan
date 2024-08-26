@@ -37,8 +37,8 @@ class App {
     // Show Bools
     bool show_demo_window = false;
     bool show_board_window = false;
-    bool show_game_window = false;
-    bool show_player_window[4] = {false, false, false, false};
+    bool show_game_window = true;
+    bool show_player_window[4] = {true, true, true, true};
     bool show_ai_window = true;
     bool show_replay_window = false;
 

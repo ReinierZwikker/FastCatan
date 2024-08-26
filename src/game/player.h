@@ -20,7 +20,9 @@ class Player {
 public:
   Player(Board *global_board, Color player_color);
 
-  bool activated = false;
+    Player();
+
+    bool activated = false;
 
   /*  === Link to player agent ===
    * Agent should implement the following function:
