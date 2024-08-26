@@ -3,6 +3,18 @@
 #include "player.h"
 
 
+Player::Player(Board *global_board, Color assigned_color, int given_id) {
+
+  board = global_board;
+  player_color = assigned_color;
+  player_id = given_id;
+
+  available_moves = (Move *) malloc(max_available_moves * sizeof(Move));
+  for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+    available_moves[move_i] = Move();
+  }
+}
+
 Player::Player(Board *global_board, Color assigned_color) {
 
   board = global_board;
@@ -13,6 +25,12 @@ Player::Player(Board *global_board, Color assigned_color) {
     available_moves[move_i] = Move();
   }
 }
+
+Player::Player() {
+  board = nullptr;
+  available_moves = nullptr;
+}
+
 
 Player::~Player() {
   free(available_moves);

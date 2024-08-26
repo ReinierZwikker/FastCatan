@@ -9,19 +9,15 @@ ZwikHelper::ZwikHelper(unsigned int pop_size, unsigned int num_threads) : AIHelp
   population_size = pop_size;
   number_of_threads = num_threads;
 
-  ai_nw_genes.reserve(population_size);
-
+  gene_pool.reserve(population_size);
   std::uniform_int_distribution<> random_seed(0, 100 * (int) population_size);
 
+  // Start with random gene pool
   for (int pop_i = 0; pop_i < population_size; ++pop_i) {
-    NeuralWeb random_web = NeuralWeb(AIZwikPlayer::amount_of_neurons,
-                                     AIZwikPlayer::amount_of_env_inputs + AIZwikPlayer::amount_of_inputs,
-                                     AIZwikPlayer::amount_of_outputs,
-                                     random_seed(gen));
-    ai_nw_genes.push_back(random_web.to_string());
+    gene_pool.emplace_back(random_seed(gen));
   }
 
-  ai_current_players.reserve(number_of_threads);
+  current_players.reserve(number_of_threads);
 }
 
 ZwikHelper::~ZwikHelper() {
@@ -34,6 +30,8 @@ ZwikHelper::~ZwikHelper() {
 
 void ZwikHelper::update(Game* game) {
 
+
+
   // TODO find player ranking
 
   // TODO remove genes from worst players
@@ -41,7 +39,7 @@ void ZwikHelper::update(Game* game) {
   // TODO add new genes crossed from best parents
   // ..% parents remain, ..% children new
 
-  ai_current_players.clear();
+  current_players.clear();
 
 
 }
@@ -50,9 +48,9 @@ Player *ZwikHelper::get_new_player(Board* board, Color player_color) {
   std::uniform_int_distribution<> random_player(0, (int) population_size - 1);
   int selected_ai = random_player(gen);
 
-  ai_current_players.emplace_back(board, player_color, ai_nw_genes[selected_ai], selected_ai);
+  current_players.emplace_back(board, player_color, gene_pool[selected_ai], selected_ai);
 
-  return &ai_current_players.back().player;
+  return &current_players.back().player;
 }
 
 void ZwikHelper::eliminate() {

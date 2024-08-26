@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <queue>
 
 struct Neuron {
   Neuron(int set_id, float set_threshold);
@@ -34,7 +35,9 @@ struct QueuedNeuron {
     float sent_value;
 };
 
-class NeuronQueue {
+/*
+ * Replaced with standard queue
+class NeuronQueuePtr {
 
     QueuedNeuron *queue;
 
@@ -44,14 +47,14 @@ class NeuronQueue {
     int current_tail = 0;
 
 public:
-    NeuronQueue();
-    ~NeuronQueue();
+    NeuronQueuePtr();
+    ~NeuronQueuePtr();
 
     int run_next_neuron();
 
     void add_to_queue(Neuron *neuron, float value);
 };
-
+*/
 
 class NeuralWeb {
 
@@ -61,9 +64,9 @@ public:
             int amount_of_outputs,
             unsigned int web_seed,
             float random_threshold_min = 0.8f,
-            float random_threshold_max = 0.95f,
+            float random_threshold_max = 0.99f,
             float random_weight_min = 0.1f,
-            float random_weight_max = 1.0f,
+            float random_weight_max = 0.7f,
             int random_am_of_conn_min = 1);
   NeuralWeb(const std::string& ai_str);
   NeuralWeb(const std::string& ai_str_A,
@@ -95,7 +98,9 @@ private:
   Neuron  **input_neurons;
   Neuron **output_neurons;
 
-  NeuronQueue neuron_queue;
+  // NeuronQueuePtr neuron_queue;
+  std::queue<QueuedNeuron> queue;
+
 
   std::random_device randomDevice;
   std::mt19937 gen;

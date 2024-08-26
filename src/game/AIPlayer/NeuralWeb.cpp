@@ -31,7 +31,12 @@ Neuron::~Neuron() = default;
  *     QUEUE      *
  ******************/
 
-NeuronQueue::NeuronQueue() {
+/***
+ * Pointer Version UNUSED
+ */
+
+/*
+NeuronQueuePtr::NeuronQueuePtr() {
   queue = (QueuedNeuron*) malloc(NEURON_QUEUE_SIZE * sizeof(QueuedNeuron));
 
   for (int neuron_i = 0; neuron_i < NEURON_QUEUE_SIZE; ++neuron_i) {
@@ -39,11 +44,11 @@ NeuronQueue::NeuronQueue() {
   }
 }
 
-NeuronQueue::~NeuronQueue() {
+NeuronQueuePtr::~NeuronQueuePtr() {
   free(queue);
 }
 
-int NeuronQueue::run_next_neuron() {
+int NeuronQueuePtr::run_next_neuron() {
   Neuron *current_neuron = queue[current_tail].neuron;
 
   if (current_neuron == nullptr) {
@@ -68,14 +73,14 @@ int NeuronQueue::run_next_neuron() {
   return 0;
 }
 
-void NeuronQueue::add_to_queue(Neuron *neuron, float value) {
+void NeuronQueuePtr::add_to_queue(Neuron *neuron, float value) {
   if (current_head >= NEURON_QUEUE_SIZE) { current_head = 0; }
   if (current_head == current_tail) { printf("The snake ate its tail!\n"); }
 
   queue[current_head] = QueuedNeuron(neuron, value);
   ++current_head;
 }
-
+*/
 
 /******************
  *      WEB       *
@@ -408,7 +413,7 @@ int NeuralWeb::run_web(float *inputs, float *outputs, int max_cycles) {
   for (int input_neuron_i = 0; input_neuron_i < AmountOfInputs; ++input_neuron_i) {
     if (inputs[input_neuron_i] > 0.0f) {
       //input_neurons[input_neuron_i]->value -= input_neurons[input_neuron_i]->threshold;
-      neuron_queue.add_to_queue(input_neurons[input_neuron_i], inputs[input_neuron_i]);
+      queue.emplace(input_neurons[input_neuron_i], inputs[input_neuron_i]);
     }
   }
 
@@ -418,10 +423,32 @@ int NeuralWeb::run_web(float *inputs, float *outputs, int max_cycles) {
     //printf("Head: %d  -  Tail: %d  -  Used Queue size: %d\n",
     //       neuron_queue.current_head, neuron_queue.current_tail,
     //       neuron_queue.current_head - neuron_queue.current_tail);
-    if (neuron_queue.run_next_neuron() != 0) {
+
+    Neuron *current_neuron = queue.front().neuron;
+
+    current_neuron->update(queue.front().sent_value);
+
+    if (current_neuron->value > current_neuron->threshold) {
+      current_neuron->value -= current_neuron->threshold;
+      for (int neuron_i = 0; neuron_i < NEURON_DOWNSTREAM_SIZE; ++neuron_i) {
+        if (current_neuron->downstream_connections[neuron_i] != nullptr) {
+          queue.emplace(current_neuron->downstream_connections[neuron_i],
+                        current_neuron->value * current_neuron->downstream_weights[neuron_i]);
+        }
+      }
+    }
+
+    queue.pop();
+
+    if (queue.empty()) {
       printf("Neural web is braindead...\n");
       break;
     }
+
+    if (cycle_i % 100 == 0) {
+      printf("Cycle: %d, Queue size: %zu\n", cycle_i, queue.size());
+    }
+
   }
 
   for (int output_neuron_i = 0; output_neuron_i < AmountOfOutputs; ++output_neuron_i) {

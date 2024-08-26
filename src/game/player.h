@@ -19,10 +19,14 @@ public:
 class Player {
 public:
   Player(Board *global_board, Color player_color);
+  Player(Board *global_board, Color player_color, int given_id);
 
-    Player();
+  Player();
 
-    bool activated = false;
+  bool activated = false;
+
+  // Freely assignable Player ID used for player tracking purposes while training
+  int player_id = 0;
 
   /*  === Link to player agent ===
    * Agent should implement the following function:
