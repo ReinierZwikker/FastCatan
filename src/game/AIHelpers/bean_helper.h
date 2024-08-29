@@ -8,24 +8,32 @@
 
 class BeanHelper : public AIHelper{
 public:
-  BeanHelper(unsigned int, uint8_t, uint8_t, unsigned int, unsigned int);
+  BeanHelper(unsigned int, unsigned int, unsigned int);
   ~BeanHelper();
 
   void update(Game* game, int id);
 
-private:
+  void shuffle_players();
   void eliminate();
   void reproduce();
   void mutate();
 
+  float survival_rate = 0.25;
+  unsigned int survival_amount = 0;
+
+  int mutation_length = 10000;
+
+  std::vector<BeanNN*> nn_vector;
+
+private:
   std::random_device rd;
   std::mt19937 gen;
 
-  std::vector<BeanNN*> bean_nn_vector;
+  BeanNN** survived_players;
 
-  uint8_t amount_of_layers = 0;
-  uint8_t nodes_in_layer = 0;
   unsigned int seed = 0;
+
+  void bubble_sort_indices(int*, const float*, int);
 };
 
 #endif //FASTCATAN_BEAN_HELPER_H

@@ -290,7 +290,7 @@ void WindowReplay::show(Game* game, ViewPort* viewport, AppInfo* app_info) {
                                      ImGuiTableFlags_Resizable |
                                      ImGuiTableFlags_Reorderable |
                                      ImGuiTableFlags_ScrollY;
-      if (ImGui::BeginTable("moves", 10, flags)) {
+      if (ImGui::BeginTable("moves", 11, flags)) {
         ImGui::TableSetupColumn("Move", ImGuiTableColumnFlags_WidthFixed, 40.0f);
         ImGui::TableSetupColumn("Player", ImGuiTableColumnFlags_WidthFixed, 10.0f);
         ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthFixed, 200.0f);
@@ -301,6 +301,7 @@ void WindowReplay::show(Game* game, ViewPort* viewport, AppInfo* app_info) {
         ImGui::TableSetupColumn("TX Amount");
         ImGui::TableSetupColumn("RX Card");
         ImGui::TableSetupColumn("RX Amount");
+        ImGui::TableSetupColumn("Mistakes");
         ImGui::TableHeadersRow();
 
         ImGui::TableNextRow(ImGuiTableRowFlags_None, 1);
@@ -326,6 +327,7 @@ void WindowReplay::show(Game* game, ViewPort* viewport, AppInfo* app_info) {
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_moves[move_i].tx_amount);
           ImGui::TableNextColumn(); ImGui::Text("%s", card_names[card_index(loaded_moves[move_i].rx_card)].c_str());
           ImGui::TableNextColumn(); ImGui::Text("%i", loaded_moves[move_i].rx_amount);
+          ImGui::TableNextColumn(); ImGui::Text("%i", loaded_moves[move_i].mistakes);
 
           if (loaded_moves[move_i].type == MoveType::endTurn) {
             if (current_player < loaded_games[current_game].num_players - 1) {

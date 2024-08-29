@@ -1,6 +1,7 @@
 #ifndef FASTCATAN_VIEWPORT_H
 #define FASTCATAN_VIEWPORT_H
 
+#include <windows.h>
 #include <GL/GL.h>
 #include <GL/glu.h>
 
