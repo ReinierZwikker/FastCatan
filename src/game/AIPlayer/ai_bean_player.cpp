@@ -107,9 +107,11 @@ BeanNN::~BeanNN() {
 }
 
 void BeanNN::calculate_score() {
-  summary.score = summary.average_points * average_points_mult +
-                 (summary.win_rate - 0.25f) * win_rate_mult -
-                  summary.average_rounds * average_moves_mult;
+  if (summary.games_played > 0) {
+    summary.score = summary.average_points * average_points_mult +
+                    (summary.win_rate - 0.25f) * win_rate_mult -
+                    summary.average_rounds * average_moves_mult + 500;
+  }
 }
 
 float* BeanNN::calculate_move_probability(float* input, cudaStream_t* cuda_stream) {
