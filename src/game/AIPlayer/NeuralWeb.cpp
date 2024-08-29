@@ -150,6 +150,7 @@ NeuralWeb::NeuralWeb(int amount_of_neurons,
     output_neurons[output_neuron_i] = &neurons[AmountOfInputs + output_neuron_i];
   }
 
+  gene_hash_generated = false;
 }
 
 
@@ -183,6 +184,8 @@ NeuralWeb::NeuralWeb(const std::string &filename, const std::filesystem::path &d
   file.close();
 
   from_string(file_str);
+
+  generate_gene_hash(file_str);
 }
 
 /**
@@ -198,6 +201,8 @@ NeuralWeb::NeuralWeb(const std::string& ai_str) : gen(0) {
   output_neurons = (Neuron**) nullptr;
 
   from_string(ai_str);
+
+  generate_gene_hash(ai_str);
 }
 
 NeuralWeb::NeuralWeb(const std::string& ai_str_A, const std::string& ai_str_B, const int seed) : gen(seed) {
@@ -209,6 +214,8 @@ NeuralWeb::NeuralWeb(const std::string& ai_str_A, const std::string& ai_str_B, c
   output_neurons = (Neuron**) nullptr;
 
   combine_strings(ai_str_A, ai_str_B);
+
+  gene_hash_generated = false;
 }
 
 
@@ -433,7 +440,7 @@ int NeuralWeb::run_web(float *inputs, float *outputs, int max_cycles) {
       for (int neuron_i = 0; neuron_i < NEURON_DOWNSTREAM_SIZE; ++neuron_i) {
         if (current_neuron->downstream_connections[neuron_i] != nullptr) {
           queue.emplace(current_neuron->downstream_connections[neuron_i],
-                        current_neuron->value * current_neuron->downstream_weights[neuron_i]);
+                        current_neuron->threshold * current_neuron->downstream_weights[neuron_i]);
         }
       }
     }
@@ -441,13 +448,13 @@ int NeuralWeb::run_web(float *inputs, float *outputs, int max_cycles) {
     queue.pop();
 
     if (queue.empty()) {
-      printf("Neural web is braindead...\n");
+      // printf("Neural web is braindead...\n");
       break;
     }
 
-    if (cycle_i % 100 == 0) {
-      printf("Cycle: %d, Queue size: %zu\n", cycle_i, queue.size());
-    }
+    // if (cycle_i % 100 == 0) {
+    //   printf("Cycle: %d, Queue size: %zu\n", cycle_i, queue.size());
+    // }
 
   }
 
@@ -564,4 +571,16 @@ std::string NeuralWeb::to_string() {
   str += "?";
 
   return str;
+}
+
+void NeuralWeb::generate_gene_hash(const std::string& gene_to_hash) {
+  gene_hash = (int) std::hash<std::string>{}(gene_to_hash);
+  gene_hash_generated = true;
+}
+
+int NeuralWeb::get_gene_hash() {
+  if (!gene_hash_generated) {
+    generate_gene_hash(to_string());
+  }
+  return gene_hash;
 }

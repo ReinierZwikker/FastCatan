@@ -52,6 +52,4 @@ void RandomPlayer::finish_round(Board *board) {
 
 }
 
-RandomPlayer::~RandomPlayer() {
-  printf("Thank you for playing!\n");
-}
+RandomPlayer::~RandomPlayer() = default;

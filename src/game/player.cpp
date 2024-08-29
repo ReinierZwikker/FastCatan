@@ -33,7 +33,10 @@ Player::Player() {
 
 
 Player::~Player() {
-  free(available_moves);
+  if (available_moves) {
+    free(available_moves);
+  }
+  delete(agent);
 }
 
 bool corner_occupied(Corner *corner, Color color) {

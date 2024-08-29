@@ -21,8 +21,9 @@ public:
 
   inline PlayerType get_player_type() override { return player_type; }
   inline PlayerState get_player_state() override { return player_state; }
+  inline void *get_custom_player_attribute() override { return &neural_web; }
 
-  ~AIZwikPlayer();
+  ~AIZwikPlayer() override;
 
   const static int amount_of_neurons = 1500;
   const static int amount_of_env_inputs = 152;
@@ -38,12 +39,11 @@ private:
   float inputs[amount_of_env_inputs + amount_of_inputs] = {};
   float outputs[amount_of_outputs] = {};
 
-
-  NeuralWeb neuralWeb;
+  NeuralWeb neural_web;
 
 public:
     void update_environment();
-    Move get_move(Board *board, int cards[5], GameInfo game_info);
+    Move get_move(Board *board, int cards[5], GameInfo game_info) override;
     void finish_round(Board *board) override;
     inline void unpause(Move move) override {};
 };

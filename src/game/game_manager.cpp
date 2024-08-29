@@ -189,7 +189,7 @@ void GameManager::run() {
 
   update_ai();
 
-  game->reset();
+  game->reset(false);
 
   ++games_played;
   clock_t end_clock = clock();
@@ -211,11 +211,15 @@ void GameManager::run_multiple_games() {
 
   game->log = &log;
   game->reseed(seed);
-  update_ai();
+  //update_ai();
 
-  while(keep_running) {
+  int games_i = 0;
+  while(keep_running && (epoch_length == 0 || games_i < epoch_length)) {
+    ++games_i;
+
     run();
   }
+  keep_running = false;
 
   write_log_to_disk();
   close_log();

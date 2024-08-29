@@ -140,6 +140,15 @@ void WindowGame(Game* game) {
     ImGui::TableNextColumn();
     if (ImGui::Button("Reset", ImVec2(-1.0f, 0.0f))) {
       game->reset();
+      //bool reset_finished = false;
+      //while(!reset_finished) {
+      //  reset_finished = true;
+      //  for (auto player: game->players) {
+      //    if (player == nullptr) {
+      //      reset_finished = false;
+      //    }
+      //  }
+      //}
     }
 
     ImGui::EndTable();

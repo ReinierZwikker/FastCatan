@@ -3,8 +3,8 @@
 #include <iostream>
 
 // HOW TO (de-)serialise
-//  neuralWeb.to_json((std::string) "ai_test.json", (std::filesystem::path) "ais");
-//  neuralWeb.to_string((std::string) "ai_test.ai", (std::filesystem::path) "ais");
+//  neural_web.to_json((std::string) "ai_test.json", (std::filesystem::path) "ais");
+//  neural_web.to_string((std::string) "ai_test.ai", (std::filesystem::path) "ais");
 //
 //  NeuralWeb test = NeuralWeb((std::string) "ai_test.ai", (std::filesystem::path) "ais");
 //
@@ -20,10 +20,10 @@
 #include "ai_zwik_player.h"
 
 AIZwikPlayer::AIZwikPlayer(Player *connected_player) :
-    neuralWeb(amount_of_neurons,
+        neural_web(amount_of_neurons,
               amount_of_env_inputs+amount_of_inputs,
-              amount_of_outputs,
-              5454321) {
+                   amount_of_outputs,
+                   5454321){
 
 
   player = connected_player;
@@ -35,7 +35,7 @@ AIZwikPlayer::AIZwikPlayer(Player *connected_player) :
 }
 
 AIZwikPlayer::AIZwikPlayer(Player *connected_player, const std::string& ai_str) :
-        neuralWeb(ai_str) {
+        neural_web(ai_str){
 
   player = connected_player;
   console_tag = color_name(connected_player->player_color) + "> " + color_offset(connected_player->player_color);
@@ -87,6 +87,21 @@ int quick_max_index(const float *values, int amount_of_values) {
     }
   }
   return max_index;
+}
+
+void quick_max_three_indices(const float *values, int amount_of_values, int *max_indices) {
+  // TODO make quick
+  float max_values[3] = {0.0f, 0.0f, 0.0f};
+  for (int i = 0; i < amount_of_values; ++i) {
+    if (values[i] > max_values[0]) {
+      max_values[2] = max_values[1];
+      max_values[1] = max_values[0];
+      max_values[0] = values[i];
+      max_indices[2] = max_indices[1];
+      max_indices[1] = max_indices[0];
+      max_indices[0] = i;
+    }
+  }
 }
 
 
@@ -156,7 +171,7 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
    *    RUN WEB     *
    ******************/
 
-  int cycles_ran = neuralWeb.run_web(&inputs[0], &outputs[0], 3000);
+  int cycles_ran = neural_web.run_web(&inputs[0], &outputs[0], 10000);
 
   /******************
    *    OUTPUTS     *
@@ -192,6 +207,8 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
 
 //    Move chosen_move;
 
+/*
+ * "ONLY MAX VALUE COUNTS"-METHOD
     chosen_move.type = index_move(quick_max_index(move_selections, 10));
 
     switch (chosen_move.type) {
@@ -236,27 +253,116 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
         break;
       }
       if (chosen_move == player->available_moves[move_i]) {
-        player_print("Found move: " + move2string(chosen_move) + " in " + std::to_string(cycles_ran) + " cycles\n");
+        //player_print("Found move: " + move2string(chosen_move) + " in " + std::to_string(cycles_ran) + " cycles\n");
+        neural_web.clear_queue();
         return chosen_move;
+      }
+    }
+  */
+
+    // "LOOK AT TOP 3"-METHOD
+    int actual_available_moves;
+    for (actual_available_moves = 0; actual_available_moves < max_available_moves; ++actual_available_moves) {
+      if (player->available_moves[actual_available_moves].type == MoveType::NoMove) {
+        break;
+      }
+    }
+
+    int best_move_types[3]{};
+    quick_max_three_indices(move_selections, 10, best_move_types);
+
+    bool move_found = false;
+    int best_move_i = 0;
+    while (!move_found) {
+      MoveType best_move_type = index_move(best_move_types[best_move_i]);
+      for (int move_i = 0; move_i < actual_available_moves; ++move_i) {
+        if (best_move_type == player->available_moves[move_i].type) {
+          move_found = true;
+          break;
+        }
+      }
+      if (!move_found) {
+        ++best_move_i;
+      }
+      if (best_move_i > 2) {
+        break;
+      }
+    }
+
+    // Continue if move found, else go to fallback
+    if (move_found) {
+      chosen_move.type = index_move(best_move_types[best_move_i]);
+
+      switch (chosen_move.type) {
+        case MoveType::buildStreet:
+          chosen_move.index = quick_max_index(street_selections, amount_of_streets);
+          break;
+        case MoveType::buildVillage:
+          chosen_move.index = quick_max_index(corner_selections, amount_of_corners);
+          break;
+        case MoveType::buildCity:
+          chosen_move.index = quick_max_index(corner_selections, amount_of_corners);
+          break;
+        case MoveType::buyDevelopment:
+          chosen_move.index = quick_max_index(dev_card_selections, 5);
+          break;
+        case MoveType::playDevelopment:
+          chosen_move.index = quick_max_index(dev_card_selections, 5);
+          break;
+        case MoveType::Trade:
+          // TODO implement trade
+          break;
+        case MoveType::Exchange:
+          chosen_move.tx_card = index_card(quick_max_index(tx_card_selections, 5));
+          chosen_move.tx_amount = 4;
+          chosen_move.rx_card = index_card(quick_max_index(rx_card_selections, 5));
+          chosen_move.rx_amount = 1;
+          break;
+        case MoveType::moveRobber:
+          chosen_move.index = quick_max_index(tile_selections, amount_of_tiles);
+          break;
+        case MoveType::getCardBank:
+          chosen_move.rx_card = index_card(quick_max_index(rx_card_selections, 5));
+          break;
+        case MoveType::endTurn:
+          break;
+        default:
+          throw std::invalid_argument("Not a valid move!");
+      }
+
+      for (int move_i = 0; move_i < actual_available_moves; ++move_i) {
+        if (chosen_move == player->available_moves[move_i]) {
+          neural_web.clear_queue();
+          return chosen_move;
+        }
+      }
+
+      for (int move_i = 0; move_i < actual_available_moves; ++move_i) {
+        if (player->available_moves[move_i].type == chosen_move.type) {
+          neural_web.clear_queue();
+          return player->available_moves[move_i];
+        }
       }
     }
 
     // Run some more to find a possible solution
-    cycles_ran += neuralWeb.run_web(&inputs[0], &outputs[0], 1000);
+    cycles_ran += neural_web.run_web(&inputs[0], &outputs[0], 3000);
   }
 
   /******************
    *    FALLBACK    *
    ******************/
 
-  // If nothing found:
-  player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[0]) + "\n");
+  neural_web.clear_queue();
 
-  for (int move_i = 0; move_i < max_available_moves; ++move_i) {
-    if (player->available_moves[move_i].type == MoveType::NoMove) {
-      break;
-    }
-  }
+  // If nothing found:
+  //player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[0]) + "\n");
+
+  //for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+  //  if (player->available_moves[move_i].type == MoveType::NoMove) {
+  //    break;
+  //  }
+  //}
 
   return player->available_moves[0];
 }
@@ -265,6 +371,4 @@ void AIZwikPlayer::finish_round(Board *board) {
 
 }
 
-AIZwikPlayer::~AIZwikPlayer() {
-  printf("Thank you for playing!\n");
-}
+AIZwikPlayer::~AIZwikPlayer() = default;

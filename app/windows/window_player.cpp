@@ -1,4 +1,6 @@
 #include "window_player.h"
+#include "../../src/game/AIPlayer/ai_zwik_player.h"
+
 #include "iostream"
 #include <mutex>
 
@@ -9,6 +11,9 @@ bool disable_end_turn[4] = {true, true, true, true};
 int current_move[4] = {0, 0, 0, 0};
 int current_structure[4] = {0, 0, 0, 0};
 Move moves[4] = {Move(), Move(), Move(), Move()};
+
+char ai_name[10] = "ai_0";
+
 
 void CheckAvailableTypes(Game* game, int player_id) {
   bool street, village, city = false;
@@ -110,6 +115,31 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_in
     if (disable_end_turn[player_id]) {
       ImGui::PopStyleVar();
       ImGui::EndDisabled();
+    }
+
+    // Load button
+    if (player_type == (int) PlayerType::zwikPlayer) {
+      ImGui::TableNextColumn();
+      ImGui::InputText("", ai_name, 10);
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Load Gene", ImVec2(-1.0f, 0.0f))) {
+        player_mutex.lock();
+        delete game->players[player_id]->agent;
+        std::ifstream file("ais/" + (std::string) ai_name);
+        std::string ai_gene;
+        file >> ai_gene;
+        file.close();
+        game->players[player_id]->agent = new AIZwikPlayer(game->players[player_id], ai_gene);
+        player_mutex.unlock();
+      }
+      ImGui::TableNextColumn();
+      ImGui::Text(
+              (std::string("Hash: ")
+               + std::to_string(
+                       ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute())->get_gene_hash())
+               ).c_str());
+
+      ImGui::TableNextRow();
     }
 
     ImGui::TableNextColumn(); ImGui::Text("Longest Route");

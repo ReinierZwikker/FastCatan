@@ -25,6 +25,9 @@ private:
   const unsigned int processor_count = std::thread::hardware_concurrency();
   int num_threads = 30;
 
+  int set_epoch_length = 0;
+  bool continue_after_epoch = true;
+
   int games_played[30];
 
   // TODO : Make size depend on processor_count

@@ -16,7 +16,6 @@ Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed)
     for (int player_i = 0; player_i < num_players; ++player_i) {
       player_type[player_i] = PlayerType::randomPlayer;
     }
-    player_type[0] = PlayerType::zwikPlayer;
   } else {
     for (int player_i = 0; player_i < num_players; ++player_i) {
       player_type[player_i] = PlayerType::consolePlayer;
@@ -43,37 +42,35 @@ Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed)
 
 Game::~Game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    delete(players[player_i]->agent);
+    //delete(players[player_i]->agent);
     delete(players[player_i]);
   }
 }
 
 void Game::add_player(PlayerType player_type, int player_id) {
-  if (players[player_id]->agent) {
-    delete(players[player_id]->agent);
-  }
+
+  delete(players[player_id]);
+
+  players[player_id] = new Player(&board, index_color(player_id));
+
   switch (player_type) {
     case PlayerType::consolePlayer: {
-      auto *new_agent = new ConsolePlayer(players[player_id]);
-      players[player_id]->agent = new_agent;
+      players[player_id]->agent = new ConsolePlayer(players[player_id]);
       assigned_players[player_id] = true;
       break;
     }
     case PlayerType::guiPlayer: {
-      auto *new_agent = new GuiPlayer(players[player_id]);
-      players[player_id]->agent = new_agent;
+      players[player_id]->agent = new GuiPlayer(players[player_id]);
       assigned_players[player_id] = true;
       break;
     }
     case PlayerType::randomPlayer: {
-      auto *new_agent = new RandomPlayer(players[player_id], rd());
-      players[player_id]->agent = new_agent;
+      players[player_id]->agent = new RandomPlayer(players[player_id], rd());
       assigned_players[player_id] = true;
       break;
     }
     case PlayerType::zwikPlayer: {
-      auto *new_agent = new AIZwikPlayer(players[player_id]);
-      players[player_id]->agent = new_agent;
+      players[player_id]->agent = new AIZwikPlayer(players[player_id]);
       assigned_players[player_id] = true;
       break;
     }
@@ -85,18 +82,19 @@ void Game::add_player(PlayerType player_type, int player_id) {
     }
   }
   players[player_id]->activated = true;
+}
 
+void Game::add_player(Player *new_player, int player_id) {
+
+  delete players[player_id];
+
+  players[player_id] = new_player;
+  assigned_players[player_id] = true;
+  players[player_id]->activated = true;
 }
 
 void Game::add_players(PlayerType player_type[4]) {
-//  for (int player_i = 0; player_i < Game::num_players; player_i++) {
-//    if (players[player_i] != nullptr) {
-//      delete(players[player_i]->agent);
-//      delete(players[player_i]);
-//    }
-//  }
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    players[player_i] = new Player(&board, index_color(player_i));
     add_player(player_type[player_i], player_i);
   }
 }
@@ -104,7 +102,7 @@ void Game::add_players(PlayerType player_type[4]) {
 void Game::add_players(Player* new_players[4]) {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     if (new_players[player_i] != nullptr) {
-      players[player_i] = new_players[player_i];
+      add_player(new_players[player_i], player_i);
     }
   }
 }
@@ -113,8 +111,8 @@ void Game::delete_players() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     if (players[player_i] != nullptr && assigned_players[player_i]) {
       assigned_players[player_i] = false;
-      delete players[player_i]->agent;
       delete players[player_i];
+      players[player_i] = nullptr;
     }
   }
 }
@@ -477,7 +475,7 @@ void Game::run_game() {
   game_state = GameFinished;
 }
 
-void Game::reset() {
+void Game::reset(bool reset_players) {
   gen.seed(seed); // Reseed
 
   game_winner = Color::NoColor;
@@ -489,7 +487,19 @@ void Game::reset() {
   longest_road_player = nullptr;
   most_knights_player = nullptr;
 
-  delete_players();
+  if (reset_players) {
+    PlayerType player_types[4];
+    for (int player_i = 0; player_i < num_players; ++player_i) {
+      if (players[player_i] != nullptr) {
+        player_types[player_i] = players[player_i]->agent->get_player_type();
+      }
+    }
+    delete_players();
+    add_players(player_types);
+    // TODO reload genes?
+  }
+
+  // TODO make players resettable
 
   shuffle_development_cards();
   current_development_card = 0;

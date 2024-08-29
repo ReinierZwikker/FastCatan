@@ -22,6 +22,8 @@ public:
   std::atomic<int> games_played = 0;
   std::atomic<bool> keep_running = false;
 
+  int epoch_length = 0;
+
   void run_multiple_games();
   void run_single_game();
 

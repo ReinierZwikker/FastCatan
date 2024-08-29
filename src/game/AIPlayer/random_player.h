@@ -23,7 +23,7 @@ public:
 
   std::random_device randomDevice;
 
-  ~RandomPlayer();
+  ~RandomPlayer() override;
 
 private:
   Player *player;

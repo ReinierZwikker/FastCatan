@@ -41,7 +41,7 @@ public:
   inline PlayerType get_player_type() override { return player_type; }
   inline PlayerState get_player_state() override { return player_state; }
 
-  ~BeanPlayer();
+  ~BeanPlayer() override;
 
   BeanNN* neural_net;
 

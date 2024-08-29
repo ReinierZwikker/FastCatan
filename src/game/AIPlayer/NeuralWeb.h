@@ -68,10 +68,10 @@ public:
             float random_weight_min = 0.1f,
             float random_weight_max = 0.7f,
             int random_am_of_conn_min = 1);
-  NeuralWeb(const std::string& ai_str);
+  explicit NeuralWeb(const std::string& ai_str);
   NeuralWeb(const std::string& ai_str_A,
             const std::string& ai_str_B,
-            const int seed);
+            int seed);
   NeuralWeb(const std::string& filename,
             const std::filesystem::path& dirPath);
   ~NeuralWeb();
@@ -89,7 +89,16 @@ public:
 
   void combine_strings(const std::string& ai_str_A, const std::string& ai_str_B);
 
+  void clear_queue() { while(!queue.empty()) { queue.pop(); } }
+
+  int get_gene_hash();
+
 private:
+
+  int gene_hash = 0;
+  bool gene_hash_generated = false;
+
+  void generate_gene_hash(const std::string& gene_to_hash);
 
   void from_string(const std::string& ai_str);
 
@@ -108,9 +117,6 @@ private:
   int AmountOfNeurons,
       AmountOfInputs,
       AmountOfOutputs;
-
-
-
 };
 
 

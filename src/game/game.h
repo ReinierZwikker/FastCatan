@@ -19,9 +19,11 @@ struct Game {
   ~Game();
 
   void add_player(PlayerType player_type, int player_id);
-  void add_players(PlayerType player_type[4]);
+  void add_player(Player *new_player, int player_id);
 
+  void add_players(PlayerType player_type[4]);
   void add_players(Player* new_players[4]);
+
   void delete_players();
 
   // Handle game state
@@ -62,7 +64,7 @@ struct Game {
   void start_game();
   void step_round();
   void run_game();
-  void reset();
+  void reset(bool reset_players = true);
 
   int roll_dice();
   int die_1 = 0;
