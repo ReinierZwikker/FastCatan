@@ -5,7 +5,7 @@
 #include <vector>
 
 ZwikHelper::ZwikHelper(unsigned int pop_size, unsigned int num_threads) : AIHelper(pop_size, num_threads), gen((int) time(nullptr)) {
-  if (pop_size > pow(2, sizeof(AISummary::id) * 8)) {
+  if (pop_size > pow(2, sizeof(PlayerSummary::id) * 8)) {
     throw std::invalid_argument("Population size is too big");
   }
   population_size = pop_size;
