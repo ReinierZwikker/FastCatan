@@ -3,6 +3,7 @@
 
 #include <set>
 #include <vector>
+#include <cuda_runtime.h>
 #include "components.h"
 #include "board.h"
 
@@ -15,6 +16,7 @@ public:
   virtual inline PlayerState get_player_state() { return Waiting; }
   virtual inline void *get_custom_player_attribute(int attribute_id) { return nullptr; }
   virtual inline void unpause(Move move) {}
+  virtual inline void add_cuda(cudaStream_t* cuda_stream) {}
   unsigned int agent_seed;
 };
 
@@ -68,7 +70,10 @@ public:
 
   int victory_points = 0;
 
-  ~Player();
+  // Wrong Moves chosen before getting an available one
+  int mistakes = 0;
+
+  virtual ~Player();
 
   bool resources_for_street();
   bool resources_for_village();

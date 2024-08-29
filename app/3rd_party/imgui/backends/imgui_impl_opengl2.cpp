@@ -63,8 +63,10 @@
 #endif
 #if defined(__APPLE__)
 #define GL_SILENCE_DEPRECATION
+#include <windows.h>
 #include <OpenGL/gl.h>
 #else
+#include <windows.h>
 #include <GL/gl.h>
 #endif
 

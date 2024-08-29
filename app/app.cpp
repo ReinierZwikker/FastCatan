@@ -154,6 +154,8 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
   viewport.CalculateCoordinates(game_pointer);
   viewport.NewMap(game_pointer);
 
+  app_info.num_players = game->num_players;
+
 //  for (int player_i = 0; player_i < game->num_players; player_i++) {
 //    CheckAvailableTypes(game_pointer, player_i);
 //    show_player_window[player_i] = true;
@@ -203,9 +205,7 @@ void App::Refresh() {
       ImGui::MenuItem("Game", NULL, &show_game_window);
 
       for (int player_i = 0; player_i < num_players; player_i++) {
-        char player_string[16];
-        sprintf(player_string, "Player %i", player_i + 1);
-        ImGui::MenuItem(player_string, NULL, &show_player_window[player_i]);
+        ImGui::MenuItem((std::string("Player ") + std::to_string(player_i + 1)).c_str(), NULL, &show_player_window[player_i]);
       }
 
       ImGui::EndMenu();
@@ -253,9 +253,8 @@ void App::Refresh() {
   // Player Windows
   for (int player_i = 0; player_i < num_players; player_i++) {
     if (show_player_window[player_i] && app_info.state != AppState::Training) {
-      char player_string[12];
-      sprintf(player_string, "Player %i - %s", player_i + 1, color_name(index_color(player_i)).c_str());
-      ImGui::Begin(player_string, &show_player_window[player_i]);
+      std::string player_string = std::string("Player ") + std::to_string(player_i + 1) + " - " + color_names[player_i];
+      ImGui::Begin((player_string).c_str(), &show_player_window[player_i]);
       WindowPlayer(game_pointer, &viewport, player_i, &app_info);
 
       ImGui::End();
@@ -275,7 +274,7 @@ void App::Refresh() {
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   // Update and Render additional Platform Windows
-  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable && !done)
   {
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();

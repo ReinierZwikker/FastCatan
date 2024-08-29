@@ -7,10 +7,13 @@ GameManager::GameManager() : new_seed(0, std::numeric_limits<unsigned int>::max(
 
 GameManager::~GameManager() {
   delete game;
+  game = nullptr;
 
   close_log();
   delete log.game_summaries;
   delete log.moves;
+  log.game_summaries = nullptr;
+  log.moves = nullptr;
 }
 
 void GameManager::add_seed(unsigned int input_seed) {
@@ -56,7 +59,7 @@ void GameManager::close_log() const {
 
 void GameManager::add_game_to_log() {
   if (log.game_summaries && (log.type == GameLog || log.type == BothLogs)) {
-    log.game_summaries->id = games_played;
+    log.game_summaries->id = total_games_played;
     log.game_summaries->rounds = game->current_round;
     log.game_summaries->moves_played = log.writes;
     log.game_summaries->run_time = (uint8_t)(run_speed * 1000);  // to ms
@@ -111,7 +114,10 @@ void GameManager::assign_players() {
       case PlayerType::beanPlayer:
         if (bean_helper != nullptr) {
           manager_mutex.lock();
-          players[player_i] = bean_helper->ai_total_players[id][bean_player_i];
+          players[player_i] = bean_helper->ai_current_players[id][bean_player_i].player;
+//          if (id == 0) {
+//            players[player_i]->agent->add_cuda(&cuda_stream);
+//          }
           manager_mutex.unlock();
           players[player_i]->activated = true;
           game->assigned_players[player_i] = true;
@@ -164,7 +170,7 @@ void GameManager::run() {
   if (log.type == MoveLog || log.type == BothLogs) {
     Move move;
     move.type = MoveType::Replay;
-    move.index = games_played;
+    move.index = 0;
     log.moves[0] = move;
     ++log.writes;
   }
@@ -191,6 +197,7 @@ void GameManager::run() {
 
   game->reset(false);
 
+  ++total_games_played;
   ++games_played;
   clock_t end_clock = clock();
   run_speed = (double)(end_clock - begin_clock) / CLOCKS_PER_SEC;
@@ -199,7 +206,6 @@ void GameManager::run() {
 void GameManager::run_single_game() {
   game->log = &log;
   game->reseed(seed);
-  update_ai();
 
   run();
 
@@ -208,10 +214,13 @@ void GameManager::run_single_game() {
 }
 
 void GameManager::run_multiple_games() {
+  cudaError_t err = cudaStreamCreate(&cuda_stream);
+  if (err != cudaSuccess) {
+    fprintf(stderr, "Failed to create CUDA stream: %s\n", cudaGetErrorString(err));
+  }
 
   game->log = &log;
   game->reseed(seed);
-  //update_ai();
 
   int games_i = 0;
   while(keep_running && (epoch_length == 0 || games_i < epoch_length)) {
@@ -219,8 +228,11 @@ void GameManager::run_multiple_games() {
 
     run();
   }
-  keep_running = false;
+  if (!(epoch_length == 0 || games_i < epoch_length)) {
+    keep_running = false;
+  }
 
   write_log_to_disk();
   close_log();
 }
+
