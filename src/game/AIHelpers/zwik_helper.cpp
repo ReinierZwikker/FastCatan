@@ -33,7 +33,6 @@ ZwikHelper::~ZwikHelper() {
 }
 
 void ZwikHelper::update(Game* game) {
-  // TODO add score from previous game to individuals
   for (auto player : game->players) {
     if (player->agent->get_player_type() == PlayerType::zwikPlayer) {
       float obtained_score = 0.0f;
