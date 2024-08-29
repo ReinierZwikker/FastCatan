@@ -21,7 +21,16 @@ public:
 
   inline PlayerType get_player_type() override { return player_type; }
   inline PlayerState get_player_state() override { return player_state; }
-  inline void *get_custom_player_attribute() override { return &neural_web; }
+  inline void *get_custom_player_attribute(int attribute_id) override {
+    switch (attribute_id) {
+      case 0:
+        return &neural_web;
+      case 1:
+        return &mistakes_made;
+      default:
+        return nullptr;
+    }
+  }
 
   ~AIZwikPlayer() override;
 
@@ -46,6 +55,8 @@ public:
     Move get_move(Board *board, int cards[5], GameInfo game_info) override;
     void finish_round(Board *board) override;
     inline void unpause(Move move) override {};
+
+    int mistakes_made;
 };
 
 

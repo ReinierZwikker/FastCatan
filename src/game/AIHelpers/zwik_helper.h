@@ -57,6 +57,7 @@ private:
 
   std::vector<Player*> current_players{};
 
+
   inline static bool score_comp(const Individual& A, const Individual& B)
     { return A.score > B.score; };
 

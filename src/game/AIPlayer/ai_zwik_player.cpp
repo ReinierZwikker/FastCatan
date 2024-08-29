@@ -32,6 +32,8 @@ AIZwikPlayer::AIZwikPlayer(Player *connected_player) :
 
   update_environment();
 
+  mistakes_made = 0;
+
 }
 
 AIZwikPlayer::AIZwikPlayer(Player *connected_player, const std::string& ai_str) :
@@ -42,6 +44,8 @@ AIZwikPlayer::AIZwikPlayer(Player *connected_player, const std::string& ai_str) 
 //  player_print("Hello World! I am player number " + std::to_string(color_index(player->player_color) + 1) + "!\n");
 
   update_environment();
+
+  mistakes_made = 0;
 
 }
 
@@ -333,13 +337,18 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
       for (int move_i = 0; move_i < actual_available_moves; ++move_i) {
         if (chosen_move == player->available_moves[move_i]) {
           neural_web.clear_queue();
-          return chosen_move;
+          // player_print("Found move: " + move2string(chosen_move)
+          //              + " with index: " + std::to_string(chosen_move.index)
+          //              + " in " + std::to_string(cycles_ran) + " cycles\n");
+          return player->available_moves[move_i];
         }
       }
 
       for (int move_i = 0; move_i < actual_available_moves; ++move_i) {
         if (player->available_moves[move_i].type == chosen_move.type) {
           neural_web.clear_queue();
+          //player_print("Found move type: " + move2string(chosen_move) + " in " + std::to_string(cycles_ran) + " cycles\n");
+          ++mistakes_made;
           return player->available_moves[move_i];
         }
       }
@@ -355,8 +364,6 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
 
   neural_web.clear_queue();
 
-  // If nothing found:
-  //player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[0]) + "\n");
 
   //for (int move_i = 0; move_i < max_available_moves; ++move_i) {
   //  if (player->available_moves[move_i].type == MoveType::NoMove) {
@@ -364,6 +371,15 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
   //  }
   //}
 
+  mistakes_made += 2;
+
+  for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+    if (player->available_moves[move_i].type == MoveType::endTurn) {
+      //player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[move_i]) + "\n");
+      return player->available_moves[move_i];
+    }
+  }
+  //player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[0]) + "\n");
   return player->available_moves[0];
 }
 

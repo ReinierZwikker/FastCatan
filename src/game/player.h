@@ -13,7 +13,7 @@ public:
   virtual inline void finish_round(Board *board) {}
   virtual inline PlayerType get_player_type() { return PlayerType::NoPlayer; }
   virtual inline PlayerState get_player_state() { return Waiting; }
-  virtual inline void *get_custom_player_attribute() { return nullptr; }
+  virtual inline void *get_custom_player_attribute(int attribute_id) { return nullptr; }
   virtual inline void unpause(Move move) {}
   unsigned int agent_seed;
 };

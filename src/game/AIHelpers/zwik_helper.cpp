@@ -37,17 +37,23 @@ void ZwikHelper::update(Game* game) {
     if (player->agent->get_player_type() == PlayerType::zwikPlayer) {
       float obtained_score = 0.0f;
 
-      obtained_score += 0.2f * (float) player->victory_points;
+      // Add score for each victory point
+      obtained_score += 0.5f * (float) player->victory_points;
 
+      // Add score for winning player
       if (game->game_winner == player->player_color) {
-        obtained_score += 5.0f;
+        obtained_score += 2.5f;
       }
 
+      // Add to score if under 15 round, subtract if above
       if (game->current_round < 15) {
         obtained_score += (1.0f - (float) game->current_round) / 15.0f;
       } else {
         obtained_score += (- (float) game->current_round) / 100.0f;
       }
+
+      // Subtract score for mistakes in choosing a move
+      obtained_score -= 0.1f * (float) *(int *) player->agent->get_custom_player_attribute(1);
 
       helper_mutex.lock();
       gene_pool[player->player_id].score += obtained_score;
@@ -71,7 +77,29 @@ Player *ZwikHelper::get_new_player(Board* board, Color player_color) {
   return latest_player;
 }
 
+void add_float_to_csv(float value,
+                      const std::string& filename,
+                      const std::filesystem::path& dirPath) {
+  if (!std::filesystem::exists(dirPath)) {
+    std::filesystem::create_directory(dirPath);
+  }
+
+  std::ofstream file;
+  file.open(dirPath.string() + "/" + filename, std::ios_base::app);
+  file << std::to_string(value);
+  file.close();
+}
+
 void ZwikHelper::update_epoch() {
+
+  // Add average score to csv-file
+  float sum_score = 0.0f;
+  for (auto &individual : gene_pool) {
+    sum_score += individual.score;
+  }
+  add_float_to_csv(sum_score / (float) population_size,
+                   "training_1.csv",
+                   (std::filesystem::path) "trainings");
 
   // find player ranking
   sort_genes();

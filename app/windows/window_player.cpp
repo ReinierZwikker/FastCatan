@@ -136,7 +136,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_in
       ImGui::Text(
               (std::string("Hash: ")
                + std::to_string(
-                       ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute())->get_gene_hash())
+                       ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute(0))->get_gene_hash())
                ).c_str());
 
       ImGui::TableNextRow();
