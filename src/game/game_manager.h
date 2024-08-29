@@ -24,7 +24,7 @@ public:
   std::atomic<bool> keep_running = false;
 
   std::atomic<bool> updating = false;
-  std::atomic<bool> ready_for_update = false;
+  std::atomic<bool> ready_for_update = true;
 
   void run_multiple_games();
   void run_single_game();

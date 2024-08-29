@@ -55,6 +55,41 @@ BeanNN::BeanNN(bool cuda, unsigned int input_seed) : gen(input_seed) {
   }
 }
 
+BeanNN::BeanNN(const BeanNN* parent_1, const BeanNN* parent_2, const BeanNN* original) {
+  seed = original->seed;
+  gen = original->gen;
+
+  summary.id = original->summary.id;
+
+  cuda_active = original->cuda_active;
+
+  weight_size = original->weight_size;
+  bias_size = original->bias_size;
+
+  // Put the first half of genes from parent 1 and the second half from parent 2
+  int half_way_weight = (int)((float)weight_size * 0.5);
+  weights = new float[weight_size];
+  for (int weight_i = 0; weight_i < weight_size; ++weight_i) {
+    if (weight_i < half_way_weight) {
+      weights[weight_i] = parent_1->weights[weight_i];
+    }
+    else {
+      weights[weight_i] = parent_2->weights[weight_i];
+    }
+  }
+
+  int half_way_bias = (int)((float)bias_size * 0.5);
+  biases = new float[bias_size];
+  for (int bias_i = 0; bias_i < bias_size; ++bias_i) {
+    if (bias_i < half_way_bias) {
+      biases[bias_i] = parent_1->biases[bias_i];
+    }
+    else {
+      biases[bias_i] = parent_2->biases[bias_i];
+    }
+  }
+}
+
 BeanNN::~BeanNN() {
   if (cuda_active) {
     cudaFree(device_weights);
@@ -69,6 +104,12 @@ BeanNN::~BeanNN() {
 
   delete[] weights;
   delete[] biases;
+}
+
+void BeanNN::calculate_score() {
+  summary.score = summary.average_points * average_points_mult +
+                 (summary.win_rate - 0.25f) * win_rate_mult -
+                  summary.average_rounds * average_moves_mult;
 }
 
 float* BeanNN::calculate_move_probability(float* input, cudaStream_t* cuda_stream) {

@@ -11,24 +11,23 @@ public:
   BeanHelper(unsigned int, unsigned int, unsigned int);
   ~BeanHelper();
 
-  void update(Game* game, int id, int game_i);
+  void update(Game* game, int id);
 
   void shuffle_players();
   void eliminate();
   void reproduce();
   void mutate();
 
-  float average_points_mult = 1;
-  float win_rate_mult = 100;
-  float average_moves_mult = 0.005;
+  float survival_rate = 0.25;
+  unsigned int survival_amount = 0;
 
   int mutation_length = 10000;
+
+  std::vector<BeanNN*> nn_vector;
 
 private:
   std::random_device rd;
   std::mt19937 gen;
-
-  std::vector<BeanNN*> bean_nn_vector;
 
   BeanNN** survived_players;
 

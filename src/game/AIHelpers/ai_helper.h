@@ -7,12 +7,19 @@
 #include "../components.h"
 #include "game/game.h"
 
+struct AIWrapper {
+  PlayerType type = PlayerType::NoPlayer;
+  Player* player = nullptr;
+  PlayerSummary* summary = nullptr;
+};
+
+
 class AIHelper {
 public:
   AIHelper(unsigned int, unsigned int num_threads);
   ~AIHelper();
 
-  void log_game(Game* game, int id, int game_i);
+  void log_game(Game* game, int id);
 
   void delete_players();
   unsigned int number_of_threads;
@@ -20,10 +27,9 @@ public:
 
   std::mutex helper_mutex;
 
-  Player*** ai_total_players;
-  AISummary** ai_total_summaries;
+  AIWrapper** ai_current_players;
 
-  AISummary top_players[3] = {AISummary(), AISummary(), AISummary()};
+  PlayerSummary top_players_summaries[3] = {PlayerSummary(), PlayerSummary(), PlayerSummary()};
   float top_player_scores[3] = {0.0f, 0.0f, 0.0f};
 };
 

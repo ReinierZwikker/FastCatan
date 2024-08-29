@@ -9,23 +9,32 @@ int test();
 class BeanNN {
 public:
   BeanNN(bool cuda, unsigned int input_seed);
+  BeanNN(const BeanNN* parent_1, const BeanNN* parent_2, const BeanNN* original);
   ~BeanNN();
+
+  // Score parameters
+  const float average_points_mult = 1;
+  const float win_rate_mult = 20;
+  const float average_moves_mult = 1;
+
+  void calculate_score();
 
   float* calculate_move_probability(float* input, cudaStream_t* cuda_stream);
   float* calculate_move_probability(const float* input);
   const static uint16_t input_nodes = 240; // 240
   const static uint16_t output_nodes = 10 + 72 + 5 + 5; // 10 + 72 + 5 + 5;
+  const static uint8_t num_hidden_layers = 4;
+  const static uint16_t nodes_per_layer = 500;
 
   unsigned int seed;
 
   float* weights;
   float* biases;
 
-  const static uint8_t num_hidden_layers = 4;
-  const static uint16_t nodes_per_layer = 500;
-
   int weight_size = 0;
   int bias_size = 0;
+
+  PlayerSummary summary{};
 
 private:
   std::mt19937 gen;

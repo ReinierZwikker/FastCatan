@@ -100,7 +100,7 @@ void GameManager::add_ai_helper(ZwikHelper* zwik_ai_helper) {
 
 void GameManager::update_ai() {
   if (bean_helper_active) {
-    bean_helper->update(game, id, games_played);
+    bean_helper->update(game, id);
   }
   if (zwik_helper_active) {
     zwik_helper->update(game);
@@ -116,7 +116,7 @@ void GameManager::assign_players() {
       case PlayerType::beanPlayer:
         if (bean_helper != nullptr) {
           manager_mutex.lock();
-          players[player_i] = bean_helper->ai_total_players[id][bean_player_i];
+          players[player_i] = bean_helper->ai_current_players[id][bean_player_i].player;
 //          if (id == 0) {
 //            players[player_i]->agent->add_cuda(&cuda_stream);
 //          }
@@ -132,7 +132,7 @@ void GameManager::assign_players() {
       case PlayerType::zwikPlayer:
         if (zwik_helper != nullptr) {
           manager_mutex.lock();
-          players[player_i] = zwik_helper->ai_total_players[id][zwik_player_i];
+          players[player_i] = zwik_helper->ai_current_players[id][zwik_player_i].player;
           manager_mutex.unlock();
           players[player_i]->activated = true;
           game->assigned_players[player_i] = true;
@@ -219,7 +219,6 @@ void GameManager::run() {
 void GameManager::run_single_game() {
   game->log = &log;
   game->reseed(seed);
-  update_ai();
 
   run();
 
@@ -235,7 +234,6 @@ void GameManager::run_multiple_games() {
 
   game->log = &log;
   game->reseed(seed);
-  update_ai();
 
   while(keep_running) {
     run();

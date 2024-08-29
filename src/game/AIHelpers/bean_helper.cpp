@@ -5,34 +5,41 @@ BeanHelper::BeanHelper(unsigned int pop_size, unsigned int input_seed, unsigned 
                        gen(input_seed), AIHelper(pop_size, num_threads) {
 
   seed = input_seed;
+  survival_amount = (unsigned int)(survival_rate * (float)pop_size);
 
   BeanNN* bean_nn;
-  for (int player_i = 0; player_i < num_threads * 4; ++player_i) {
+  for (int player_i = 0; player_i < population_size; ++player_i) {
     bean_nn = new BeanNN(false, rd());
+    bean_nn->summary.id = player_i;
 
-    bean_nn_vector.push_back(bean_nn);
+    nn_vector.push_back(bean_nn);
   }
-
 }
 
 BeanHelper::~BeanHelper() {
-  for (int player_i = 0; player_i < number_of_threads; ++player_i) {
-    delete bean_nn_vector[player_i];
+  for (int player_i = 0; player_i < population_size; ++player_i) {
+    delete nn_vector[player_i];
   }
 }
 
-void BeanHelper::update(Game* game, int id, int game_i) {
-  log_game(game, id, game_i);
+void BeanHelper::update(Game* game, int id) {
+  log_game(game, id);
 
   helper_mutex.lock();
-  Player** ai_players = ai_total_players[id];
-  helper_mutex.unlock();
+  AIWrapper* ai_players = ai_current_players[id];
+
+  int bean_id;
   for (int player_i = 0; player_i < 4; ++player_i) {
-    ai_players[player_i] = new Player(&game->board, index_color(player_i));
-    auto bean_agent = new BeanPlayer(ai_players[player_i], bean_nn_vector[player_i]->seed);
-    bean_agent->neural_net = bean_nn_vector[player_i];
-    ai_players[player_i]->agent = bean_agent;
+    bean_id = player_i + id * 4;
+
+    ai_players[player_i].player = new Player(&game->board, index_color(player_i));
+    auto bean_agent = new BeanPlayer(ai_players[player_i].player, nn_vector[bean_id]->seed);
+
+    bean_agent->neural_net = nn_vector[bean_id];
+    ai_players[player_i].player->agent = bean_agent;
+    ai_players[player_i].summary = &nn_vector[bean_id]->summary;
   }
+  helper_mutex.unlock();
 }
 
 void BeanHelper::bubble_sort_indices(int* indices_array, const float* array, int size) {
@@ -52,66 +59,48 @@ void BeanHelper::bubble_sort_indices(int* indices_array, const float* array, int
 
 void BeanHelper::shuffle_players() {
   helper_mutex.lock();
-  const int size = 4;
 
   std::vector<int> shuffle_indices;
-  shuffle_indices.reserve(size);
+  shuffle_indices.reserve(population_size);
 
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < population_size; ++i) {
     shuffle_indices.push_back(i);
   }
 
   std::shuffle(std::begin(shuffle_indices), std::end(shuffle_indices), gen);
 
-  int player_i, thread_i, new_player_i, new_thread_i;
-  std::vector<BeanNN*> bean_nn_copy = bean_nn_vector;
-  AISummary** ai_summary_copy = ai_total_summaries;
-  for (int i = 0; i < size; ++i) {
-    player_i = i % 4;
-    thread_i = i / 4;
-
-    new_player_i = shuffle_indices[i] % 4;
-    new_thread_i = shuffle_indices[i] / 4;
-
-    bean_nn_vector[i] = bean_nn_copy[shuffle_indices[i]];
-    ai_total_summaries[thread_i][player_i] = ai_summary_copy[new_thread_i][new_player_i];
+  std::vector<BeanNN*> bean_nn_copy = nn_vector;
+  for (int i = 0; i < population_size; ++i) {
+    nn_vector[i] = bean_nn_copy[shuffle_indices[i]];
   }
   helper_mutex.unlock();
 }
 
 void BeanHelper::eliminate() {
-  std::cout << "ELIMINATE" << std::endl;
-
   helper_mutex.lock();
-  auto* score = new float[number_of_threads * 4];
-  for (int thread_i = 0; thread_i < number_of_threads; ++thread_i) {
-    for (int player_i = 0; player_i < 4; ++player_i) {
-      score[thread_i * 4 + player_i] = ai_total_summaries[thread_i][player_i].average_points * average_points_mult +
-                                      (ai_total_summaries[thread_i][player_i].win_rate - 0.25f) * win_rate_mult -
-                                       ai_total_summaries[thread_i][player_i].average_rounds * average_moves_mult;
+
+  // Calculate the score of the players
+  auto* score = new float[population_size];
+  for (unsigned int index = 0; index < population_size; ++index) {
+    nn_vector[index]->calculate_score();
+    score[index] = nn_vector[index]->summary.score;
+  }
+
+  // Get the indices of the best part of the population
+  int* indices = new int[population_size];
+  bubble_sort_indices(indices, score, (int)population_size);
+
+  // Select the players that will survive the elimination
+  survived_players = new BeanNN*[survival_amount];
+  for (unsigned int i = 0; i < survival_amount; ++i) {
+    survived_players[i] = nn_vector[indices[i]];
+
+    if (i < 3) {
+      top_players_summaries[i] = survived_players[i]->summary;
+      top_player_scores[i] = score[indices[i]];
     }
-  }
 
-  int* indices = new int[number_of_threads * 4];
-  bubble_sort_indices(indices, score, (int)number_of_threads * 4);
-
-  survived_players = new BeanNN*[number_of_threads];
-  for (unsigned int i = 0; i < number_of_threads; ++i) {
-    survived_players[i] = bean_nn_vector[indices[i]];
-  }
-
-  int player, thread;
-  for (int i = 0; i < 3; ++i) {
-    player = indices[i] % 4;
-    thread = indices[i] / 4;
-    top_players[i] = ai_total_summaries[thread][player];
-    top_player_scores[i] = score[indices[i]];
-  }
-
-  for (int thread_i = 0; thread_i < number_of_threads; ++thread_i) {
-    for (int player_i = 0; player_i < 4; ++player_i) {
-      ai_total_summaries[thread_i][player_i] = AISummary();
-    }
+    survived_players[i]->summary.reset();
   }
 
   delete[] indices;
@@ -120,24 +109,19 @@ void BeanHelper::eliminate() {
 }
 
 void BeanHelper::reproduce() {
-  std::uniform_int_distribution<int> distribution(0, (int)number_of_threads - 1);
+  std::uniform_int_distribution<int> distribution(0, (int)survival_amount - 1);
 
   helper_mutex.lock();
-  for (int i = 0; i < number_of_threads; ++i) {
-    bean_nn_vector[i] = survived_players[i];
+  for (int i = 0; i < survival_amount; ++i) {
+    nn_vector[i] = survived_players[i];
   }
 
-  for (int i = (int)number_of_threads; i < number_of_threads * 4; ++i) {
+  for (int i = (int)survival_amount; i < population_size; ++i) {
     BeanNN* parent_1 = survived_players[distribution(gen)];
     BeanNN* parent_2 = survived_players[distribution(gen)];
 
-    int half_way_i = BeanNN::nodes_per_layer * (BeanNN::input_nodes + BeanNN::nodes_per_layer * BeanNN::num_hidden_layers * 0.5);
-    bean_nn_vector[i] = parent_1;
-
-    // Add "DNA" from second parent
-    for (int j = half_way_i; j < parent_2->weight_size; ++j) {
-      bean_nn_vector[i]->weights[j] = parent_2->weights[j];
-    }
+    auto* child = new BeanNN(parent_1, parent_2, nn_vector[i]);
+    nn_vector[i] = child;
   }
 
   delete[] survived_players;
@@ -146,18 +130,18 @@ void BeanHelper::reproduce() {
 }
 
 void BeanHelper::mutate() {
-  std::uniform_int_distribution<int> distribution(0, (int)bean_nn_vector[0]->weight_size - mutation_length - 1);
+  helper_mutex.lock();
+  std::uniform_int_distribution<int> distribution(0, (int)nn_vector[0]->weight_size - mutation_length - 1);
 
   float min_weight = -1.0f / BeanNN::nodes_per_layer;
   float max_weight = 1.0f / BeanNN::nodes_per_layer;
   std::uniform_real_distribution<float> weight_distribution(min_weight, max_weight);
 
-  for (int nn_i = 0; nn_i < number_of_threads * 4; nn_i += 2) {
+  for (int nn_i = 0; nn_i < population_size; nn_i += 2) {
     int start_location_mutation = distribution(gen);
     for (int i = 0; i < mutation_length; ++i) {
-      bean_nn_vector[nn_i]->weights[start_location_mutation + 1] = weight_distribution(gen);
+      nn_vector[nn_i]->weights[start_location_mutation + 1] = weight_distribution(gen);
     }
-
   }
-
+  helper_mutex.unlock();
 }

@@ -2,59 +2,56 @@
 
 
 AIHelper::AIHelper(unsigned int pop_size, unsigned int num_threads) {
-  if (pop_size > pow(2, sizeof(AISummary::id) * 8)) {
+  if (pop_size > pow(2, sizeof(PlayerSummary::id) * 8)) {
     throw std::invalid_argument("Population size is too big");
   }
   population_size = pop_size;
   number_of_threads = num_threads;
 
-  ai_total_players = new Player**[num_threads];
-  ai_total_summaries = new AISummary*[num_threads];
-
+  ai_current_players = new AIWrapper*[num_threads];
   for (int thread = 0; thread < num_threads; ++thread) {
-    ai_total_players[thread] = new Player*[4];
-    ai_total_summaries[thread] = new AISummary[4];
-
-    for (int player = 0; player < 4; ++player) {
-      ai_total_summaries[thread][player].id = thread * 4 + player;
-    }
+    ai_current_players[thread] = new AIWrapper[4];
   }
+
 }
 
 AIHelper::~AIHelper() {
   delete_players();
   for (int thread = 0; thread < number_of_threads; ++thread) {
-    delete ai_total_players[thread];
-    delete ai_total_summaries[thread];
+    delete ai_current_players[thread];
   }
-  delete ai_total_players;
-  delete ai_total_summaries;
+  delete ai_current_players;
 }
 
-void AIHelper::log_game(Game* game, int id, int game_i) {
+void AIHelper::log_game(Game* game, int id) {
   helper_mutex.lock();
-  AISummary* ai_summaries = ai_total_summaries[id];
   for (int player_i = 0; player_i < game->num_players; ++player_i) {
-    if (game_i > 0) {
+    PlayerSummary* ai_summary = ai_current_players[id][player_i].summary;
 
-      ai_summaries[player_i].average_rounds = ((ai_summaries[player_i].average_rounds * (float)(game_i - 1) +
-                                               (float)game->current_round) /
-                                              ((float)game_i + 1));
+    if (ai_summary != nullptr) {
+      ++ai_summary->games_played;
 
-      ai_summaries[player_i].average_points = ((ai_summaries[player_i].average_points * (float)(game_i - 1) +
-                                               (float)game->players[player_i]->victory_points) /
-                                              ((float)game_i + 1));
+      if (ai_summary->games_played > 0) {
 
-      if (ai_summaries[player_i].average_points > 11) {
-        std::cout << game->players[player_i]->victory_points << std::endl;
-        std::cout << game_i << std::endl;
+        ai_summary->average_rounds = ((ai_summary->average_rounds * (float)(ai_summary->games_played - 1) +
+                                                (float)game->current_round) /
+                                               ((float)ai_summary->games_played + 1));
+
+        ai_summary->average_points = ((ai_summary->average_points * (float)(ai_summary->games_played - 1) +
+                                                (float)game->players[player_i]->victory_points) /
+                                               ((float)ai_summary->games_played + 1));
+
+        if (ai_summary->average_points > 11) {
+          std::cout << game->players[player_i]->victory_points << std::endl;
+          std::cout << ai_summary->games_played << std::endl;
+        }
+
+        if (game->game_winner == game->players[player_i]->player_color) {
+          ++ai_summary->wins;
+
+        }
+        ai_summary->win_rate = (float)ai_summary->wins / ((float)ai_summary->games_played + 1);
       }
-
-      if (game->game_winner == game->players[player_i]->player_color) {
-        ++ai_summaries[player_i].wins;
-
-      }
-      ai_summaries[player_i].win_rate = (float)ai_summaries[player_i].wins / ((float)game_i + 1);
     }
   }
   helper_mutex.unlock();

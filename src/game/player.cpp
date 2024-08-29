@@ -48,9 +48,11 @@ bool street_available(Street *street, Color color, bool opening_turn) {
     }
     if (!opening_turn) {
       for (auto & adjacent_street : adjacent_corner->streets) {
-        if (adjacent_street != nullptr) {
-          if (adjacent_street->color == color) {
-            adjacent = true;
+        if (adjacent_corner->color == Color::NoColor) {
+          if (adjacent_street != nullptr) {
+            if (adjacent_street->color == color) {
+              adjacent = true;
+            }
           }
         }
       }

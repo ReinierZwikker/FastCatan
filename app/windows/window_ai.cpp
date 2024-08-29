@@ -126,27 +126,63 @@ void WindowAI::bean_ai_window(Game* game) {
     ImGui::EndTable();
   }
 
-  if (ImGui::BeginTable("bean_settings", 1)) {
+  if (ImGui::BeginTable("bean_settings", 2)) {
     ImGui::TableNextColumn();
     ImGui::SliderInt("Population Size", &bean_pop_size, (int)processor_count * 4, 2000);
 
     ImGui::TableNextColumn();
-    ImGui::SliderInt("Amount of layers", &layers, 1, 50);
+    ImGui::InputInt("Seed", &bean_seed, 0);
 
     ImGui::TableNextColumn();
-    ImGui::SliderInt("Nodes per layer", &nodes_per_layer, 1, 300);
+    ImGui::InputInt("Shuffle Rate", &bean_shuffle_rate, 0);
+
+    ImGui::TableNextColumn();
+    ImGui::InputInt("Epoch", &bean_epoch, 0);
 
     ImGui::EndTable();
   }
 
-  if (ImGui::BeginTable("bean_seed", 2)) {
-    ImGui::TableNextColumn();
-    ImGui::InputInt("Seed", &bean_seed, 0);
+  static ImGuiTableFlags flags = ImGuiTableFlags_RowBg |
+                                 ImGuiTableFlags_Resizable |
+                                 ImGuiTableFlags_Reorderable |
+                                 ImGuiTableFlags_ScrollY;
 
-    ImGui::TableNextColumn();
-    ImGui::Checkbox("Randomize Seed", &randomize_seed);
+  if (bean_helper != nullptr) {
+    if (ImGui::BeginTable("bean_players", 9, flags)) {
+      ImGui::TableSetupColumn("Rank", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+      ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+      ImGui::TableSetupColumn("Score", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+      ImGui::TableSetupColumn("Wins", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+      ImGui::TableSetupColumn("Win %", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+      ImGui::TableSetupColumn("Avg. Points", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+      ImGui::TableSetupColumn("Avg. Rounds", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+      ImGui::TableSetupColumn("Mistakes", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+      ImGui::TableSetupColumn("Played", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+      ImGui::TableHeadersRow();
 
-    ImGui::EndTable();
+      for (int bean_player = 0; bean_player < bean_helper->population_size; ++bean_player) {
+        ImGui::TableNextColumn();
+        ImGui::Text("%i", bean_player + 1);
+        ImGui::TableNextColumn();
+        ImGui::Text("%i", bean_helper->nn_vector[bean_player]->summary.id);
+        ImGui::TableNextColumn();
+        ImGui::Text("%.2f", bean_helper->nn_vector[bean_player]->summary.score);
+        ImGui::TableNextColumn();
+        ImGui::Text("%i", bean_helper->nn_vector[bean_player]->summary.wins);
+        ImGui::TableNextColumn();
+        ImGui::Text("%.2f", bean_helper->nn_vector[bean_player]->summary.win_rate);
+        ImGui::TableNextColumn();
+        ImGui::Text("%.2f", bean_helper->nn_vector[bean_player]->summary.average_points);
+        ImGui::TableNextColumn();
+        ImGui::Text("%.2f", bean_helper->nn_vector[bean_player]->summary.average_rounds);
+        ImGui::TableNextColumn();
+        ImGui::Text("%i", bean_helper->nn_vector[bean_player]->summary.mistakes);
+        ImGui::TableNextColumn();
+        ImGui::Text("%i", bean_helper->nn_vector[bean_player]->summary.games_played);
+      }
+
+      ImGui::EndTable();
+    }
   }
 
 }
@@ -183,16 +219,16 @@ void WindowAI::thread_table(Game* game) {
 
       ImGui::TableNextColumn(); ImGui::Text("%i", thread + 1);
       ImGui::TableNextColumn(); ImGui::Text("%i", loaded_games_played);
-      if (bean_helper != nullptr) {
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][0].average_rounds);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][0].win_rate);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][0].average_points);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][1].win_rate);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][1].average_points);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][2].win_rate);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][2].average_points);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][3].win_rate);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_total_summaries[thread][3].average_points);
+      if (bean_helper != nullptr && bean_helper->ai_current_players[thread][0].summary != nullptr) {
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][0].summary->average_rounds);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][0].summary->win_rate);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][0].summary->average_points);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][1].summary->win_rate);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][1].summary->average_points);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][2].summary->win_rate);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][2].summary->average_points);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][3].summary->win_rate);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][3].summary->average_points);
       }
       else {
         ImGui::TableNextRow();
@@ -210,17 +246,17 @@ void WindowAI::thread_table(Game* game) {
     ImGui::TableSetupColumn("Wins", ImGuiTableColumnFlags_WidthFixed, 40.0f);
     ImGui::TableSetupColumn("Avg Rounds", 50.0f);
     ImGui::TableSetupColumn("Avg Points", 50.0f);
-    ImGui::TableSetupColumn("G Win%",     50.0f);
+    ImGui::TableSetupColumn("Win%",       50.0f);
     ImGui::TableSetupColumn("Score",      50.0f);
     ImGui::TableHeadersRow();
 
     for (int player_i = 0; player_i < 3; player_i++) {
       if (bean_helper != nullptr) {
-        ImGui::TableNextColumn(); ImGui::Text("%i", bean_helper->top_players[player_i].id);
-        ImGui::TableNextColumn(); ImGui::Text("%i", bean_helper->top_players[player_i].wins);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players[player_i].average_rounds);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players[player_i].average_points);
-        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players[player_i].win_rate);
+        ImGui::TableNextColumn(); ImGui::Text("%i", bean_helper->top_players_summaries[player_i].id);
+        ImGui::TableNextColumn(); ImGui::Text("%i", bean_helper->top_players_summaries[player_i].wins);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players_summaries[player_i].average_rounds);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players_summaries[player_i].average_points);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players_summaries[player_i].win_rate);
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_player_scores[player_i]);
       }
     }
@@ -231,7 +267,7 @@ void WindowAI::thread_table(Game* game) {
 
 
   if (bean_helper != nullptr) {
-    if (total_games_played > 200 * (bean_updates + 1)) {
+    if (total_games_played > bean_shuffle_rate * (bean_updates + 1)) {
 
       bool all_ready = true;
       for (int i = 0; i < num_threads; ++i) {
@@ -245,7 +281,7 @@ void WindowAI::thread_table(Game* game) {
         std::cout << "ready" << std::endl;
         bean_helper->shuffle_players();
 
-        if (total_games_played > 1000 * (bean_evolutions + 1)) {
+        if (total_games_played > bean_epoch * (bean_evolutions + 1)) {
           std::cout << "evolution" << std::endl;
           bean_helper->eliminate();
           bean_helper->reproduce();

@@ -482,14 +482,18 @@ struct Logger {
  *    AI     *
  *************/
 
-struct AISummary {
-  PlayerType type = PlayerType::NoPlayer;
+struct PlayerSummary {
   uint8_t wins = 0;
+  uint8_t mistakes = 0;  // Wrong Moves chosen before getting an available one
   uint16_t id = 0;
+  unsigned int games_played = 0;
   unsigned int seed = 42;
   float win_rate = 0;  // between 0-1
   float average_rounds = 0;
   float average_points = 0;  // between 0-11
+  float score = 0;
+
+  void reset() {wins = 0; mistakes = 0; games_played = 0; win_rate = 0; average_rounds = 0; average_points = 0; score = 0;}
 };
 
 

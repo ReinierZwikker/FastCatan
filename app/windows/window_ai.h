@@ -46,6 +46,8 @@ private:
   bool randomize_seed = false;
   int bean_updates = 0;
   int bean_evolutions = 0;
+  int bean_shuffle_rate = 200;
+  int bean_epoch = 1000;
 
   ZwikHelper* zwik_helper = nullptr;
   bool zwik_helper_active = false;

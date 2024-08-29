@@ -61,7 +61,7 @@ void WindowBoard(Game* game, ViewPort* viewport) {
     // Robber
     current_item = game->board.tile_array[tile_id].robber;
     ImGui::Combo("Robber", &current_item, "Empty\0Robber\0\0");
-    if (current_item != game->board.tile_array[tile_id].robber) {
+    if (current_item != (int)game->board.tile_array[tile_id].robber) {
       game->board.tile_array[tile_id].robber = current_item;
     }
 
