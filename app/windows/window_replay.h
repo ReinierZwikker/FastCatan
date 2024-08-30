@@ -27,7 +27,7 @@ private:
   void load_games(const std::string& folder);
   void transfer(const std::string& folder, int game_id);
 
-  GameManager* game_manager;
+  GameManager* game_manager = nullptr;
   GameStates game_state;
   PlayerState player_state;
   std::mutex mutex;

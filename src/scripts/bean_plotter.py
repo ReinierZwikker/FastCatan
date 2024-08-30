@@ -39,10 +39,11 @@ def load_multiple_dataframes(log_folder: str) -> list[list]:
 
     return dfs_list
 
+
 def draw_average_plot(dataframe_folders: list[list], variable: str):
     for dataframes in dataframe_folders:
         for dataframe in dataframes:
-
+            pass
 
 
 dataframes = load_dataframes("Baseline", 0)

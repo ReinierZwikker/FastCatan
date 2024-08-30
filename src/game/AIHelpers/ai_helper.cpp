@@ -51,6 +51,10 @@ void AIHelper::log_game(Game* game, int id) {
 
         }
         ai_summary->win_rate = (float)ai_summary->wins / ((float)ai_summary->games_played + 1);
+
+        ai_summary->mistakes = ((ai_summary->mistakes * (float)(ai_summary->games_played - 1) +
+                                   (float)ai_current_players[id][player_i].player->mistakes) /
+                                   ((float)ai_summary->games_played + 1));
       }
     }
   }

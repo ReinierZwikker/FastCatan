@@ -165,129 +165,139 @@ App::App(int, char**, Game* game) : io(initializeImGuiIO()) {
 void App::Refresh() {
   std::mutex mutex;
 
-  // Poll and handle messages (inputs, window resize, etc.)
-  // See the WndProc() function below for our to dispatch events to the Win32 backend.
-  while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
-  {
-    ::TranslateMessage(&msg);
-    ::DispatchMessage(&msg);
-    if (msg.message == WM_QUIT)
-      done = true;
-  }
-
-  // Start the Dear ImGui frame
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplWin32_NewFrame();
-  ImGui::NewFrame();
-
-  mutex.lock();
-  int num_players = game_pointer->num_players;
-  mutex.unlock();
-
-  if (ImGui::BeginMainMenuBar())
-  {
-    if (ImGui::BeginMenu("File"))
+  if (!closing) {
+    // Poll and handle messages (inputs, window resize, etc.)
+    // See the WndProc() function below for our to dispatch events to the Win32 backend.
+    while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
     {
-      ImGui::MenuItem("Show Demo Window", NULL, &show_demo_window);
-      ImGui::EndMenu();
+      ::TranslateMessage(&msg);
+      ::DispatchMessage(&msg);
+      if (msg.message == WM_QUIT)
+        closing = true;
     }
 
-    if (ImGui::BeginMenu("AI"))
-    {
-      ImGui::MenuItem("AI Menu", NULL, &show_ai_window);
-      ImGui::MenuItem("Replay Menu", NULL, &show_replay_window);
-      ImGui::EndMenu();
-    }
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
 
-    if (ImGui::BeginMenu("Debug"))
-    {
-      ImGui::MenuItem("Board", NULL, &show_board_window);
-      ImGui::MenuItem("Game", NULL, &show_game_window);
+    mutex.lock();
+    int num_players = game_pointer->num_players;
+    mutex.unlock();
 
-      for (int player_i = 0; player_i < num_players; player_i++) {
-        char player_string[16];
-        sprintf(player_string, "Player %i", player_i + 1);
-        ImGui::MenuItem(player_string, NULL, &show_player_window[player_i]);
+    if (ImGui::BeginMainMenuBar())
+    {
+      if (ImGui::BeginMenu("File"))
+      {
+        ImGui::MenuItem("Show Demo Window", NULL, &show_demo_window);
+        ImGui::EndMenu();
       }
 
-      ImGui::EndMenu();
+      if (ImGui::BeginMenu("AI"))
+      {
+        ImGui::MenuItem("AI Menu", NULL, &show_ai_window);
+        ImGui::MenuItem("Replay Menu", NULL, &show_replay_window);
+        ImGui::EndMenu();
+      }
+
+      if (ImGui::BeginMenu("Debug"))
+      {
+        ImGui::MenuItem("Board", NULL, &show_board_window);
+        ImGui::MenuItem("Game", NULL, &show_game_window);
+
+        for (int player_i = 0; player_i < num_players; player_i++) {
+          char player_string[16];
+          sprintf(player_string, "Player %i", player_i + 1);
+          ImGui::MenuItem(player_string, NULL, &show_player_window[player_i]);
+        }
+
+        ImGui::EndMenu();
+      }
+
+      ImGui::EndMainMenuBar();
     }
 
-    ImGui::EndMainMenuBar();
-  }
+    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+    if (show_demo_window)
+      ImGui::ShowDemoWindow(&show_demo_window);
 
-  // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-  if (show_demo_window)
-    ImGui::ShowDemoWindow(&show_demo_window);
-
-  // AI Menu
-  if (show_ai_window) {
-    ImGui::Begin("AI Menu", &show_ai_window);
-    window_ai.show(game_pointer, &app_info);
-
-    ImGui::End();
-  }
-
-  // Replay Menu
-  if (show_replay_window) {
-    ImGui::Begin("Replay Menu", &show_replay_window);
-    window_replay.show(game_pointer, &viewport, &app_info);
-
-    ImGui::End();
-  }
-
-  // Board Menu
-  if (show_board_window && app_info.state != AppState::Training) {
-    ImGui::Begin("Board", &show_board_window);
-    WindowBoard(game_pointer, &viewport);
-
-    ImGui::End();
-  }
-
-  // Game Menu
-  if (show_game_window && app_info.state != AppState::Training) {
-    ImGui::Begin("Game", &show_game_window);
-    WindowGame(game_pointer);
-
-    ImGui::End();
-  }
-
-  // Player Windows
-  for (int player_i = 0; player_i < num_players; player_i++) {
-    if (show_player_window[player_i] && app_info.state != AppState::Training) {
-      char player_string[12];
-      sprintf(player_string, "Player %i - %s", player_i + 1, color_name(index_color(player_i)).c_str());
-      ImGui::Begin(player_string, &show_player_window[player_i]);
-      WindowPlayer(game_pointer, &viewport, player_i, &app_info);
+    // AI Menu
+    if (show_ai_window) {
+      ImGui::Begin("AI Menu", &show_ai_window);
+      window_ai.show(game_pointer, &app_info);
 
       ImGui::End();
     }
+
+
+    // Replay Menu
+    if (show_replay_window) {
+      ImGui::Begin("Replay Menu", &show_replay_window);
+      window_replay.show(game_pointer, &viewport, &app_info);
+
+      ImGui::End();
+    }
+
+    // Board Menu
+    if (show_board_window && app_info.state != AppState::Training) {
+      ImGui::Begin("Board", &show_board_window);
+      WindowBoard(game_pointer, &viewport);
+
+      ImGui::End();
+    }
+
+    // Game Menu
+    if (show_game_window && app_info.state != AppState::Training) {
+      ImGui::Begin("Game", &show_game_window);
+      WindowGame(game_pointer);
+
+      ImGui::End();
+    }
+
+    // Player Windows
+    for (int player_i = 0; player_i < num_players; player_i++) {
+      if (show_player_window[player_i] && app_info.state != AppState::Training) {
+        char player_string[12];
+        sprintf(player_string, "Player %i - %s", player_i + 1, color_name(index_color(player_i)).c_str());
+        ImGui::Begin(player_string, &show_player_window[player_i]);
+        WindowPlayer(game_pointer, &viewport, player_i, &app_info);
+
+        ImGui::End();
+      }
+    }
+
+    // Rendering
+    ImGui::Render();
+    glViewport(0, 0, g_Width, g_Height);
+    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    if (app_info.state != AppState::Training) {
+      viewport.Refresh(game_pointer);
+    }
+
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Update and Render additional Platform Windows
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable && !done && !closing)
+    {
+      ImGui::UpdatePlatformWindows();
+      ImGui::RenderPlatformWindowsDefault();
+
+      // Restore the OpenGL rendering context to the main window DC, since platform windows might have changed it.
+      wglMakeCurrent(g_MainWindow.hDC, g_hRC);
+    }
+
+    // Present
+    ::SwapBuffers(g_MainWindow.hDC);
   }
 
-  // Rendering
-  ImGui::Render();
-  glViewport(0, 0, g_Width, g_Height);
-  glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  if (app_info.state != AppState::Training) {
-    viewport.Refresh(game_pointer);
+  if (app_info.state == AppState::Training && closing) {
+    window_ai.stop_threads();
   }
-
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-  // Update and Render additional Platform Windows
-  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable && !done)
-  {
-    ImGui::UpdatePlatformWindows();
-    ImGui::RenderPlatformWindowsDefault();
-
-    // Restore the OpenGL rendering context to the main window DC, since platform windows might have changed it.
-    wglMakeCurrent(g_MainWindow.hDC, g_hRC);
+  if (closing && app_info.state == AppState::Idle) {
+    done = true;
   }
-
-  // Present
-  ::SwapBuffers(g_MainWindow.hDC);
 }
 
 App::~App(){

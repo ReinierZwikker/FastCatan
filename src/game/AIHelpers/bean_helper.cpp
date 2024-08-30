@@ -22,6 +22,41 @@ BeanHelper::~BeanHelper() {
   }
 }
 
+void BeanHelper::to_csv(int shuffle_rate, int epoch) {
+  if (!std::filesystem::exists("bean_logs")) {
+    std::filesystem::create_directory("bean_logs");
+  }
+
+  std::ofstream csv_file;
+  std::string file_path = "bean_logs/game_" + std::to_string(reproductions) + ".csv";
+  csv_file.open(file_path);
+
+  csv_file << "Pop Size, Shuffle Rate, Epoch, Seed, Nodes per Layer, Layers\n";
+
+  csv_file << population_size;
+  csv_file << ","; csv_file << shuffle_rate;
+  csv_file << ","; csv_file << epoch;
+  csv_file << ","; csv_file << seed;
+  csv_file << ","; csv_file << BeanNN::nodes_per_layer;
+  csv_file << ","; csv_file << BeanNN::num_hidden_layers;
+  csv_file << "\n";
+
+  csv_file << "Id, Score, Wins, Win%, Average Points, Average Rounds, Mistakes, Games Played\n";
+  for (int bean_nn = 0; bean_nn < population_size; ++bean_nn) {
+    csv_file << nn_vector[bean_nn]->summary.id;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.score;
+    csv_file << ","; csv_file << (int)nn_vector[bean_nn]->summary.wins;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.win_rate;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.average_points;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.average_rounds;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.mistakes;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.games_played;
+    csv_file << "\n";
+  }
+
+  csv_file.close();
+}
+
 void BeanHelper::update(Game* game, int id) {
   log_game(game, id);
 
@@ -110,6 +145,8 @@ void BeanHelper::eliminate() {
 
 void BeanHelper::reproduce() {
   std::uniform_int_distribution<int> distribution(0, (int)survival_amount - 1);
+
+  ++reproductions;
 
   helper_mutex.lock();
   for (int i = 0; i < survival_amount; ++i) {

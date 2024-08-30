@@ -18,6 +18,7 @@ public:
   ~WindowAI();
 
   void show(Game* game, AppInfo* app_info);
+  void stop_threads();
 
 private:
   unsigned int seed = 0;
@@ -44,6 +45,7 @@ private:
   int nodes_per_layer = 50;
   int bean_seed = 42;
   bool randomize_seed = false;
+  bool log_bean_games = true;
   int bean_updates = 0;
   int bean_evolutions = 0;
   int bean_shuffle_rate = 200;

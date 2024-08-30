@@ -56,6 +56,27 @@ void WindowAI::train_button() {
   }
 }
 
+void WindowAI::stop_threads() {
+  if (app_info->state == AppState::Training) {
+    for (int game_i = 0; game_i < num_threads; game_i++) {
+      game_managers[game_i].game->game_state == GameStates::GameFinished;
+      game_managers[game_i].keep_running = false;
+      game_managers[game_i].close_log();
+    }
+
+    // Check if all threads have finished before allowing the program to quit
+    bool all_threads_finished = true;
+    for (int game_i = 0; game_i < num_threads; game_i++) {
+      if (!game_managers[game_i].finished && all_threads_finished) {
+        all_threads_finished = false;
+      }
+    }
+    if (all_threads_finished) {
+      app_info->state = AppState::Idle;
+    }
+  }
+}
+
 void WindowAI::stop_training_button() {
   bool blocking_button = false;
   if (app_info->state != AppState::Training) {
@@ -68,11 +89,21 @@ void WindowAI::stop_training_button() {
       game_managers[game_i].keep_running = false;
       game_managers[game_i].close_log();
     }
-    app_info->state = AppState::Idle;
   }
   if (blocking_button) {
     ImGui::PopStyleVar();
     ImGui::EndDisabled();
+  }
+
+  // Check if all threads have finished before allowing the program to quit
+  bool all_threads_finished = true;
+  for (int game_i = 0; game_i < num_threads; game_i++) {
+    if (!game_managers[game_i].finished && all_threads_finished) {
+      all_threads_finished = false;
+    }
+  }
+  if (all_threads_finished) {
+    app_info->state = AppState::Idle;
   }
 }
 
@@ -176,7 +207,7 @@ void WindowAI::bean_ai_window(Game* game) {
         ImGui::TableNextColumn();
         ImGui::Text("%.2f", bean_helper->nn_vector[bean_player]->summary.average_rounds);
         ImGui::TableNextColumn();
-        ImGui::Text("%i", bean_helper->nn_vector[bean_player]->summary.mistakes);
+        ImGui::Text("%.2f", bean_helper->nn_vector[bean_player]->summary.mistakes);
         ImGui::TableNextColumn();
         ImGui::Text("%i", bean_helper->nn_vector[bean_player]->summary.games_played);
       }
@@ -240,14 +271,15 @@ void WindowAI::thread_table(Game* game) {
     ImGui::EndTable();
   }
 
-  if (ImGui::BeginTable("best_players", 6))
+  if (ImGui::BeginTable("best_players", 7))
   {
     ImGui::TableSetupColumn("Player", ImGuiTableColumnFlags_WidthFixed, 40.0f);
     ImGui::TableSetupColumn("Wins", ImGuiTableColumnFlags_WidthFixed, 40.0f);
-    ImGui::TableSetupColumn("Avg Rounds", 50.0f);
-    ImGui::TableSetupColumn("Avg Points", 50.0f);
-    ImGui::TableSetupColumn("Win%",       50.0f);
-    ImGui::TableSetupColumn("Score",      50.0f);
+    ImGui::TableSetupColumn("Avg Rounds",   50.0f);
+    ImGui::TableSetupColumn("Avg Points",   50.0f);
+    ImGui::TableSetupColumn("Avg Mistakes", 50.0f);
+    ImGui::TableSetupColumn("Win%",         50.0f);
+    ImGui::TableSetupColumn("Score",        50.0f);
     ImGui::TableHeadersRow();
 
     for (int player_i = 0; player_i < 3; player_i++) {
@@ -256,6 +288,7 @@ void WindowAI::thread_table(Game* game) {
         ImGui::TableNextColumn(); ImGui::Text("%i", bean_helper->top_players_summaries[player_i].wins);
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players_summaries[player_i].average_rounds);
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players_summaries[player_i].average_points);
+        ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players_summaries[player_i].mistakes);
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_players_summaries[player_i].win_rate);
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->top_player_scores[player_i]);
       }
@@ -264,8 +297,7 @@ void WindowAI::thread_table(Game* game) {
     ImGui::EndTable();
   }
 
-
-
+  // Bean training
   if (bean_helper != nullptr) {
     if (total_games_played > bean_shuffle_rate * (bean_updates + 1)) {
 
@@ -278,12 +310,13 @@ void WindowAI::thread_table(Game* game) {
       }
 
       if (all_ready) {
-        std::cout << "ready" << std::endl;
         bean_helper->shuffle_players();
 
         if (total_games_played > bean_epoch * (bean_evolutions + 1)) {
-          std::cout << "evolution" << std::endl;
           bean_helper->eliminate();
+          if (log_bean_games) {
+            bean_helper->to_csv(bean_shuffle_rate, bean_epoch);
+          }
           bean_helper->reproduce();
           bean_helper->mutate();
 

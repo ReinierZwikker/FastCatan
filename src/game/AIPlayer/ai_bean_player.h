@@ -16,6 +16,7 @@ public:
   const float average_points_mult = 1;
   const float win_rate_mult = 20;
   const float average_moves_mult = 1;
+  const float mistake_mult = 0.05;
 
   void calculate_score();
 

@@ -241,5 +241,6 @@ void GameManager::run_multiple_games() {
 
   write_log_to_disk();
   close_log();
+  finished = true;
 }
 

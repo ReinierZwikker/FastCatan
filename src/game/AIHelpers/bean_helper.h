@@ -11,12 +11,16 @@ public:
   BeanHelper(unsigned int, unsigned int, unsigned int);
   ~BeanHelper();
 
+  void to_csv(int shuffle_rate, int epoch);
+
   void update(Game* game, int id);
 
   void shuffle_players();
   void eliminate();
   void reproduce();
   void mutate();
+
+  unsigned int reproductions = 0;
 
   float survival_rate = 0.25;
   unsigned int survival_amount = 0;
