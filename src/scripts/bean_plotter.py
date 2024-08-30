@@ -2,16 +2,50 @@ import pandas as pd
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
+import os.path
+
 
 colors = ["#00A6D6", "#A50034", "#00B8C8", "#0076C2", "#000000"]
 
-dataframes = []
-for i in range(0, 20):
-    dataframe = pd.read_csv(f'../../logs/game_{i}.csv', skiprows=2)
-    # dataframe = dataframe[dataframe[" Games Played"] != 0]
-    # dataframe = dataframe[dataframe[" Score"] > -500]
-    dataframes.append(dataframe.sort_values(by=" Average Rounds"))
 
+def load_dataframes(log_folder: str, folder_id: int) -> list:
+    dfs = []
+    reading_logs = True
+    current_log_id = 0
+    while reading_logs:
+        file_name = f"../../logs/{log_folder}/{folder_id}/game_{current_log_id}.csv"
+        if os.path.isfile(file_name):
+            dfs.append(pd.read_csv(file_name, skiprows=2))
+        else:
+            reading_logs = False
+
+        current_log_id += 1
+
+    return dfs
+
+
+def load_multiple_dataframes(log_folder: str) -> list[list]:
+    dfs_list = []
+    reading_folders = True
+    current_folder_id = 0
+    while reading_folders:
+        path_name = f"../../logs/{log_folder}/{current_folder_id}"
+        if os.path.isdir(path_name):
+            dfs_list.append(load_dataframes(log_folder, current_folder_id))
+        else:
+            reading_folders = False
+
+        current_folder_id += 1
+
+    return dfs_list
+
+def draw_average_plot(dataframe_folders: list[list], variable: str):
+    for dataframes in dataframe_folders:
+        for dataframe in dataframes:
+
+
+
+dataframes = load_dataframes("Baseline", 0)
 
 generations = np.arange(0, 20)
 average_rounds = np.zeros((20, 100))
