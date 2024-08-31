@@ -113,6 +113,7 @@ void GameManager::assign_players() {
     switch (app_info.selected_players[player_i]) {
       case PlayerType::beanPlayer:
         if (bean_helper != nullptr) {
+          if (!bean_helper->ai_current_players[id][bean_player_i].player) {bean_helper->update(game, id); }
           manager_mutex.lock();
           players[player_i] = bean_helper->ai_current_players[id][bean_player_i].player;
           if (bean_helper->cuda_on && (id == 0 || id == 1)) {

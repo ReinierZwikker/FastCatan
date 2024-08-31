@@ -100,6 +100,7 @@ void Game::add_player(Player *new_player, int player_id) {
 
 void Game::add_players(PlayerType player_type[4]) {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
+    players[player_i] = new Player();
     add_player(player_type[player_i], player_i);
   }
 }
