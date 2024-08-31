@@ -117,9 +117,10 @@ void GameManager::assign_players() {
         if (bean_helper != nullptr) {
           manager_mutex.lock();
           players[player_i] = bean_helper->ai_current_players[id][bean_player_i].player;
-//          if (id == 0) {
-//            players[player_i]->agent->add_cuda(&cuda_stream);
-//          }
+          if (bean_helper->cuda_on && (id == 0 || id == 1)) {
+            cuda_on = true;
+            players[player_i]->agent->add_cuda(&cuda_stream);
+          }
           manager_mutex.unlock();
           players[player_i]->activated = true;
           game->assigned_players[player_i] = true;

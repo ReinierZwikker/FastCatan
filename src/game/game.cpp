@@ -628,9 +628,11 @@ void Game::give_cards(int rolled_number) {
 
 void Game::add_move_to_log(Move move) const {
   current_player->mistakes += move.mistakes;
-  if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
-    log->moves[log->writes] = move;
-    ++log->writes;
+  if (log) {
+    if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
+      log->moves[log->writes] = move;
+      ++log->writes;
+    }
   }
 }
 

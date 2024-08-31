@@ -152,7 +152,7 @@ void WindowAI::bean_ai_window(Game* game) {
         delete bean_helper;
       }
       bean_helper_active = true;
-      bean_helper = new BeanHelper(bean_pop_size, (unsigned int)bean_seed, processor_count);
+      bean_helper = new BeanHelper(bean_pop_size, (unsigned int)bean_seed, processor_count, bean_cuda);
       for (int player_i = 0; player_i < app_info->num_players; ++player_i) {
         app_info->selected_players[player_i] = PlayerType::beanPlayer;
       }
@@ -174,6 +174,9 @@ void WindowAI::bean_ai_window(Game* game) {
     ImGui::TableNextColumn();
     ImGui::InputInt("Epoch", &bean_epoch, 0);
 
+    ImGui::TableNextColumn();
+    ImGui::Checkbox("Use CUDA", &bean_cuda);
+
     ImGui::EndTable();
   }
 
@@ -183,7 +186,7 @@ void WindowAI::bean_ai_window(Game* game) {
                                  ImGuiTableFlags_ScrollY;
 
   if (bean_helper != nullptr) {
-    if (ImGui::BeginTable("bean_players", 9, flags)) {
+    if (ImGui::BeginTable("bean_players", 10, flags)) {
       ImGui::TableSetupColumn("Rank", ImGuiTableColumnFlags_WidthFixed, 30.0f);
       ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
       ImGui::TableSetupColumn("Score", ImGuiTableColumnFlags_WidthFixed, 40.0f);
@@ -193,6 +196,7 @@ void WindowAI::bean_ai_window(Game* game) {
       ImGui::TableSetupColumn("Avg. Rounds", ImGuiTableColumnFlags_WidthFixed, 60.0f);
       ImGui::TableSetupColumn("Mistakes", ImGuiTableColumnFlags_WidthFixed, 40.0f);
       ImGui::TableSetupColumn("Played", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+      ImGui::TableSetupColumn("CUDA", ImGuiTableColumnFlags_WidthFixed, 20.0f);
       ImGui::TableHeadersRow();
 
       for (int bean_player = 0; bean_player < bean_helper->population_size; ++bean_player) {
@@ -214,6 +218,9 @@ void WindowAI::bean_ai_window(Game* game) {
         ImGui::Text("%.2f", bean_helper->nn_vector[bean_player]->summary.mistakes);
         ImGui::TableNextColumn();
         ImGui::Text("%i", bean_helper->nn_vector[bean_player]->summary.games_played);
+        ImGui::TableNextColumn();
+        if (bean_helper->nn_vector[bean_player]->cuda_active) {ImGui::Text("ON");}
+        else {ImGui::Text("OFF");}
       }
 
       ImGui::EndTable();
@@ -235,18 +242,19 @@ void WindowAI::thread_table(Game* game) {
   ImGui::Text("Total games played: %i", total_games_played);
   total_games_played = 0;
 
-  if (ImGui::BeginTable("thread_table", 11, flags)) {
-    ImGui::TableSetupColumn("Thread", ImGuiTableColumnFlags_WidthFixed, 40.0f);
-    ImGui::TableSetupColumn("Game N", ImGuiTableColumnFlags_WidthFixed, 40.0f);
-    ImGui::TableSetupColumn("Avg Turns", 50.0f);
-    ImGui::TableSetupColumn("G Win%",    50.0f);
-    ImGui::TableSetupColumn("G Avg VP",  50.0f);
-    ImGui::TableSetupColumn("R Win%",    50.0f);
-    ImGui::TableSetupColumn("R Avg VP",  50.0f);
-    ImGui::TableSetupColumn("W Win%",    50.0f);
-    ImGui::TableSetupColumn("W Avg VP",  50.0f);
-    ImGui::TableSetupColumn("B Win%",    50.0f);
-    ImGui::TableSetupColumn("B Avg VP",  50.0f);
+  if (ImGui::BeginTable("thread_table", 12, flags)) {
+    ImGui::TableSetupColumn("Thread",    ImGuiTableColumnFlags_WidthFixed, 40.0f);
+    ImGui::TableSetupColumn("Game N",    ImGuiTableColumnFlags_WidthFixed, 40.0f);
+    ImGui::TableSetupColumn("Avg Turns", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("G Win%",    ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("G Avg VP",  ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("R Win%",    ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("R Avg VP",  ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("W Win%",    ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("W Avg VP",  ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("B Win%",    ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("B Avg VP",  ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("CUDA",      ImGuiTableColumnFlags_WidthFixed, 50.0f);
     ImGui::TableHeadersRow();
 
     for (int thread = 0; thread < num_threads; thread++) {
@@ -264,6 +272,9 @@ void WindowAI::thread_table(Game* game) {
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][2].summary->average_points);
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][3].summary->win_rate);
         ImGui::TableNextColumn(); ImGui::Text("%.2f", bean_helper->ai_current_players[thread][3].summary->average_points);
+        ImGui::TableNextColumn();
+        if (game_managers[thread].cuda_on) {ImGui::Text("ON");}
+        else {ImGui::Text("OFF");}
       }
       else {
         ImGui::TableNextRow();

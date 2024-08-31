@@ -33,10 +33,10 @@ BeanNN::BeanNN(bool cuda, unsigned int input_seed) : gen(input_seed) {
   bias_size = nodes_per_layer * num_hidden_layers;
   biases = new float[bias_size];
   for (int bias_i = 0; bias_i < bias_size; ++bias_i) {
-    biases[bias_i] = 0.005;  // Init at 0.2, this is just randomly chosen
+    biases[bias_i] = 0.005;  // Init at 0.005, this is just randomly chosen
   }
 
-  if (cuda_active) {
+  if (cuda) {
     // ## Initialize CUDA
     // Malloc
     cudaMalloc(&device_weights, weight_size * sizeof(float));
@@ -52,6 +52,11 @@ BeanNN::BeanNN(bool cuda, unsigned int input_seed) : gen(input_seed) {
     // Memcpy
     cudaMemcpy(device_weights, weights, weight_size * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(device_biases, biases, bias_size * sizeof(float), cudaMemcpyHostToDevice);
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+      std::cout << "CUDA error: " << cudaGetErrorString(err) << std::endl;
+    }
   }
 }
 
@@ -86,6 +91,27 @@ BeanNN::BeanNN(const BeanNN* parent_1, const BeanNN* parent_2, const BeanNN* ori
     }
     else {
       biases[bias_i] = parent_2->biases[bias_i];
+    }
+  }
+
+  if (cuda_active) {
+    cudaMalloc(&device_weights, weight_size * sizeof(float));
+    cudaMalloc(&device_biases, bias_size * sizeof(float));
+    cudaMalloc(&device_input, input_nodes * sizeof(float));
+    cudaMalloc(&device_output, output_nodes * sizeof(float));
+
+    cudaMalloc(&device_layer_1, nodes_per_layer * sizeof(float));
+    cudaMalloc(&device_layer_2, nodes_per_layer * sizeof(float));
+
+    cudaMallocHost(&host_output, output_nodes *sizeof(float));
+
+    // Memcpy
+    cudaMemcpy(device_weights, weights, weight_size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(device_biases, biases, bias_size * sizeof(float), cudaMemcpyHostToDevice);
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+      std::cout << "CUDA error: " << cudaGetErrorString(err) << std::endl;
     }
   }
 }
@@ -132,14 +158,13 @@ float* BeanNN::calculate_move_probability(float* input, cudaStream_t* cuda_strea
     }
     else if (connection == num_hidden_layers) {  // Output layer
       weight_offset = nodes_per_layer * (input_nodes + nodes_per_layer * (connection - 1));
-      bias_offset = nodes_per_layer * connection;
 
       if (connection % 2 == 0) {
-        step_feed_forward(device_layer_2, device_weights + weight_offset, device_biases + bias_offset,
+        step_feed_forward(device_layer_2, device_weights + weight_offset, nullptr,
                           output_nodes, nodes_per_layer, device_output, cuda_stream);
       }
       else {
-        step_feed_forward(device_layer_1, device_weights + weight_offset, device_biases + bias_offset,
+        step_feed_forward(device_layer_1, device_weights + weight_offset, nullptr,
                           output_nodes, nodes_per_layer, device_output, cuda_stream);
       }
 
@@ -252,7 +277,7 @@ BeanPlayer::BeanPlayer(Player *connected_player, unsigned int input_seed) {
 }
 
 BeanPlayer::~BeanPlayer() {
-  std::cout << "getting deleted" << std::endl;
+  // Not in use!
 }
 
 void BeanPlayer::player_print(std::string text) {

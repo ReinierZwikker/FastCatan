@@ -39,10 +39,10 @@ public:
 
   PlayerSummary summary{};
 
+  bool cuda_active = false;
+
 private:
   std::mt19937 gen;
-
-  bool cuda_active = false;
 
   // CUDA memory
   float* device_weights;

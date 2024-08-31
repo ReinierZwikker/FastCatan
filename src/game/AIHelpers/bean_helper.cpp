@@ -1,15 +1,16 @@
 #include "bean_helper.h"
 
 
-BeanHelper::BeanHelper(unsigned int pop_size, unsigned int input_seed, unsigned int num_threads) :
+BeanHelper::BeanHelper(unsigned int pop_size, unsigned int input_seed, unsigned int num_threads, bool cuda) :
                        gen(input_seed), AIHelper(pop_size, num_threads) {
 
   seed = input_seed;
   survival_amount = (unsigned int)(survival_rate * (float)pop_size);
+  cuda_on = cuda;
 
   BeanNN* bean_nn;
   for (int player_i = 0; player_i < population_size; ++player_i) {
-    bean_nn = new BeanNN(false, rd());
+    bean_nn = new BeanNN(cuda, rd());
     bean_nn->summary.id = player_i;
 
     nn_vector.push_back(bean_nn);
@@ -38,7 +39,7 @@ void BeanHelper::to_csv(int shuffle_rate, int epoch) {
   csv_file << ","; csv_file << epoch;
   csv_file << ","; csv_file << seed;
   csv_file << ","; csv_file << BeanNN::nodes_per_layer;
-  csv_file << ","; csv_file << BeanNN::num_hidden_layers;
+  csv_file << ","; csv_file << (int)BeanNN::num_hidden_layers;
   csv_file << "\n";
 
   csv_file << "Id, Score, Wins, Win%, Average Points, Average Rounds, Mistakes, Games Played\n";

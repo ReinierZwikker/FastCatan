@@ -43,9 +43,8 @@ private:
   BeanHelper* bean_helper = nullptr;
   bool bean_helper_active = false;
   int bean_pop_size = 50;
-  int layers = 4;
-  int nodes_per_layer = 50;
   int bean_seed = 42;
+  bool bean_cuda = false;
   bool randomize_seed = false;
   bool log_bean_games = true;
   int bean_updates = 0;

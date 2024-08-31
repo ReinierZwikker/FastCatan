@@ -41,6 +41,7 @@ public:
   Logger log{};
 
   cudaStream_t cuda_stream;
+  bool cuda_on = false;
 
   AppInfo app_info;
   ErrorMessage error_message;
