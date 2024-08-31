@@ -17,7 +17,21 @@ Finally, the `NoAI` branch does not contain any NNs yet, and can be used to test
 
 ### Code Structure
 
+The code consists of a game and an app. The game, which is located in the `src` folder, manages the state of Catan and its players. The app handles the GUI and the interaction with the game.
 
+#### Game
+
+The game makes use of the board and the player classes. The board class keeps track of all the tiles, villages, cities and streets. The players keep track of their current resources and their available moves.
+However, the player itself does not decide on what move to play. The brain of the player is the player agent, whose spot can be filled up by a human player or an AI player and who chooses which moves to play.
+The game class itself manages which player currently has to play and connects the players to the board, it also keeps track of the dice throws.
+A game manager is also present to allow for batches of games to be played, for use in the training of the NNs.
+
+#### App
+
+The app consists of a main screen on which the board is drawn using OpenGL. The user can than open new windows using the menu on the top of the screen. From here there are 3 types of windows available.
+1) ImGui demo window, which shows inspiration for the windows and can be used for debugging.
+2) The AI training windows, which consist of the AI menu that is used for the actual training of the AI and the replay menu, which allows to replay logged AI matches to see how they have played.
+3) The debug windows, which show as many game details as possible and also allow for the switching of players and running single games.
 
 ### Game Structure
 
