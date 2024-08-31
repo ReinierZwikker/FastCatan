@@ -8,6 +8,13 @@ It consists of a Catan Engine that can play catan games,
 an extensive GUI that can be used to set up, monitor, and play games of Catan,
 and can simultaneously be used to set up and monitor training sessions.
 
+## Compilation
+
+To compile the code, the user needs to have the NVIDIA user toolkit available at the following link:
+https://developer.nvidia.com/cuda-toolkit. Additionally, the user should also use the Microsoft Windows OS and have OpenGL and SDL2 installed.
+
+To run the code, the user needs an NVIDIA graphics card on a Windows system.
+
 ## Structure
 
 There are four branches in this repository. This is the `BeanAI` branch, which contains the NN made by Mauro Beenders, and does require CUDA.
