@@ -42,21 +42,22 @@ void ZwikHelper::update(Game* game) {
 
       // Add score for winning player
       if (game->game_winner == player->player_color) {
-        obtained_score += 2.5f;
+        obtained_score += 10.0f;
       }
 
-      // Add to score if under 15 round, subtract if above
-      if (game->current_round < 15) {
-        obtained_score += (1.0f - (float) game->current_round) / 15.0f;
+      // Add to score if under 20 rounds, subtract if above
+      if (game->current_round < 20) {
+        obtained_score += (30.0f - (float) game->current_round) / 3.0f;
       } else {
-        obtained_score += (- (float) game->current_round) / 100.0f;
+        obtained_score += (30.0f - (float) game->current_round) / 15.0f;
       }
 
       // Subtract score for mistakes in choosing a move
-      obtained_score -= 0.1f * (float) *(int *) player->agent->get_custom_player_attribute(1);
+      obtained_score -= 0.5f * (float) *(int *) player->agent->get_custom_player_attribute(1);
 
       helper_mutex.lock();
       gene_pool[player->player_id].score += obtained_score;
+      gene_pool[player->player_id].played_games++;
       helper_mutex.unlock();
     }
   }
@@ -86,7 +87,7 @@ void add_float_to_csv(float value,
 
   std::ofstream file;
   file.open(dirPath.string() + "/" + filename, std::ios_base::app);
-  file << std::to_string(value);
+  file << std::to_string(value) + ", ";
   file.close();
 }
 
@@ -97,9 +98,14 @@ void ZwikHelper::update_epoch() {
   for (auto &individual : gene_pool) {
     sum_score += individual.score;
   }
-  add_float_to_csv(sum_score / (float) population_size,
+  add_float_to_csv(sum_score / ((float) population_size),
                    "training_1.csv",
                    (std::filesystem::path) "trainings");
+
+  // Correct for amount of games played
+  for (auto &individual : gene_pool) {
+    individual.score /= (float) individual.played_games;
+  }
 
   // find player ranking
   sort_genes();
@@ -109,6 +115,7 @@ void ZwikHelper::update_epoch() {
     gene_pool[gene_i].id = gene_i;
     ++gene_pool[gene_i].age;
     gene_pool[gene_i].score = 0.0f;
+    gene_pool[gene_i].played_games = 0;
   }
 
   std::vector<Individual> new_individuals;
@@ -124,8 +131,8 @@ void ZwikHelper::update_epoch() {
     gene_pool[gene_i] = new_individuals[gene_i - population_remain_size];
   }
 
-  for (auto & current_player : current_players) {
-    delete current_player;
+  for (int player_i; player_i < current_players.size(); ++player_i) {
+    delete current_players[player_i];
   }
   current_players.clear();
 }

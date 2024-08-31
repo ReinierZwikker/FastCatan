@@ -323,13 +323,21 @@ void NeuralWeb::combine_strings(const std::string& ai_str_A, const std::string& 
 
   int neuron_i = 0;
 
-  std::uniform_real_distribution<float> random_parent(0.0f, 1.0f);
+//  std::uniform_real_distribution<float> random_parent(0.0f, 1.0f);
+  std::uniform_int_distribution<> random_gene_cut(2, AmountOfNeurons-2);
+  int switch_neuron = random_gene_cut(gen);
+
+  std::uniform_real_distribution<float> random_mutation(0.0f, 1.0f);
+  std::uniform_int_distribution<> random_neuron(0, AmountOfNeurons-1);
+  std::uniform_real_distribution<float> random_weight(0.0f, 1.0f);
+
 
   while (ai_str_A[current_char_A] != '|' && ai_str_B[current_char_B] != '|') {
     if (neurons[neuron_i].id != std::stoi(read_until(ai_str_A, current_char_A, ':'))) { throw std::invalid_argument("File is not a valid NWeb"); }
     if (neurons[neuron_i].id != std::stoi(read_until(ai_str_B, current_char_B, ':'))) { throw std::invalid_argument("File is not a valid NWeb"); }
 
-    if (random_parent(gen) <= 0.5) {
+//    if (random_parent(gen) <= 0.5) {
+    if (neuron_i < switch_neuron) {
 
       neurons[neuron_i].threshold = std::stof(read_until(ai_str_A, current_char_A, ';'));
       read_until(ai_str_B, current_char_B, ';'); // <- skip other neuron
@@ -338,10 +346,21 @@ void NeuralWeb::combine_strings(const std::string& ai_str_A, const std::string& 
 
       while (ai_str_A[current_char_A] != '/') {
 
-        neurons[neuron_i].downstream_connections[downstream_conn_i] = &neurons[std::stoi(read_until(ai_str_A, current_char_A, ','))];
+        if (random_mutation(gen) > 0.001f) {
+          neurons[neuron_i].downstream_connections[downstream_conn_i] =
+                  &neurons[std::stoi(read_until(ai_str_A, current_char_A, ','))];
 
-        neurons[neuron_i].downstream_weights[downstream_conn_i] = std::stof(read_until(ai_str_A, current_char_A, '~'));
+          neurons[neuron_i].downstream_weights[downstream_conn_i] =
+                  std::stof(read_until(ai_str_A, current_char_A, '~'));
+        } else {
+          read_until(ai_str_A, current_char_A, ',');
+          neurons[neuron_i].downstream_connections[downstream_conn_i] =
+                  &neurons[random_neuron(gen)];
 
+          read_until(ai_str_A, current_char_A, '~');
+          neurons[neuron_i].downstream_weights[downstream_conn_i] =
+                  random_weight(gen);
+        }
         downstream_conn_i++;
 
       }
@@ -366,10 +385,21 @@ void NeuralWeb::combine_strings(const std::string& ai_str_A, const std::string& 
 
       while (ai_str_B[current_char_B] != '/') {
 
-        neurons[neuron_i].downstream_connections[downstream_conn_i] = &neurons[std::stoi(read_until(ai_str_B, current_char_B, ','))];
+        if (random_mutation(gen) > 0.001f) {
+          neurons[neuron_i].downstream_connections[downstream_conn_i] =
+                  &neurons[std::stoi(read_until(ai_str_B, current_char_B, ','))];
 
-        neurons[neuron_i].downstream_weights[downstream_conn_i] = std::stof(read_until(ai_str_B, current_char_B, '~'));
+          neurons[neuron_i].downstream_weights[downstream_conn_i] =
+                  std::stof(read_until(ai_str_B, current_char_B, '~'));
+        } else {
+          read_until(ai_str_B, current_char_B, ',');
+          neurons[neuron_i].downstream_connections[downstream_conn_i] =
+                  &neurons[random_neuron(gen)];
 
+          read_until(ai_str_B, current_char_B, '~');
+          neurons[neuron_i].downstream_weights[downstream_conn_i] =
+                  random_weight(gen);
+        }
         downstream_conn_i++;
 
       }

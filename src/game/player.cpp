@@ -35,6 +35,7 @@ Player::Player() {
 Player::~Player() {
   if (available_moves) {
     free(available_moves);
+    available_moves = nullptr;
   }
   delete(agent);
 }

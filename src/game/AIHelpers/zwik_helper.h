@@ -34,6 +34,7 @@ private:
                          AIZwikPlayer::amount_of_outputs,
                          seed).to_string();
         score = 0.0f;
+        played_games = 0;
         age = 0;
         id = given_id;
       }
@@ -43,12 +44,14 @@ private:
                  int given_id) {
         gene = NeuralWeb(parent_A_gene, parent_B_gene, seed).to_string();
         score = 0.0f;
+        played_games = 0;
         age = 0;
         id = given_id;
       }
 
       std::string gene;
       float score;
+      int played_games;
       int age;
       int id;
   };
