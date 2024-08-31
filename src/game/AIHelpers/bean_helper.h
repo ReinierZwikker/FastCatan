@@ -8,8 +8,10 @@
 
 class BeanHelper : public AIHelper{
 public:
-  BeanHelper(unsigned int, unsigned int, unsigned int);
+  BeanHelper(unsigned int, unsigned int, unsigned int, bool);
   ~BeanHelper();
+
+  void to_csv(int shuffle_rate, int epoch);
 
   void update(Game* game, int id);
 
@@ -18,9 +20,11 @@ public:
   void reproduce();
   void mutate();
 
+  bool cuda_on = false;
+
+  unsigned int reproductions = 0;
   float survival_rate = 0.25;
   unsigned int survival_amount = 0;
-
   int mutation_length = 10000;
 
   std::vector<BeanNN*> nn_vector;

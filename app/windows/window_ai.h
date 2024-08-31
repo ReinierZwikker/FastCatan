@@ -18,6 +18,7 @@ public:
   ~WindowAI();
 
   void show(Game* game, AppInfo* app_info);
+  void stop_threads();
 
 private:
   unsigned int seed = 0;
@@ -39,14 +40,16 @@ private:
   // Logging
   int log_type = 0;
 
+  bool closing_training = false;
+
   // AI Helpers
   BeanHelper* bean_helper = nullptr;
   bool bean_helper_active = false;
   int bean_pop_size = 50;
-  int layers = 4;
-  int nodes_per_layer = 50;
   int bean_seed = 42;
+  bool bean_cuda = false;
   bool randomize_seed = false;
+  bool log_bean_games = true;
   int bean_updates = 0;
   int bean_evolutions = 0;
   int bean_shuffle_rate = 200;

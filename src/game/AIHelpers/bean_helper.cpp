@@ -1,15 +1,16 @@
 #include "bean_helper.h"
 
 
-BeanHelper::BeanHelper(unsigned int pop_size, unsigned int input_seed, unsigned int num_threads) :
+BeanHelper::BeanHelper(unsigned int pop_size, unsigned int input_seed, unsigned int num_threads, bool cuda) :
                        gen(input_seed), AIHelper(pop_size, num_threads) {
 
   seed = input_seed;
   survival_amount = (unsigned int)(survival_rate * (float)pop_size);
+  cuda_on = cuda;
 
   BeanNN* bean_nn;
   for (int player_i = 0; player_i < population_size; ++player_i) {
-    bean_nn = new BeanNN(false, rd());
+    bean_nn = new BeanNN(cuda, rd());
     bean_nn->summary.id = player_i;
 
     nn_vector.push_back(bean_nn);
@@ -20,6 +21,41 @@ BeanHelper::~BeanHelper() {
   for (int player_i = 0; player_i < population_size; ++player_i) {
     delete nn_vector[player_i];
   }
+}
+
+void BeanHelper::to_csv(int shuffle_rate, int epoch) {
+  if (!std::filesystem::exists("bean_logs")) {
+    std::filesystem::create_directory("bean_logs");
+  }
+
+  std::ofstream csv_file;
+  std::string file_path = "bean_logs/game_" + std::to_string(reproductions) + ".csv";
+  csv_file.open(file_path);
+
+  csv_file << "Pop Size, Shuffle Rate, Epoch, Seed, Nodes per Layer, Layers\n";
+
+  csv_file << population_size;
+  csv_file << ","; csv_file << shuffle_rate;
+  csv_file << ","; csv_file << epoch;
+  csv_file << ","; csv_file << seed;
+  csv_file << ","; csv_file << BeanNN::nodes_per_layer;
+  csv_file << ","; csv_file << (int)BeanNN::num_hidden_layers;
+  csv_file << "\n";
+
+  csv_file << "Id, Score, Wins, Win%, Average Points, Average Rounds, Mistakes, Games Played\n";
+  for (int bean_nn = 0; bean_nn < population_size; ++bean_nn) {
+    csv_file << nn_vector[bean_nn]->summary.id;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.score;
+    csv_file << ","; csv_file << (int)nn_vector[bean_nn]->summary.wins;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.win_rate;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.average_points;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.average_rounds;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.mistakes;
+    csv_file << ","; csv_file << nn_vector[bean_nn]->summary.games_played;
+    csv_file << "\n";
+  }
+
+  csv_file.close();
 }
 
 void BeanHelper::update(Game* game, int id) {
@@ -111,9 +147,20 @@ void BeanHelper::eliminate() {
 void BeanHelper::reproduce() {
   std::uniform_int_distribution<int> distribution(0, (int)survival_amount - 1);
 
+  ++reproductions;
+
   helper_mutex.lock();
+  for (int i = 0; i < population_size; ++i) {
+    nn_vector[i]->garbage = true;  // Mark for deletion
+  }
+
+  // Create temporary vector
+  std::vector<BeanNN*> new_nn_vector;
+  new_nn_vector.reserve(population_size);
+
   for (int i = 0; i < survival_amount; ++i) {
-    nn_vector[i] = survived_players[i];
+    new_nn_vector.push_back(survived_players[i]);
+    new_nn_vector[i]->garbage = false;  // Keep these NNs
   }
 
   for (int i = (int)survival_amount; i < population_size; ++i) {
@@ -121,7 +168,20 @@ void BeanHelper::reproduce() {
     BeanNN* parent_2 = survived_players[distribution(gen)];
 
     auto* child = new BeanNN(parent_1, parent_2, nn_vector[i]);
-    nn_vector[i] = child;
+    new_nn_vector.push_back(child);
+  }
+
+  // Delete all the now unused NNs
+  for (int i = 0; i < population_size; ++i) {
+    if (nn_vector[i]->garbage) {
+      delete(nn_vector[i]);
+      nn_vector[i] = nullptr;
+    }
+  }
+
+  // Copy over all the pointers to the vector on the heap
+  for (int i = 0; i < population_size; ++i) {
+    nn_vector[i] = new_nn_vector[i];
   }
 
   delete[] survived_players;

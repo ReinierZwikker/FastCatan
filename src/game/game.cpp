@@ -42,18 +42,22 @@ Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed)
 
 Game::~Game() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
-    //delete(players[player_i]->agent);
-    delete(players[player_i]);
-    players[player_i] = nullptr;
+    if (players[player_i] != nullptr) {
+      if (players[player_i] != nullptr) {
+        delete(players[player_i]->agent);
+        players[player_i]->agent = nullptr;
+      }
+      delete(players[player_i]);
+      players[player_i] = nullptr;
+    }
   }
 }
 
 void Game::add_player(PlayerType player_type, int player_id) {
-
-  delete(players[player_id]);
-
-  players[player_id] = new Player(&board, index_color(player_id));
-
+  if (players[player_id]->agent) {
+    delete(players[player_id]->agent);
+    players[player_id]->agent = nullptr;
+  }
   switch (player_type) {
     case PlayerType::consolePlayer: {
       players[player_id]->agent = new ConsolePlayer(players[player_id]);
@@ -112,6 +116,10 @@ void Game::delete_players() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     if (players[player_i] != nullptr && assigned_players[player_i]) {
       assigned_players[player_i] = false;
+      if (players[player_i]->agent != nullptr) {
+        delete players[player_i]->agent;
+        players[player_i]->agent = nullptr;
+      }
       delete players[player_i];
       players[player_i] = nullptr;
     }
@@ -632,8 +640,10 @@ void Game::give_cards(int rolled_number) {
 
 void Game::add_move_to_log(Move move) const {
   current_player->mistakes += move.mistakes;
-  if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
-    log->moves[log->writes] = move;
-    ++log->writes;
+  if (log) {
+    if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
+      log->moves[log->writes] = move;
+      ++log->writes;
+    }
   }
 }

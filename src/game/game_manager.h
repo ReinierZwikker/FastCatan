@@ -22,6 +22,7 @@ public:
   std::atomic<int> total_games_played = 0;
   int games_played = 0;
   std::atomic<bool> keep_running = false;
+  std::atomic<bool> finished = false;
 
   int epoch_length = 0;
 
@@ -42,6 +43,7 @@ public:
   Logger log{};
 
   cudaStream_t cuda_stream;
+  bool cuda_on = false;
 
   AppInfo app_info;
   ErrorMessage error_message;

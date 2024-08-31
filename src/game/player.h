@@ -71,7 +71,7 @@ public:
   int victory_points = 0;
 
   // Wrong Moves chosen before getting an available one
-  int mistakes = 0;
+  unsigned int mistakes = 0;
 
   virtual ~Player();
 

@@ -29,6 +29,7 @@ class App {
     void Refresh();
 
     bool done = false;
+    bool closing = false;
 
   private:
     // Windows
