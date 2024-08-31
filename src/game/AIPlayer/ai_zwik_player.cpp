@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <iostream>
 
+#define PRINTNET false
+
 // HOW TO (de-)serialise
 //  neural_web.to_json((std::string) "ai_test.json", (std::filesystem::path) "ais");
 //  neural_web.to_string((std::string) "ai_test.ai", (std::filesystem::path) "ais");
@@ -21,7 +23,7 @@
 
 AIZwikPlayer::AIZwikPlayer(Player *connected_player) :
         neural_web(amount_of_neurons,
-              amount_of_env_inputs+amount_of_inputs,
+                   amount_of_env_inputs+amount_of_inputs,
                    amount_of_outputs,
                    5454321){
 
@@ -175,7 +177,7 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
    *    RUN WEB     *
    ******************/
 
-  int cycles_ran = neural_web.run_web(&inputs[0], &outputs[0], 10000);
+  int cycles_ran = neural_web.run_web(&inputs[0], &outputs[0], 5000);
 
   /******************
    *    OUTPUTS     *
@@ -337,9 +339,11 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
       for (int move_i = 0; move_i < actual_available_moves; ++move_i) {
         if (chosen_move == player->available_moves[move_i]) {
           neural_web.clear_queue();
-          // player_print("Found move: " + move2string(chosen_move)
-          //              + " with index: " + std::to_string(chosen_move.index)
-          //              + " in " + std::to_string(cycles_ran) + " cycles\n");
+          #if PRINTNET
+            player_print("Found move: " + move2string(chosen_move)
+                         + " with index: " + std::to_string(chosen_move.index)
+                         + " in " + std::to_string(cycles_ran) + " cycles\n");
+          #endif
           return player->available_moves[move_i];
         }
       }
@@ -347,7 +351,9 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
       for (int move_i = 0; move_i < actual_available_moves; ++move_i) {
         if (player->available_moves[move_i].type == chosen_move.type) {
           neural_web.clear_queue();
-          //player_print("Found move type: " + move2string(chosen_move) + " in " + std::to_string(cycles_ran) + " cycles\n");
+          #if PRINTNET
+            player_print("Found move type: " + move2string(chosen_move) + " in " + std::to_string(cycles_ran) + " cycles\n");
+          #endif
           ++mistakes_made;
           return player->available_moves[move_i];
         }
@@ -355,7 +361,7 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
     }
 
     // Run some more to find a possible solution
-    cycles_ran += neural_web.run_web(&inputs[0], &outputs[0], 3000);
+    cycles_ran += neural_web.run_web(&inputs[0], &outputs[0], 1000);
   }
 
   /******************
@@ -364,22 +370,23 @@ Move AIZwikPlayer::get_move(Board *board, int cards[5], GameInfo game_info) {
 
   neural_web.clear_queue();
 
-
-  //for (int move_i = 0; move_i < max_available_moves; ++move_i) {
-  //  if (player->available_moves[move_i].type == MoveType::NoMove) {
-  //    break;
-  //  }
-  //}
-
   mistakes_made += 2;
 
   for (int move_i = 0; move_i < max_available_moves; ++move_i) {
+    if (player->available_moves[move_i].type == MoveType::NoMove) {
+      break;
+    }
     if (player->available_moves[move_i].type == MoveType::endTurn) {
-      //player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[move_i]) + "\n");
+      #if PRINTNET
+        player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[move_i]) + "\n");
+      #endif
       return player->available_moves[move_i];
     }
   }
-  //player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[0]) + "\n");
+
+  #if PRINTNET
+  player_print("No move found!\n      Selected: " + move2string(chosen_move) + "\n      Playing:  " + move2string(player->available_moves[0]) + "\n");
+  #endif
   return player->available_moves[0];
 }
 

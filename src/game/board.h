@@ -22,7 +22,7 @@ public:
   Street *streets[street_rows]{};
 
   Tile *current_robber_tile = nullptr;
-  unsigned int seed = 42;
+  unsigned int seed = 15161;
   std::mt19937 gen;
 
   void Randomize();

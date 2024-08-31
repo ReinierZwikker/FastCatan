@@ -122,6 +122,13 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_in
       ImGui::TableNextColumn();
       ImGui::InputText("", ai_name, 10);
       ImGui::TableNextColumn();
+      ImGui::Text(
+              (std::string("Loaded Hash: ")
+               + std::to_string(
+                      ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute(0))->get_gene_hash())
+              ).c_str());
+
+      ImGui::TableNextColumn();
       if (ImGui::Button("Load Gene", ImVec2(-1.0f, 0.0f))) {
         player_mutex.lock();
         delete game->players[player_id]->agent;
@@ -133,11 +140,12 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_in
         player_mutex.unlock();
       }
       ImGui::TableNextColumn();
-      ImGui::Text(
-              (std::string("Hash: ")
-               + std::to_string(
-                       ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute(0))->get_gene_hash())
-               ).c_str());
+      if (ImGui::Button("Store to JSON", ImVec2(-1.0f, 0.0f))) {
+        player_mutex.lock();
+        ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute(0))->to_json((std::string) ai_name + ".json",
+                                                                                                (std::filesystem::path) "ais");
+        player_mutex.unlock();
+      }
 
       ImGui::TableNextRow();
     }
