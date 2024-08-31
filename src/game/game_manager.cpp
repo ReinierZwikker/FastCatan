@@ -168,6 +168,7 @@ void GameManager::assign_players() {
 void GameManager::run() {
   clock_t begin_clock = clock();
 
+  auto begin = std::chrono::high_resolution_clock::now();
   if (!updating) {
     if (ready_for_update) {
       update_ai();
@@ -212,6 +213,8 @@ void GameManager::run() {
   else {
     ready_for_update = true;
   }
+  auto end = std::chrono::high_resolution_clock::now();
+  std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
   clock_t end_clock = clock();
   run_speed = (double)(end_clock - begin_clock) / CLOCKS_PER_SEC;

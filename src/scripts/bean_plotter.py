@@ -62,7 +62,7 @@ def draw_average_plot(dataframe_folders: list[list], variable: str):
 
 
 var = "Score"
-file = "Baseline"
+file = "MassiveNN"
 
 loaded_data = load_multiple_dataframes(file)
 draw_average_plot(loaded_data, f" {var}")
@@ -77,6 +77,6 @@ plt.ylabel(var)
 plt.legend(fancybox=True)
 
 plt.tight_layout()
-plt.show()
-# plt.savefig(f"figures/{var.replace(' ', '')}{file}.svg")
+#plt.show()
+plt.savefig(f"figures/{var.replace(' ', '')}{file}.svg")
 

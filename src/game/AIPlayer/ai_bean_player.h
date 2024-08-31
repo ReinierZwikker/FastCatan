@@ -25,7 +25,7 @@ public:
   const static uint16_t input_nodes = 240; // 240
   const static uint16_t output_nodes = 10 + 72 + 5 + 5; // 10 + 72 + 5 + 5;
   const static uint8_t num_hidden_layers = 4;
-  const static uint16_t nodes_per_layer = 500;
+  const static uint16_t nodes_per_layer = 400;
 
   unsigned int seed;
 
