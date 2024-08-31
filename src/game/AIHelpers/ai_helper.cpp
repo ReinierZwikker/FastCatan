@@ -38,7 +38,7 @@ void AIHelper::log_game(Game* game, int id) {
                                                ((float)ai_summary->games_played + 1));
 
         ai_summary->average_points = ((ai_summary->average_points * (float)(ai_summary->games_played - 1) +
-                                                (float)game->players[player_i]->victory_points) /
+                                                (float)ai_current_players[id][player_i].player->victory_points) /
                                                ((float)ai_summary->games_played + 1));
 
         if (ai_summary->average_points > 11) {
@@ -46,7 +46,7 @@ void AIHelper::log_game(Game* game, int id) {
           std::cout << ai_summary->games_played << std::endl;
         }
 
-        if (game->game_winner == game->players[player_i]->player_color) {
+        if (game->game_winner == ai_current_players[id][player_i].player->player_color) {
           ++ai_summary->wins;
 
         }

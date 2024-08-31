@@ -32,6 +32,8 @@ public:
   float* weights;
   float* biases;
 
+  bool garbage = false;  // If true it should be deleted from memory after reproduction
+
   int weight_size = 0;
   int bias_size = 0;
 

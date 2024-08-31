@@ -149,8 +149,17 @@ void BeanHelper::reproduce() {
   ++reproductions;
 
   helper_mutex.lock();
+  for (int i = 0; i < population_size; ++i) {
+    nn_vector[i]->garbage = true;  // Mark for deletion
+  }
+
+  // Create temporary vector
+  std::vector<BeanNN*> new_nn_vector;
+  new_nn_vector.reserve(population_size);
+
   for (int i = 0; i < survival_amount; ++i) {
-    nn_vector[i] = survived_players[i];
+    new_nn_vector.push_back(survived_players[i]);
+    new_nn_vector[i]->garbage = false;  // Keep these NNs
   }
 
   for (int i = (int)survival_amount; i < population_size; ++i) {
@@ -158,7 +167,20 @@ void BeanHelper::reproduce() {
     BeanNN* parent_2 = survived_players[distribution(gen)];
 
     auto* child = new BeanNN(parent_1, parent_2, nn_vector[i]);
-    nn_vector[i] = child;
+    new_nn_vector.push_back(child);
+  }
+
+  // Delete all the now unused NNs
+  for (int i = 0; i < population_size; ++i) {
+    if (nn_vector[i]->garbage) {
+      delete(nn_vector[i]);
+      nn_vector[i] = nullptr;
+    }
+  }
+
+  // Copy over all the pointers to the vector on the heap
+  for (int i = 0; i < population_size; ++i) {
+    nn_vector[i] = new_nn_vector[i];
   }
 
   delete[] survived_players;

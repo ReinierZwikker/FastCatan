@@ -37,6 +37,8 @@ private:
   // Logging
   int log_type = 0;
 
+  bool closing_training = false;
+
   // AI Helpers
   BeanHelper* bean_helper = nullptr;
   bool bean_helper_active = false;

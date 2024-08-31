@@ -116,8 +116,10 @@ void Game::delete_players() {
   for (int player_i = 0; player_i < Game::num_players; player_i++) {
     if (players[player_i] != nullptr && assigned_players[player_i]) {
       assigned_players[player_i] = false;
-      delete players[player_i]->agent;
-      players[player_i]->agent = nullptr;
+      if (players[player_i]->agent != nullptr) {
+        delete players[player_i]->agent;
+        players[player_i]->agent = nullptr;
+      }
       delete players[player_i];
       players[player_i] = nullptr;
     }

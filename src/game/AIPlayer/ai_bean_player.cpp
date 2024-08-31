@@ -252,7 +252,7 @@ BeanPlayer::BeanPlayer(Player *connected_player, unsigned int input_seed) {
 }
 
 BeanPlayer::~BeanPlayer() {
-
+  std::cout << "getting deleted" << std::endl;
 }
 
 void BeanPlayer::player_print(std::string text) {

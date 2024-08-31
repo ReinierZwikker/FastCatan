@@ -38,6 +38,7 @@ void WindowAI::train_button() {
       if (zwik_helper_active) { game_managers[game_i].add_ai_helper(zwik_helper); }
 
       game_managers[game_i].keep_running = true;
+      game_managers[game_i].finished = false;
       game_managers[game_i].id = game_i;
 
       game_managers[game_i].log.type = static_cast<LogType>(log_type);
@@ -59,9 +60,10 @@ void WindowAI::train_button() {
 void WindowAI::stop_threads() {
   if (app_info->state == AppState::Training) {
     for (int game_i = 0; game_i < num_threads; game_i++) {
-      game_managers[game_i].game->game_state == GameStates::GameFinished;
+      game_managers[game_i].game->game_state = GameStates::GameFinished;
       game_managers[game_i].keep_running = false;
       game_managers[game_i].close_log();
+      closing_training = true;
     }
 
     // Check if all threads have finished before allowing the program to quit
@@ -79,7 +81,7 @@ void WindowAI::stop_threads() {
 
 void WindowAI::stop_training_button() {
   bool blocking_button = false;
-  if (app_info->state != AppState::Training) {
+  if (app_info->state != AppState::Training || closing_training) {
     blocking_button = true;
     ImGui::BeginDisabled(true);
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
@@ -88,6 +90,7 @@ void WindowAI::stop_training_button() {
     for (int game_i = 0; game_i < num_threads; game_i++) {
       game_managers[game_i].keep_running = false;
       game_managers[game_i].close_log();
+      closing_training = true;
     }
   }
   if (blocking_button) {
@@ -104,6 +107,7 @@ void WindowAI::stop_training_button() {
   }
   if (all_threads_finished) {
     app_info->state = AppState::Idle;
+    closing_training = false;
   }
 }
 
