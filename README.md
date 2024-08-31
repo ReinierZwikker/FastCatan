@@ -10,7 +10,7 @@ and can simultaneously be used to set up and monitor training sessions.
 
 ## Structure
 
-There are three branches in this repository. The `master` branch can play both NNs, but requires CUDA to compile. 
+There are four branches in this repository. The `master` branch can play both NNs, but requires CUDA to compile. 
 The `ZwikAI` branch contains the NN made by Reinier Zwikker, and does not require CUDA. 
 The `BeanAI` branch contains the NN made by Mauro Beenders, and does require CUDA to compile.
 Finally, the `NoAI` branch does not contain any NNs yet, and can be used to test the base implementation of FastCatan, or for the development for other players.
