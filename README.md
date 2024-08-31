@@ -1,6 +1,6 @@
 # FastCatan
 
-![This image contains an example of a catan game played with FastCatan, with streets, villages, and cities.](.\various\board.png "Board of Catan")
+![This image contains an example of a catan game played with FastCatan, with streets, villages, and cities.](./various/board.png "Board of Catan")
 
 This repository contains an implementation of 'The Settlers of Catan', 
 suitable for development of Neural Nets (NN) and other algorithmic player to play the game.
