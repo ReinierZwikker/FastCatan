@@ -2,7 +2,6 @@
 
 #include "game.h"
 #include "game/AIPlayer/random_player.h"
-#include "game/AIPlayer/ai_zwik_player.h"
 
 
 Game::Game(bool gui, int num_players, unsigned int input_seed) : gen(input_seed), dice(1, 6), card(0, 4) {
@@ -69,14 +68,6 @@ void Game::add_player(PlayerType player_type, int player_id) {
       players[player_id]->agent = new RandomPlayer(players[player_id], rd());
       assigned_players[player_id] = true;
       break;
-    }
-    case PlayerType::zwikPlayer: {
-      players[player_id]->agent = new AIZwikPlayer(players[player_id]);
-      assigned_players[player_id] = true;
-      break;
-    }
-    case PlayerType::beanPlayer: {
-      throw std::invalid_argument("BeanPlayer not available");
     }
     case PlayerType::NoPlayer: {
       throw std::invalid_argument("A player must be selected");
@@ -632,8 +623,10 @@ void Game::give_cards(int rolled_number) {
 
 void Game::add_move_to_log(Move move) const {
   current_player->mistakes += move.mistakes;
-  if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
-    log->moves[log->writes] = move;
-    ++log->writes;
+  if (log) {
+    if (log->move_file && (log->type == MoveLog || log->type == BothLogs)) {
+      log->moves[log->writes] = move;
+      ++log->writes;
+    }
   }
 }

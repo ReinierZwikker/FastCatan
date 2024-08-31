@@ -1,5 +1,4 @@
 #include "window_player.h"
-#include "../../src/game/AIPlayer/ai_zwik_player.h"
 
 #include "iostream"
 #include <mutex>
@@ -90,7 +89,7 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_in
     player_mutex.lock();
     int player_type = (int)game->players[player_id]->agent->get_player_type();
     int current_player_type = (int)game->players[player_id]->agent->get_player_type();  // Save the current player type
-    ImGui::Combo("##Player Type", &player_type, "Console  \0GUI      \0Random   \0Zwik     \0Bean     \0No Player\0\0");
+    ImGui::Combo("##Player Type", &player_type, "Console  \0GUI      \0Random   \0No Player\0\0");
     if (current_player_type != player_type) {
       game->add_player((PlayerType)player_type, player_id);
     }
@@ -115,39 +114,6 @@ void WindowPlayer(Game* game, ViewPort* viewport, int player_id, AppInfo* app_in
     if (disable_end_turn[player_id]) {
       ImGui::PopStyleVar();
       ImGui::EndDisabled();
-    }
-
-    // Load button
-    if (player_type == (int) PlayerType::zwikPlayer) {
-      ImGui::TableNextColumn();
-      ImGui::InputText("", ai_name, 10);
-      ImGui::TableNextColumn();
-      ImGui::Text(
-              (std::string("Loaded Hash: ")
-               + std::to_string(
-                      ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute(0))->get_gene_hash())
-              ).c_str());
-
-      ImGui::TableNextColumn();
-      if (ImGui::Button("Load Gene", ImVec2(-1.0f, 0.0f))) {
-        player_mutex.lock();
-        delete game->players[player_id]->agent;
-        std::ifstream file("ais/" + (std::string) ai_name);
-        std::string ai_gene;
-        file >> ai_gene;
-        file.close();
-        game->players[player_id]->agent = new AIZwikPlayer(game->players[player_id], ai_gene);
-        player_mutex.unlock();
-      }
-      ImGui::TableNextColumn();
-      if (ImGui::Button("Store to JSON", ImVec2(-1.0f, 0.0f))) {
-        player_mutex.lock();
-        ((NeuralWeb*) game->players[player_id]->agent->get_custom_player_attribute(0))->to_json((std::string) ai_name + ".json",
-                                                                                                (std::filesystem::path) "ais");
-        player_mutex.unlock();
-      }
-
-      ImGui::TableNextRow();
     }
 
     ImGui::TableNextColumn(); ImGui::Text("Longest Route");

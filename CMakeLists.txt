@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(FastCatan LANGUAGES CXX CUDA)
+project(FastCatan LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -11,12 +11,7 @@ find_package(CUDA 9.0 REQUIRED)
 # Define source files
 set(MAIN_SOURCES
         main.cpp
-        src/game/AIPlayer/cuda_nn.cu
 )
-
-set (VERIFICATION_SOURCES
-        verification.cpp
-        src/game/AIPlayer/cuda_nn.cu)
 
 set(GAME_SOURCES
         src/game/board.cpp
@@ -26,12 +21,6 @@ set(GAME_SOURCES
         src/game/player.cpp
         src/game/HumanPlayer/console_player.cpp
         src/game/HumanPlayer/gui_player.cpp
-        src/game/AIHelpers/ai_helper.cpp
-        src/game/AIHelpers/zwik_helper.cpp
-        src/game/AIHelpers/bean_helper.cpp
-        src/game/AIPlayer/ai_zwik_player.cpp
-        src/game/AIPlayer/NeuralWeb.cpp
-        src/game/AIPlayer/ai_bean_player.cpp
         src/game/AIPlayer/random_player.cpp
 )
 
@@ -58,19 +47,6 @@ set(APP_SOURCES
 add_executable(FastCatan)
 target_sources(FastCatan PRIVATE ${MAIN_SOURCES} ${APP_SOURCES} ${GAME_SOURCES})
 
-add_executable(Verification)
-target_sources(Verification PRIVATE ${VERIFICATION_SOURCES} ${GAME_SOURCES})
-
-set_target_properties(
-        FastCatan
-        PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
-set_target_properties(
-        Verification
-        PROPERTIES
-        CUDA_SEPARABLE_COMPILATION ON)
-
 # Custom Icon
 set(IMAGE_SOURCE "${CMAKE_SOURCE_DIR}/app/logo.ico")
 set(IMAGE_DESTINATION "${CMAKE_BINARY_DIR}/logo.ico")
@@ -85,16 +61,7 @@ target_include_directories(FastCatan PRIVATE
         src
         app/3rd_party/imgui
         app/3rd_party/imgui/backends
-        app
-        ${CUDA_INCLUDE_DIRS})
-
-# Include directories
-target_include_directories(Verification PRIVATE
-        src
-        app/3rd_party/imgui
-        app/3rd_party/imgui/backends
-        app
-        ${CUDA_INCLUDE_DIRS})
+        app)
 
 
 # Find OpenGL package
@@ -104,11 +71,6 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(FastCatan PRIVATE
         OpenGL::GL
         Dwmapi.lib
-        ${CUDA_LIBRARIES}
-)
-
-target_link_libraries(Verification PRIVATE
-        ${CUDA_LIBRARIES}
 )
 
 # Link against additional libraries for Windows
@@ -119,4 +81,3 @@ if(WIN32)
             user32
     )
 endif()
-

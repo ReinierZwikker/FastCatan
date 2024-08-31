@@ -388,8 +388,6 @@ enum class PlayerType : uint8_t {
     consolePlayer,
     guiPlayer,
     randomPlayer,
-    zwikPlayer,
-    beanPlayer,
     NoPlayer
 };
 

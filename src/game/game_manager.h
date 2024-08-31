@@ -3,8 +3,6 @@
 
 #include "game/game.h"
 #include "game/components.h"
-#include "game/AIHelpers/bean_helper.h"
-#include "game/AIHelpers/zwik_helper.h"
 #include "app_components.h"
 
 #include <atomic>
@@ -41,17 +39,9 @@ public:
   Game* game = nullptr;
   Logger log{};
 
-  cudaStream_t cuda_stream;
-
   AppInfo app_info;
   ErrorMessage error_message;
   void assign_players();
-  void add_ai_helper(BeanHelper*);
-  void add_ai_helper(ZwikHelper*);
-  BeanHelper* bean_helper = nullptr;
-  bool bean_helper_active = false;
-  ZwikHelper* zwik_helper = nullptr;
-  bool zwik_helper_active = false;
 
 private:
 

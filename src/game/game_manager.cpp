@@ -86,60 +86,10 @@ void GameManager::write_log_to_disk() const {
   }
 }
 
-void GameManager::add_ai_helper(BeanHelper* bean_ai_helper) {
-  bean_helper = bean_ai_helper;
-  bean_helper_active = true;
-}
-
-void GameManager::add_ai_helper(ZwikHelper* zwik_ai_helper) {
-  zwik_helper = zwik_ai_helper;
-  zwik_helper_active = true;
-}
-
-void GameManager::update_ai() {
-  if (bean_helper_active) {
-    bean_helper->update(game, id);
-  }
-  if (zwik_helper_active) {
-    zwik_helper->update(game);
-  }
-}
-
 void GameManager::assign_players() {
   Player* players[4];
-  uint8_t bean_player_i = 0;
-  uint8_t zwik_player_i = 0;
   for (int player_i = 0; player_i < app_info.num_players; ++player_i) {
     switch (app_info.selected_players[player_i]) {
-      case PlayerType::beanPlayer:
-        if (bean_helper != nullptr) {
-          manager_mutex.lock();
-          players[player_i] = bean_helper->ai_current_players[id][bean_player_i].player;
-//          if (id == 0) {
-//            players[player_i]->agent->add_cuda(&cuda_stream);
-//          }
-          manager_mutex.unlock();
-          players[player_i]->activated = true;
-          game->assigned_players[player_i] = true;
-          ++bean_player_i;
-        }
-        else {
-          throw std::invalid_argument("Bean Player not properly initialized");
-        }
-        break;
-      case PlayerType::zwikPlayer:
-        if (zwik_helper != nullptr) {
-          manager_mutex.lock();
-          players[player_i] = zwik_helper->get_new_player(&game->board, index_color(player_i));
-          manager_mutex.unlock();
-          players[player_i]->activated = true;
-          game->assigned_players[player_i] = true;
-          ++zwik_player_i;
-        }
-        else {
-          throw std::invalid_argument("Zwik Player not properly initialized");
-        }
-        break;
       case PlayerType::consolePlayer:
         throw std::invalid_argument("Console Player not properly initialized");
         break;
@@ -214,10 +164,6 @@ void GameManager::run_single_game() {
 }
 
 void GameManager::run_multiple_games() {
-  cudaError_t err = cudaStreamCreate(&cuda_stream);
-  if (err != cudaSuccess) {
-    fprintf(stderr, "Failed to create CUDA stream: %s\n", cudaGetErrorString(err));
-  }
 
   game->log = &log;
   game->reseed(seed);
@@ -236,3 +182,6 @@ void GameManager::run_multiple_games() {
   close_log();
 }
 
+void GameManager::update_ai() {
+
+}

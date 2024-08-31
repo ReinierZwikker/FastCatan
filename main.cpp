@@ -1,5 +1,3 @@
-#include <iostream>
-#include <stdio.h>
 #include <stdlib.h>
 #include <mutex>
 
@@ -14,17 +12,6 @@ int main(int argc, char *argv[]) {
 
   Game game = Game(amount_of_players);
 
-//  for (int i = 0; i < 50000; i++) {
-//    if (game.game_state == ReadyToStart) {
-//      game.run_game();
-//      std::cout << i << ", turns: " << game.current_round << std::endl;
-//      game.reset();
-//    }
-//    else {
-//      std::cout << "State: " << game_states[game.game_state] << std::endl;
-//    }
-//  }
-
   App app = App(0, nullptr, &game);
 
   while(!app.done) {
@@ -32,16 +19,3 @@ int main(int argc, char *argv[]) {
   }
   return 0;
 }
-
-// TODO GuiPlayer
-  // TODO Handle RobberTurn
-
-// TODO Robber
-  // TODO Show Robber
-  // TODO Pull card when moved
-
-// TODO Trading
-
-// TODO Exchanging with harbor
-
-// TODO Graphics
