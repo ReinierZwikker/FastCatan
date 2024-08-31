@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 
-#define PRINTNET true
+#define PRINTNET false
 
 // HOW TO (de-)serialise
 //  neural_web.to_json((std::string) "ai_test.json", (std::filesystem::path) "ais");

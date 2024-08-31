@@ -38,7 +38,7 @@ void ZwikHelper::update(Game* game) {
       float obtained_score = 0.0f;
 
       // Add score for each victory point
-      obtained_score += 0.5f * (float) player->victory_points;
+      obtained_score += 1.0f * (float) player->victory_points;
 
       // Add score for winning player
       if (game->game_winner == player->player_color) {
@@ -47,13 +47,13 @@ void ZwikHelper::update(Game* game) {
 
       // Add to score if under 20 rounds, subtract if above
       if (game->current_round < 20) {
-        obtained_score += (30.0f - (float) game->current_round) / 3.0f;
+        obtained_score += (30.0f - (float) game->current_round) / 5.0f;
       } else {
-        obtained_score += (30.0f - (float) game->current_round) / 15.0f;
+        obtained_score += (30.0f - (float) game->current_round) / 25.0f;
       }
 
       // Subtract score for mistakes in choosing a move
-      obtained_score -= 0.5f * (float) *(int *) player->agent->get_custom_player_attribute(1);
+      obtained_score -= 0.05f * (float) *(int *) player->agent->get_custom_player_attribute(1);
 
       helper_mutex.lock();
       gene_pool[player->player_id].score += obtained_score;
