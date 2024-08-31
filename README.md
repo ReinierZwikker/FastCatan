@@ -10,19 +10,17 @@ and can simultaneously be used to set up and monitor training sessions.
 
 ## Structure
 
-There are four branches in this repository. This is the `ZwikAI` branch, which contains the NN made by Reinier Zwikker, and does not require CUDA.
+There are four branches in this repository. This is the `BeanAI` branch, which contains the NN made by Mauro Beenders, and does require CUDA.
 
 ### NN Code structure
 
-The Neural Net implementation is in `./src/game/AIPlayer/NeuralWeb.cpp/h`. 
+The Neural Net implementation and its connection to Catan is in `./src/game/AIPlayer/ai_bean_player.cpp/h`. 
 
-This NN is connected to Catan in `./src/game/AIPlayer/ai_zwik_player.cpp/h`. 
-
-The files `./src/game/AIHelpers/zwik_helper.cpp/h` handle training.
+The files `./src/game/AIHelpers/bean_helper.cpp/h` handle training.
 
 ### Game Structure
 
-A game consists of 2-4 players, that each play a turn to complete a round, and play rounds until one player wins or the round limit is reached.
+A game consists of 4 players, that each play a turn to complete a round, and play rounds until one player wins or the round limit is reached.
 
 ## Players
 
